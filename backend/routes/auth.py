@@ -140,3 +140,8 @@ def get_kid_profiles(
     
     profiles = db.query(KidProfile).filter(KidProfile.parent_id == parent_id).all()
     return [{"id": p.id, "name": p.name, "age": p.age} for p in profiles]
+
+@router.get("/kid/profiles")
+def get_all_kid_profiles(db: Session = Depends(get_db)):
+    profiles = db.query(KidProfile).all()
+    return [{"id": p.id, "name": p.name, "age": p.age} for p in profiles]

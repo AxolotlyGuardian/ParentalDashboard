@@ -51,7 +51,7 @@ export default function KidsLauncher() {
 
   const loadAvailableProfiles = async () => {
     try {
-      const response = await authApi.getKidProfiles(1);
+      const response = await authApi.getAllKidProfiles();
       setAvailableProfiles(response.data);
     } catch (error) {
       console.error('Failed to load profiles', error);
