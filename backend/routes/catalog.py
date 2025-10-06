@@ -177,19 +177,25 @@ async def get_title_providers(
                     
                     # Extract JustWatch click URLs and map to providers
                     import re
+                    import urllib.parse
                     import base64
-                    import json
+                    import json as json_module
                     
                     justwatch_urls = re.findall(r'https://click\.justwatch\.com/a\?[^"]+', html)
                     
                     # Try to match JustWatch URLs to providers by decoding the cx parameter
                     for jw_url in justwatch_urls:
                         try:
-                            # Extract cx parameter
+                            # Extract and URL-decode cx parameter
                             cx_match = re.search(r'cx=([^&]+)', jw_url)
                             if cx_match:
-                                cx_data = base64.b64decode(cx_match.group(1)).decode('utf-8')
-                                cx_json = json.loads(cx_data)
+                                cx_encoded = urllib.parse.unquote(cx_match.group(1))
+                                # Add padding if needed for base64
+                                padding = len(cx_encoded) % 4
+                                if padding:
+                                    cx_encoded += '=' * (4 - padding)
+                                cx_data = base64.b64decode(cx_encoded).decode('utf-8')
+                                cx_json = json_module.loads(cx_data)
                                 
                                 # Get provider ID from the decoded data
                                 provider_id = cx_json.get('data', [{}])[0].get('data', {}).get('providerId')
@@ -199,9 +205,9 @@ async def get_title_providers(
                                     our_name = id_to_name[provider_id]
                                     if our_name in available_providers and our_name not in deep_links:
                                         deep_links[our_name] = jw_url
-                        except Exception:
-                            # If decoding fails, try simple text matching
-                            pass
+                        except Exception as e:
+                            # If decoding fails, continue to next URL
+                            continue
             except Exception as e:
                 print(f"Error fetching JustWatch links: {e}")
         
