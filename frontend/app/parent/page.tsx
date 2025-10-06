@@ -106,11 +106,19 @@ export default function ParentDashboard() {
     }
   };
 
-  const handleTogglePolicy = async (titleId: number, currentStatus: boolean) => {
+  const handleTogglePolicy = async (title: Title, currentStatus: boolean) => {
     if (!selectedProfile) return;
     
     try {
-      await policyApi.createPolicy(selectedProfile, titleId, !currentStatus);
+      await policyApi.createPolicy(
+        selectedProfile, 
+        title.id, 
+        !currentStatus,
+        title.title,
+        title.media_type,
+        title.poster_path,
+        title.rating
+      );
       loadPolicies();
     } catch (error) {
       alert('Failed to update policy');
@@ -321,7 +329,7 @@ export default function ParentDashboard() {
                       )}
                       <div className="text-sm font-semibold mb-2 text-gray-800">{title.title}</div>
                       <button
-                        onClick={() => handleTogglePolicy(title.id, getTitleStatus(title.id))}
+                        onClick={() => handleTogglePolicy(title, getTitleStatus(title.id))}
                         className={`w-full py-1 rounded text-xs font-semibold ${
                           getTitleStatus(title.id)
                             ? 'bg-red-500 text-white hover:bg-red-600'

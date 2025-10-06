@@ -12,6 +12,10 @@ class PolicyCreateRequest(BaseModel):
     kid_profile_id: int
     title_id: int
     is_allowed: bool
+    title: str = None
+    media_type: str = None
+    poster_path: str = None
+    rating: str = None
 
 class PolicyUpdateRequest(BaseModel):
     is_allowed: bool
@@ -25,6 +29,20 @@ def create_policy(
     profile = db.query(KidProfile).filter(KidProfile.id == request.kid_profile_id).first()
     if not profile or profile.parent_id != current_user.id:
         raise HTTPException(status_code=403, detail="Can only manage your own kid's policies")
+    
+    title = db.query(Title).filter(Title.id == request.title_id).first()
+    if not title:
+        if not request.title:
+            raise HTTPException(status_code=400, detail="Title data required for new titles")
+        new_title = Title(
+            id=request.title_id,
+            title=request.title,
+            media_type=request.media_type or "movie",
+            poster_path=request.poster_path,
+            rating=request.rating or "NR"
+        )
+        db.add(new_title)
+        db.commit()
     
     existing_policy = db.query(Policy).filter(
         Policy.kid_profile_id == request.kid_profile_id,
