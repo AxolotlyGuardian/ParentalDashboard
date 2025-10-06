@@ -10,5 +10,9 @@ export default function Home() {
     router.push('/mode-select');
   }, [router]);
 
-  return null;
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-600 to-pink-500">
+      <div className="text-white text-2xl">Loading Guardian Launcher...</div>
+    </div>
+  );
 }
