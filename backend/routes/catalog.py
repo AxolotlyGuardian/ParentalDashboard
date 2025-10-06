@@ -155,25 +155,60 @@ async def get_title_providers(
         for category in ["flatrate", "ads", "free"]:
             all_providers.extend(us_providers.get(category, []))
         
-        # Build provider list and deep_links mapping
-        available_providers = []
-        deep_links = {}
-        tmdb_link = us_providers.get("link", "")
-        
         # Reverse map: provider_id -> our name
         id_to_name = {v: k for k, v in PROVIDER_MAP.items()}
         
+        available_providers = []
         for provider in all_providers:
             provider_id = provider.get("provider_id")
-            provider_name = provider.get("provider_name", "")
-            
-            # Check if this is one of our supported providers
             if provider_id in id_to_name:
                 our_name = id_to_name[provider_id]
                 if our_name not in available_providers:
                     available_providers.append(our_name)
-                    # Store TMDB JustWatch link - it redirects to actual platform play URLs
-                    deep_links[our_name] = tmdb_link
+        
+        # Fetch JustWatch click URLs from TMDB watch page
+        deep_links = {}
+        tmdb_watch_url = us_providers.get("link", "")
+        if tmdb_watch_url and available_providers:
+            try:
+                watch_response = await client.get(tmdb_watch_url)
+                if watch_response.status_code == 200:
+                    html = watch_response.text
+                    
+                    # Extract JustWatch click URLs and map to providers
+                    import re
+                    import base64
+                    import json
+                    
+                    justwatch_urls = re.findall(r'https://click\.justwatch\.com/a\?[^"]+', html)
+                    
+                    # Try to match JustWatch URLs to providers by decoding the cx parameter
+                    for jw_url in justwatch_urls:
+                        try:
+                            # Extract cx parameter
+                            cx_match = re.search(r'cx=([^&]+)', jw_url)
+                            if cx_match:
+                                cx_data = base64.b64decode(cx_match.group(1)).decode('utf-8')
+                                cx_json = json.loads(cx_data)
+                                
+                                # Get provider ID from the decoded data
+                                provider_id = cx_json.get('data', [{}])[0].get('data', {}).get('providerId')
+                                
+                                # Match provider ID to our names
+                                if provider_id in id_to_name:
+                                    our_name = id_to_name[provider_id]
+                                    if our_name in available_providers and our_name not in deep_links:
+                                        deep_links[our_name] = jw_url
+                        except Exception:
+                            # If decoding fails, try simple text matching
+                            pass
+            except Exception as e:
+                print(f"Error fetching JustWatch links: {e}")
+        
+        # Fallback to TMDB link if JustWatch extraction failed
+        for provider in available_providers:
+            if provider not in deep_links:
+                deep_links[provider] = tmdb_watch_url
         
         # Save to database
         title.providers = available_providers
