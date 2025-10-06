@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { authApi, policyApi, launchApi } from '@/lib/api';
+import { authApi, policyApi, launchApi, catalogApi } from '@/lib/api';
 import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
 
 interface KidProfile {
@@ -18,6 +18,7 @@ interface Title {
   overview?: string;
   rating: string;
   providers?: string[];
+  deep_links?: { [key: string]: string };
 }
 
 interface BlockMessage {
@@ -79,13 +80,19 @@ export default function KidsLauncher() {
   };
 
   const handleTitleClick = async (title: Title) => {
+    // If providers not loaded yet, fetch them
     if (!title.providers || title.providers.length === 0) {
       try {
         const response = await catalogApi.getTitleProviders(title.id);
-        title.providers = response.data.providers;
+        const updatedTitle = {
+          ...title,
+          providers: response.data.providers,
+          deep_links: response.data.deep_links
+        };
+        setSelectedTitle(updatedTitle);
+        return;
       } catch (error) {
         console.error('Failed to fetch providers', error);
-        title.providers = [];
       }
     }
     setSelectedTitle(title);
@@ -98,8 +105,9 @@ export default function KidsLauncher() {
       const response = await launchApi.checkLaunch(profileId, selectedTitle.id, provider);
       
       if (response.data.allowed) {
-        window.open(response.data.deep_link || response.data.fallback_url, '_blank');
-        setSelectedTitle(null);
+        // Navigate directly to the deep link
+        const url = response.data.deep_link || response.data.fallback_url;
+        window.location.href = url;
       } else {
         setBlockMessage({
           show: true,

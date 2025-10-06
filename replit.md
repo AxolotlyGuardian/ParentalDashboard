@@ -154,3 +154,9 @@ The application is fully functional with:
 - 2025-10-06: Secured all endpoints with proper authentication dependencies
 - 2025-10-06: Fixed kid profile creation to accept JSON body
 - 2025-10-06: Implemented ownership validation across all endpoints
+- 2025-10-06: Removed PIN authentication - kids now login by tapping profile
+- 2025-10-06: Integrated TMDB watch provider API for platform filtering
+- 2025-10-06: Added provider data storage (providers, deep_links) to Title model
+- 2025-10-06: Implemented smart platform filtering - shows only available streaming services
+- 2025-10-06: Added TMDB JustWatch deep linking with fallback to platform search URLs
+- 2025-10-06: Fixed back button visibility with text-gray-800 styling

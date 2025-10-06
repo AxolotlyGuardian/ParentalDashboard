@@ -136,7 +136,7 @@ async def get_title_providers(
         raise HTTPException(status_code=404, detail="Title not found")
     
     if not settings.TMDB_API_KEY:
-        return {"providers": []}
+        return {"providers": [], "deep_links": {}}
     
     media_type = "movie" if title.media_type == "movie" else "tv"
     url = f"{settings.TMDB_API_BASE_URL}/{media_type}/{title.tmdb_id}/watch/providers"
@@ -145,20 +145,39 @@ async def get_title_providers(
     async with httpx.AsyncClient() as client:
         response = await client.get(url, params=params)
         if response.status_code != 200:
-            return {"providers": []}
+            return {"providers": [], "deep_links": {}}
         
         data = response.json()
         us_providers = data.get("results", {}).get("US", {})
-        flatrate = us_providers.get("flatrate", [])
         
+        # Get all provider categories (flatrate, ads, free, etc.)
+        all_providers = []
+        for category in ["flatrate", "ads", "free"]:
+            all_providers.extend(us_providers.get(category, []))
+        
+        # Build provider list and deep_links mapping
         available_providers = []
-        provider_ids_found = [p.get("provider_id") for p in flatrate]
+        deep_links = {}
+        tmdb_link = us_providers.get("link", "")
         
-        for name, provider_id in PROVIDER_MAP.items():
-            if provider_id in provider_ids_found:
-                available_providers.append(name)
+        # Reverse map: provider_id -> our name
+        id_to_name = {v: k for k, v in PROVIDER_MAP.items()}
         
+        for provider in all_providers:
+            provider_id = provider.get("provider_id")
+            provider_name = provider.get("provider_name", "")
+            
+            # Check if this is one of our supported providers
+            if provider_id in id_to_name:
+                our_name = id_to_name[provider_id]
+                if our_name not in available_providers:
+                    available_providers.append(our_name)
+                    # Store TMDB's JustWatch link for this provider
+                    deep_links[our_name] = tmdb_link
+        
+        # Save to database
         title.providers = available_providers
+        title.deep_links = deep_links
         db.commit()
         
-        return {"providers": available_providers}
+        return {"providers": available_providers, "deep_links": deep_links}

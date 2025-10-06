@@ -70,22 +70,29 @@ def check_launch_permission(
             message=f"Sorry, '{title.title}' is blocked. Talk to your parent if you think this is a mistake."
         )
     
-    provider_lower = request.provider.lower()
+    # Try to get the deep link from stored TMDB data first
     deep_link = None
-    fallback_url = FALLBACK_URLS.get(provider_lower, "https://google.com")
+    if title.deep_links and isinstance(title.deep_links, dict):
+        deep_link = title.deep_links.get(request.provider)
     
-    if provider_lower in DEEP_LINK_TEMPLATES:
-        template = DEEP_LINK_TEMPLATES[provider_lower]
-        if "{tmdb_id}" in template:
-            deep_link = template.format(tmdb_id=title.tmdb_id)
-        elif "{title}" in template:
-            deep_link = template.format(title=title.title.replace(" ", "+"))
-        else:
-            deep_link = template
+    # If no stored deep link, use fallback search URLs
+    provider_lower = request.provider.lower()
+    if not deep_link:
+        fallback_search_urls = {
+            "netflix": f"https://www.netflix.com/search?q={title.title.replace(' ', '+')}",
+            "disney": f"https://www.disneyplus.com/search?q={title.title.replace(' ', '+')}",
+            "prime": f"https://www.amazon.com/s?k={title.title.replace(' ', '+')}&i=instant-video",
+            "hulu": f"https://www.hulu.com/search?q={title.title.replace(' ', '+')}",
+            "peacock": f"https://www.peacocktv.com/search?q={title.title.replace(' ', '+')}",
+            "youtube": f"https://www.youtube.com/results?search_query={title.title.replace(' ', '+')}"
+        }
+        deep_link = fallback_search_urls.get(provider_lower, f"https://www.google.com/search?q={title.title}+watch+online")
+    
+    fallback_url = FALLBACK_URLS.get(provider_lower, "https://google.com")
     
     return LaunchResponse(
         allowed=True,
-        deep_link=deep_link or fallback_url,
+        deep_link=deep_link,
         fallback_url=fallback_url,
         message=f"Enjoy watching '{title.title}'!"
     )
