@@ -319,7 +319,7 @@ export default function ParentDashboard() {
                           className="w-full h-40 object-cover rounded-lg mb-2"
                         />
                       )}
-                      <div className="text-sm font-semibold mb-2">{title.title}</div>
+                      <div className="text-sm font-semibold mb-2 text-gray-800">{title.title}</div>
                       <button
                         onClick={() => handleTogglePolicy(title.id, getTitleStatus(title.id))}
                         className={`w-full py-1 rounded text-xs font-semibold ${
@@ -348,7 +348,7 @@ export default function ParentDashboard() {
                         className="w-full h-40 object-cover rounded-lg mb-2"
                       />
                     )}
-                    <div className="text-sm font-semibold mb-2">{policy.title}</div>
+                    <div className="text-sm font-semibold mb-2 text-gray-800">{policy.title}</div>
                     <div className={`text-xs font-bold ${policy.is_allowed ? 'text-green-600' : 'text-red-600'}`}>
                       {policy.is_allowed ? '✓ Allowed' : '✗ Blocked'}
                     </div>
