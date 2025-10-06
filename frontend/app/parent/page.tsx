@@ -41,7 +41,6 @@ export default function ParentDashboard() {
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [newKidName, setNewKidName] = useState('');
   const [newKidAge, setNewKidAge] = useState('');
-  const [newKidPin, setNewKidPin] = useState('');
   const [showNewKidForm, setShowNewKidForm] = useState(false);
 
   useEffect(() => {
@@ -83,10 +82,9 @@ export default function ParentDashboard() {
     if (!userId) return;
     
     try {
-      await authApi.createKidProfile(userId, newKidName, parseInt(newKidAge), newKidPin);
+      await authApi.createKidProfile(userId, newKidName, parseInt(newKidAge), '0000');
       setNewKidName('');
       setNewKidAge('');
-      setNewKidPin('');
       setShowNewKidForm(false);
       loadKidProfiles(userId);
     } catch (error) {
@@ -245,13 +243,13 @@ export default function ParentDashboard() {
 
           {showNewKidForm && (
             <form onSubmit={handleCreateKidProfile} className="mb-4 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="flex gap-4">
                 <input
                   type="text"
                   placeholder="Name"
                   value={newKidName}
                   onChange={(e) => setNewKidName(e.target.value)}
-                  className="px-4 py-2 border rounded-lg text-gray-800"
+                  className="px-4 py-2 border rounded-lg text-gray-800 flex-1"
                   required
                 />
                 <input
@@ -259,21 +257,13 @@ export default function ParentDashboard() {
                   placeholder="Age"
                   value={newKidAge}
                   onChange={(e) => setNewKidAge(e.target.value)}
-                  className="px-4 py-2 border rounded-lg text-gray-800"
+                  className="px-4 py-2 border rounded-lg text-gray-800 w-24"
                   required
                 />
-                <input
-                  type="password"
-                  placeholder="PIN"
-                  value={newKidPin}
-                  onChange={(e) => setNewKidPin(e.target.value)}
-                  className="px-4 py-2 border rounded-lg text-gray-800"
-                  required
-                />
+                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  Create Profile
+                </button>
               </div>
-              <button type="submit" className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                Create Profile
-              </button>
             </form>
           )}
 

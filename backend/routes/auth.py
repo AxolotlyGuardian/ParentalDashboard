@@ -89,16 +89,8 @@ def parent_login(request: ParentLoginRequest, db: Session = Depends(get_db)):
 @router.post("/kid/login", response_model=TokenResponse)
 def kid_login(request: KidLoginRequest, db: Session = Depends(get_db)):
     profile = db.query(KidProfile).filter(KidProfile.id == request.profile_id).first()
-    if not profile or not profile.pin:
-        raise HTTPException(status_code=401, detail="Invalid PIN")
-    
-    try:
-        pin_valid = bcrypt.checkpw(request.pin.encode('utf-8'), profile.pin.encode('utf-8'))
-    except (ValueError, TypeError):
-        raise HTTPException(status_code=401, detail="Invalid PIN")
-    
-    if not pin_valid:
-        raise HTTPException(status_code=401, detail="Invalid PIN")
+    if not profile:
+        raise HTTPException(status_code=401, detail="Profile not found")
     
     access_token = create_access_token({"sub": str(profile.id), "role": "kid"})
     return TokenResponse(

@@ -32,8 +32,6 @@ export default function KidsLauncher() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profileId, setProfileId] = useState<number | null>(null);
   const [availableProfiles, setAvailableProfiles] = useState<KidProfile[]>([]);
-  const [selectedProfileForLogin, setSelectedProfileForLogin] = useState<number | null>(null);
-  const [pin, setPin] = useState('');
   const [allowedTitles, setAllowedTitles] = useState<Title[]>([]);
   const [selectedTitle, setSelectedTitle] = useState<Title | null>(null);
   const [blockMessage, setBlockMessage] = useState<BlockMessage>({ show: false, message: '', title: '' });
@@ -58,19 +56,15 @@ export default function KidsLauncher() {
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedProfileForLogin) return;
-
+  const handleProfileClick = async (profileId: number) => {
     try {
-      const response = await authApi.kidLogin(selectedProfileForLogin, pin);
+      const response = await authApi.kidLogin(profileId, '0000');
       setToken(response.data.access_token);
       setProfileId(response.data.profile_id);
       setIsLoggedIn(true);
       loadAllowedTitles(response.data.profile_id);
     } catch (error) {
-      alert('Invalid PIN');
-      setPin('');
+      alert('Failed to login');
     }
   };
 
@@ -198,44 +192,15 @@ export default function KidsLauncher() {
               {availableProfiles.map((profile) => (
                 <button
                   key={profile.id}
-                  onClick={() => setSelectedProfileForLogin(profile.id)}
-                  className={`p-6 rounded-2xl border-4 transition ${
-                    selectedProfileForLogin === profile.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-300 bg-white hover:border-blue-300'
-                  }`}
+                  onClick={() => handleProfileClick(profile.id)}
+                  className="p-6 rounded-2xl border-4 border-gray-300 bg-white hover:border-blue-500 hover:bg-blue-50 hover:scale-105 transition-all"
                 >
                   <div className="text-5xl mb-2">👤</div>
-                  <div className="font-bold text-lg">{profile.name}</div>
+                  <div className="font-bold text-lg text-gray-800">{profile.name}</div>
                 </button>
               ))}
             </div>
           </div>
-
-          {selectedProfileForLogin && (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-xl font-medium text-gray-700 mb-2">
-                  Enter Your PIN
-                </label>
-                <input
-                  type="password"
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value)}
-                  className="w-full px-6 py-4 border-4 border-gray-300 rounded-2xl text-2xl text-center focus:ring-4 focus:ring-blue-500 focus:border-transparent"
-                  maxLength={4}
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-green-400 to-blue-500 text-white py-4 rounded-2xl font-bold text-xl hover:scale-105 transition-transform"
-              >
-                Let's Go! 🚀
-              </button>
-            </form>
-          )}
 
           <button
             onClick={() => router.push('/mode-select')}
