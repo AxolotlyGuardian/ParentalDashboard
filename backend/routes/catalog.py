@@ -158,20 +158,10 @@ async def get_title_providers(
         # Build provider list and deep_links mapping
         available_providers = []
         deep_links = {}
+        tmdb_link = us_providers.get("link", "")
         
         # Reverse map: provider_id -> our name
         id_to_name = {v: k for k, v in PROVIDER_MAP.items()}
-        
-        # Build direct search links for each provider
-        search_query = title.title.replace(' ', '+')
-        provider_search_urls = {
-            "Netflix": f"https://www.netflix.com/search?q={search_query}",
-            "Disney": f"https://www.disneyplus.com/search?q={search_query}",
-            "Prime": f"https://www.amazon.com/s?k={search_query}&i=instant-video",
-            "Hulu": f"https://www.hulu.com/search?q={search_query}",
-            "Peacock": f"https://www.peacocktv.com/search?q={search_query}",
-            "YouTube": f"https://www.youtube.com/results?search_query={search_query}"
-        }
         
         for provider in all_providers:
             provider_id = provider.get("provider_id")
@@ -182,8 +172,8 @@ async def get_title_providers(
                 our_name = id_to_name[provider_id]
                 if our_name not in available_providers:
                     available_providers.append(our_name)
-                    # Store direct search URL for this provider
-                    deep_links[our_name] = provider_search_urls.get(our_name, "")
+                    # Store TMDB JustWatch link - it redirects to actual platform play URLs
+                    deep_links[our_name] = tmdb_link
         
         # Save to database
         title.providers = available_providers
