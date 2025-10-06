@@ -36,7 +36,10 @@ class LaunchResponse(BaseModel):
     message: str = None
 
 @router.post("/check", response_model=LaunchResponse)
-def check_launch_permission(request: LaunchRequest, db: Session = Depends(get_db)):
+def check_launch_permission(
+    request: LaunchRequest,
+    db: Session = Depends(get_db)
+):
     profile = db.query(KidProfile).filter(KidProfile.id == request.kid_profile_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
@@ -83,7 +86,11 @@ def check_launch_permission(request: LaunchRequest, db: Session = Depends(get_db
     )
 
 @router.get("/title/{title_id}/profile/{kid_profile_id}")
-def get_title_status(title_id: int, kid_profile_id: int, db: Session = Depends(get_db)):
+def get_title_status(
+    title_id: int,
+    kid_profile_id: int,
+    db: Session = Depends(get_db)
+):
     policy = db.query(Policy).filter(
         Policy.kid_profile_id == kid_profile_id,
         Policy.title_id == title_id

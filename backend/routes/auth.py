@@ -8,6 +8,7 @@ from typing import Optional
 from db import get_db
 from models import User, KidProfile
 from config import settings
+from auth_utils import require_parent
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -30,6 +31,12 @@ class TokenResponse(BaseModel):
     user_id: Optional[int] = None
     profile_id: Optional[int] = None
     role: str
+
+class KidProfileCreateRequest(BaseModel):
+    parent_id: int
+    name: str
+    age: int
+    pin: str
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -88,17 +95,18 @@ def kid_login(request: KidLoginRequest, db: Session = Depends(get_db)):
 
 @router.post("/kid/profile")
 def create_kid_profile(
-    name: str,
-    age: int,
-    pin: str,
-    parent_id: int,
-    db: Session = Depends(get_db)
+    request: KidProfileCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
 ):
-    hashed_pin = pwd_context.hash(pin)
+    if current_user.id != request.parent_id:
+        raise HTTPException(status_code=403, detail="Can only create profiles for yourself")
+    
+    hashed_pin = pwd_context.hash(request.pin)
     new_profile = KidProfile(
-        parent_id=parent_id,
-        name=name,
-        age=age,
+        parent_id=request.parent_id,
+        name=request.name,
+        age=request.age,
         pin=hashed_pin
     )
     db.add(new_profile)
@@ -107,6 +115,13 @@ def create_kid_profile(
     return {"id": new_profile.id, "name": new_profile.name, "age": new_profile.age}
 
 @router.get("/kid/profiles/{parent_id}")
-def get_kid_profiles(parent_id: int, db: Session = Depends(get_db)):
+def get_kid_profiles(
+    parent_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
+    if current_user.id != parent_id:
+        raise HTTPException(status_code=403, detail="Can only view your own profiles")
+    
     profiles = db.query(KidProfile).filter(KidProfile.parent_id == parent_id).all()
     return [{"id": p.id, "name": p.name, "age": p.age} for p in profiles]

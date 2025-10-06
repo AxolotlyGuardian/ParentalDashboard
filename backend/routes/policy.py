@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List
 from db import get_db
-from models import Policy, Title, KidProfile
+from models import Policy, Title, KidProfile, User
+from auth_utils import require_parent
 
 router = APIRouter(prefix="/policy", tags=["policy"])
 
@@ -16,7 +17,15 @@ class PolicyUpdateRequest(BaseModel):
     is_allowed: bool
 
 @router.post("/")
-def create_policy(request: PolicyCreateRequest, db: Session = Depends(get_db)):
+def create_policy(
+    request: PolicyCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
+    profile = db.query(KidProfile).filter(KidProfile.id == request.kid_profile_id).first()
+    if not profile or profile.parent_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Can only manage your own kid's policies")
+    
     existing_policy = db.query(Policy).filter(
         Policy.kid_profile_id == request.kid_profile_id,
         Policy.title_id == request.title_id
@@ -39,10 +48,16 @@ def create_policy(request: PolicyCreateRequest, db: Session = Depends(get_db)):
     return {"id": new_policy.id, "message": "Policy created"}
 
 @router.get("/profile/{kid_profile_id}")
-def get_profile_policies(kid_profile_id: int, db: Session = Depends(get_db)):
+def get_profile_policies(
+    kid_profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
     profile = db.query(KidProfile).filter(KidProfile.id == kid_profile_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
+    if profile.parent_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Can only view your own kid's policies")
     
     policies = db.query(Policy).filter(Policy.kid_profile_id == kid_profile_id).all()
     
@@ -62,27 +77,47 @@ def get_profile_policies(kid_profile_id: int, db: Session = Depends(get_db)):
     return {"kid_profile_id": kid_profile_id, "policies": result}
 
 @router.put("/{policy_id}")
-def update_policy(policy_id: int, request: PolicyUpdateRequest, db: Session = Depends(get_db)):
+def update_policy(
+    policy_id: int,
+    request: PolicyUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
     policy = db.query(Policy).filter(Policy.id == policy_id).first()
     if not policy:
         raise HTTPException(status_code=404, detail="Policy not found")
+    
+    profile = db.query(KidProfile).filter(KidProfile.id == policy.kid_profile_id).first()
+    if not profile or profile.parent_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Can only update your own kid's policies")
     
     policy.is_allowed = request.is_allowed
     db.commit()
     return {"message": "Policy updated"}
 
 @router.delete("/{policy_id}")
-def delete_policy(policy_id: int, db: Session = Depends(get_db)):
+def delete_policy(
+    policy_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
     policy = db.query(Policy).filter(Policy.id == policy_id).first()
     if not policy:
         raise HTTPException(status_code=404, detail="Policy not found")
+    
+    profile = db.query(KidProfile).filter(KidProfile.id == policy.kid_profile_id).first()
+    if not profile or profile.parent_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Can only delete your own kid's policies")
     
     db.delete(policy)
     db.commit()
     return {"message": "Policy deleted"}
 
 @router.get("/allowed/{kid_profile_id}")
-def get_allowed_titles(kid_profile_id: int, db: Session = Depends(get_db)):
+def get_allowed_titles(
+    kid_profile_id: int,
+    db: Session = Depends(get_db)
+):
     profile = db.query(KidProfile).filter(KidProfile.id == kid_profile_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
