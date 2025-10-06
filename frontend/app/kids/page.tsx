@@ -17,6 +17,7 @@ interface Title {
   poster_path?: string;
   overview?: string;
   rating: string;
+  providers?: string[];
 }
 
 interface BlockMessage {
@@ -77,7 +78,16 @@ export default function KidsLauncher() {
     }
   };
 
-  const handleTitleClick = (title: Title) => {
+  const handleTitleClick = async (title: Title) => {
+    if (!title.providers || title.providers.length === 0) {
+      try {
+        const response = await catalogApi.getTitleProviders(title.id);
+        title.providers = response.data.providers;
+      } catch (error) {
+        console.error('Failed to fetch providers', error);
+        title.providers = [];
+      }
+    }
     setSelectedTitle(title);
   };
 
@@ -134,7 +144,7 @@ export default function KidsLauncher() {
         <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-4xl w-full">
           <button
             onClick={() => setSelectedTitle(null)}
-            className="mb-6 px-6 py-2 bg-gray-200 rounded-full hover:bg-gray-300"
+            className="mb-6 px-6 py-2 bg-gray-200 rounded-full hover:bg-gray-300 text-gray-800 font-semibold"
           >
             ← Back
           </button>
@@ -161,7 +171,10 @@ export default function KidsLauncher() {
 
               <h3 className="text-xl font-bold text-gray-800 mb-4">Choose a platform to watch:</h3>
               <div className="grid grid-cols-2 gap-3">
-                {PROVIDERS.map((provider) => (
+                {(selectedTitle.providers && selectedTitle.providers.length > 0 
+                  ? selectedTitle.providers 
+                  : PROVIDERS
+                ).map((provider) => (
                   <button
                     key={provider}
                     onClick={() => handleLaunch(provider)}

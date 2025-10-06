@@ -155,7 +155,8 @@ def get_allowed_titles(
                 "media_type": title.media_type,
                 "poster_path": f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else None,
                 "overview": title.overview,
-                "rating": title.rating
+                "rating": title.rating,
+                "providers": title.providers or []
             })
     
     return {"allowed_titles": titles}

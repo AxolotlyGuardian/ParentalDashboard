@@ -10,6 +10,15 @@ from auth_utils import require_parent
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
+PROVIDER_MAP = {
+    "Netflix": 8,
+    "Disney": 337,
+    "Prime": 9,
+    "Hulu": 15,
+    "Peacock": 387,
+    "YouTube": 192
+}
+
 @router.get("/search")
 async def search_titles(
     query: str,
@@ -116,3 +125,40 @@ def get_all_titles(
         "poster_path": f"https://image.tmdb.org/t/p/w500{t.poster_path}" if t.poster_path else None,
         "rating": t.rating
     } for t in titles]
+
+@router.get("/titles/{title_id}/providers")
+async def get_title_providers(
+    title_id: int,
+    db: Session = Depends(get_db)
+):
+    title = db.query(Title).filter(Title.id == title_id).first()
+    if not title:
+        raise HTTPException(status_code=404, detail="Title not found")
+    
+    if not settings.TMDB_API_KEY:
+        return {"providers": []}
+    
+    media_type = "movie" if title.media_type == "movie" else "tv"
+    url = f"{settings.TMDB_API_BASE_URL}/{media_type}/{title.tmdb_id}/watch/providers"
+    params = {"api_key": settings.TMDB_API_KEY}
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, params=params)
+        if response.status_code != 200:
+            return {"providers": []}
+        
+        data = response.json()
+        us_providers = data.get("results", {}).get("US", {})
+        flatrate = us_providers.get("flatrate", [])
+        
+        available_providers = []
+        provider_ids_found = [p.get("provider_id") for p in flatrate]
+        
+        for name, provider_id in PROVIDER_MAP.items():
+            if provider_id in provider_ids_found:
+                available_providers.append(name)
+        
+        title.providers = available_providers
+        db.commit()
+        
+        return {"providers": available_providers}
