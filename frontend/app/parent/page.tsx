@@ -281,7 +281,7 @@ export default function ParentDashboard() {
                 }`}
               >
                 <div className="text-4xl mb-2">👤</div>
-                <div className="font-semibold">{profile.name}</div>
+                <div className="font-semibold text-gray-800">{profile.name}</div>
                 <div className="text-sm text-gray-600">Age {profile.age}</div>
               </button>
             ))}
@@ -298,7 +298,7 @@ export default function ParentDashboard() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search movies and TV shows..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-800"
                 />
                 <button
                   type="submit"
