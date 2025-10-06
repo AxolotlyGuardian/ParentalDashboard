@@ -20,7 +20,7 @@ class PolicyCreateRequest(BaseModel):
 class PolicyUpdateRequest(BaseModel):
     is_allowed: bool
 
-@router.post("/")
+@router.post("")
 def create_policy(
     request: PolicyCreateRequest,
     db: Session = Depends(get_db),
