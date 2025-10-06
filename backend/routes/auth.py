@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
-from passlib.context import CryptContext
+import bcrypt
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional
@@ -11,7 +11,6 @@ from config import settings
 from auth_utils import require_parent
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class ParentSignupRequest(BaseModel):
     email: EmailStr
@@ -51,7 +50,7 @@ def parent_signup(request: ParentSignupRequest, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    hashed_password = pwd_context.hash(request.password)
+    hashed_password = bcrypt.hashpw(request.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     new_user = User(email=request.email, password_hash=hashed_password)
     db.add(new_user)
     db.commit()
@@ -68,7 +67,15 @@ def parent_signup(request: ParentSignupRequest, db: Session = Depends(get_db)):
 @router.post("/parent/login", response_model=TokenResponse)
 def parent_login(request: ParentLoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == request.email).first()
-    if not user or not pwd_context.verify(request.password, user.password_hash):
+    if not user or not user.password_hash:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    try:
+        password_valid = bcrypt.checkpw(request.password.encode('utf-8'), user.password_hash.encode('utf-8'))
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if not password_valid:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     access_token = create_access_token({"sub": str(user.id), "role": "parent"})
@@ -82,7 +89,15 @@ def parent_login(request: ParentLoginRequest, db: Session = Depends(get_db)):
 @router.post("/kid/login", response_model=TokenResponse)
 def kid_login(request: KidLoginRequest, db: Session = Depends(get_db)):
     profile = db.query(KidProfile).filter(KidProfile.id == request.profile_id).first()
-    if not profile or not pwd_context.verify(request.pin, profile.pin):
+    if not profile or not profile.pin:
+        raise HTTPException(status_code=401, detail="Invalid PIN")
+    
+    try:
+        pin_valid = bcrypt.checkpw(request.pin.encode('utf-8'), profile.pin.encode('utf-8'))
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=401, detail="Invalid PIN")
+    
+    if not pin_valid:
         raise HTTPException(status_code=401, detail="Invalid PIN")
     
     access_token = create_access_token({"sub": str(profile.id), "role": "kid"})
@@ -102,7 +117,7 @@ def create_kid_profile(
     if current_user.id != request.parent_id:
         raise HTTPException(status_code=403, detail="Can only create profiles for yourself")
     
-    hashed_pin = pwd_context.hash(request.pin)
+    hashed_pin = bcrypt.hashpw(request.pin.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     new_profile = KidProfile(
         parent_id=request.parent_id,
         name=request.name,
