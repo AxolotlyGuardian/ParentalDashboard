@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from db import get_db
 from models import Policy, Title, KidProfile
+from auth_utils import require_kid
 
 router = APIRouter(prefix="/launch", tags=["launch"])
 
@@ -38,8 +39,12 @@ class LaunchResponse(BaseModel):
 @router.post("/check", response_model=LaunchResponse)
 def check_launch_permission(
     request: LaunchRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_profile: KidProfile = Depends(require_kid)
 ):
+    if current_profile.id != request.kid_profile_id:
+        raise HTTPException(status_code=403, detail="Can only launch content for yourself")
+    
     profile = db.query(KidProfile).filter(KidProfile.id == request.kid_profile_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
@@ -89,8 +94,12 @@ def check_launch_permission(
 def get_title_status(
     title_id: int,
     kid_profile_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_profile: KidProfile = Depends(require_kid)
 ):
+    if current_profile.id != kid_profile_id:
+        raise HTTPException(status_code=403, detail="Can only check status for yourself")
+    
     policy = db.query(Policy).filter(
         Policy.kid_profile_id == kid_profile_id,
         Policy.title_id == title_id

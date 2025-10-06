@@ -3,14 +3,20 @@ from sqlalchemy.orm import Session
 from typing import Optional
 import httpx
 from db import get_db
-from models import Title
+from models import Title, User
 from config import settings
 from datetime import datetime
+from auth_utils import require_parent
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
 @router.get("/search")
-async def search_titles(query: str, media_type: Optional[str] = None, db: Session = Depends(get_db)):
+async def search_titles(
+    query: str,
+    media_type: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
     if not settings.TMDB_API_KEY:
         raise HTTPException(status_code=500, detail="TMDB API key not configured")
     
@@ -72,7 +78,11 @@ async def search_titles(query: str, media_type: Optional[str] = None, db: Sessio
         return {"results": results}
 
 @router.get("/titles/{title_id}")
-def get_title_details(title_id: int, db: Session = Depends(get_db)):
+def get_title_details(
+    title_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
     title = db.query(Title).filter(Title.id == title_id).first()
     if not title:
         raise HTTPException(status_code=404, detail="Title not found")
@@ -91,7 +101,12 @@ def get_title_details(title_id: int, db: Session = Depends(get_db)):
     }
 
 @router.get("/titles")
-def get_all_titles(skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):
+def get_all_titles(
+    skip: int = 0,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
     titles = db.query(Title).offset(skip).limit(limit).all()
     return [{
         "id": t.id,
