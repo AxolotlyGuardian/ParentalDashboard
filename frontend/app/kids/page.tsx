@@ -89,13 +89,49 @@ export default function KidsLauncher() {
           providers: response.data.providers,
           deep_links: response.data.deep_links
         };
+        
+        // If only one provider, launch directly
+        if (updatedTitle.providers.length === 1) {
+          await handleLaunchDirect(updatedTitle, updatedTitle.providers[0]);
+          return;
+        }
+        
         setSelectedTitle(updatedTitle);
         return;
       } catch (error) {
         console.error('Failed to fetch providers', error);
       }
     }
+    
+    // If only one provider, launch directly
+    if (title.providers.length === 1) {
+      await handleLaunchDirect(title, title.providers[0]);
+      return;
+    }
+    
     setSelectedTitle(title);
+  };
+
+  const handleLaunchDirect = async (title: Title, provider: string) => {
+    if (!profileId) return;
+
+    try {
+      const response = await launchApi.checkLaunch(profileId, title.id, provider);
+      
+      if (response.data.allowed) {
+        // Navigate directly to the deep link
+        const url = response.data.deep_link || response.data.fallback_url;
+        window.location.href = url;
+      } else {
+        setBlockMessage({
+          show: true,
+          message: response.data.message || 'This content is blocked.',
+          title: title.title
+        });
+      }
+    } catch (error) {
+      alert('Failed to launch content');
+    }
   };
 
   const handleLaunch = async (provider: string) => {
