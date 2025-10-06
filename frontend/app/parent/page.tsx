@@ -243,7 +243,7 @@ export default function ParentDashboard() {
                   placeholder="Name"
                   value={newKidName}
                   onChange={(e) => setNewKidName(e.target.value)}
-                  className="px-4 py-2 border rounded-lg"
+                  className="px-4 py-2 border rounded-lg text-gray-800"
                   required
                 />
                 <input
@@ -251,7 +251,7 @@ export default function ParentDashboard() {
                   placeholder="Age"
                   value={newKidAge}
                   onChange={(e) => setNewKidAge(e.target.value)}
-                  className="px-4 py-2 border rounded-lg"
+                  className="px-4 py-2 border rounded-lg text-gray-800"
                   required
                 />
                 <input
@@ -259,7 +259,7 @@ export default function ParentDashboard() {
                   placeholder="PIN"
                   value={newKidPin}
                   onChange={(e) => setNewKidPin(e.target.value)}
-                  className="px-4 py-2 border rounded-lg"
+                  className="px-4 py-2 border rounded-lg text-gray-800"
                   required
                 />
               </div>
