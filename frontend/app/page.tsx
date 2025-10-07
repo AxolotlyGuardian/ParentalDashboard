@@ -8,9 +8,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#fdfdfc]">
       <header className="text-center py-8 bg-[#F47950] text-white">
-        <div className="w-24 h-24 mx-auto mb-4 bg-white rounded-full flex items-center justify-center text-6xl">
-          🦎
-        </div>
+        <img 
+          src="/axolotly-logo.png" 
+          alt="Axolotly Logo" 
+          className="w-48 h-48 mx-auto mb-4"
+        />
         <h1 className="text-4xl font-bold mb-2">Axolotly</h1>
         <p className="text-xl font-semibold">Protect What Matters</p>
       </header>
