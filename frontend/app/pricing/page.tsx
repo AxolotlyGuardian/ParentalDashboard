@@ -20,9 +20,12 @@ export default function Pricing() {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-[#566886] mb-4">Protection that grows with your family.</h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-600 mb-4">
             Choose the plan that fits your needs — whether you're a solo parent, a growing household, or an educator.
           </p>
+          <div className="inline-block bg-[#F47950] text-white px-6 py-3 rounded-lg text-lg font-semibold">
+            $39 per Axolotly unit + subscription fee
+          </div>
         </div>
 
         {/* Plan Options */}
@@ -31,7 +34,8 @@ export default function Pricing() {
             {/* Starter Plan */}
             <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-[#B2D8BF] hover:shadow-xl transition-shadow">
               <h3 className="text-2xl font-bold text-[#566886] mb-2">Starter</h3>
-              <div className="mb-6">
+              <div className="mb-2">
+                <div className="text-sm text-gray-500">$39 per unit +</div>
                 <span className="text-4xl font-bold text-[#F47950]">$4.99</span>
                 <span className="text-gray-600">/month</span>
               </div>
@@ -64,7 +68,8 @@ export default function Pricing() {
                 Most Popular
               </div>
               <h3 className="text-2xl font-bold text-[#566886] mb-2">Family</h3>
-              <div className="mb-6">
+              <div className="mb-2">
+                <div className="text-sm text-gray-500">$39 per unit +</div>
                 <span className="text-4xl font-bold text-[#F47950]">$9.99</span>
                 <span className="text-gray-600">/month</span>
               </div>
@@ -94,7 +99,8 @@ export default function Pricing() {
             {/* Educator Plan */}
             <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-[#C2B7EE] hover:shadow-xl transition-shadow">
               <h3 className="text-2xl font-bold text-[#566886] mb-2">Educator</h3>
-              <div className="mb-6">
+              <div className="mb-2">
+                <div className="text-sm text-gray-500">$39 per unit +</div>
                 <span className="text-4xl font-bold text-[#F47950]">$19.99</span>
                 <span className="text-gray-600">/month</span>
               </div>
@@ -148,34 +154,34 @@ export default function Pricing() {
 
         {/* Bundle Add-On */}
         <section className="mb-16 bg-[#566886] text-white rounded-xl p-8">
-          <h2 className="text-3xl font-bold mb-4 text-center">Bundle Add-On: Multi-Stick Discount</h2>
-          <p className="text-center mb-8 text-lg">Add extra Axolotly units to your subscription and save.</p>
+          <h2 className="text-3xl font-bold mb-4 text-center">Bundle Add-On: Multi-Unit Discount</h2>
+          <p className="text-center mb-8 text-lg">Add extra Axolotly units to your subscription and save on hardware costs.</p>
           
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-white/20">
                   <th className="py-3 px-4">Bundle Size</th>
-                  <th className="py-3 px-4">Add-On Price</th>
-                  <th className="py-3 px-4">Total Devices</th>
+                  <th className="py-3 px-4">Hardware Cost</th>
+                  <th className="py-3 px-4">Total Units</th>
                   <th className="py-3 px-4">Savings</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-white/10">
-                  <td className="py-3 px-4 font-semibold">+1 Stick</td>
-                  <td className="py-3 px-4">+$3.99/month</td>
+                  <td className="py-3 px-4 font-semibold">+1 Unit</td>
+                  <td className="py-3 px-4">$31 per unit</td>
                   <td className="py-3 px-4">2</td>
                   <td className="py-3 px-4 text-[#B2D8BF]">Save 20%</td>
                 </tr>
                 <tr className="border-b border-white/10">
-                  <td className="py-3 px-4 font-semibold">+2 Sticks</td>
-                  <td className="py-3 px-4">+$6.99/month</td>
+                  <td className="py-3 px-4 font-semibold">+2 Units</td>
+                  <td className="py-3 px-4">$27 per unit</td>
                   <td className="py-3 px-4">3</td>
                   <td className="py-3 px-4 text-[#B2D8BF]">Save 30%</td>
                 </tr>
                 <tr>
-                  <td className="py-3 px-4 font-semibold">+3+ Sticks</td>
+                  <td className="py-3 px-4 font-semibold">+3+ Units</td>
                   <td className="py-3 px-4">Custom Quote</td>
                   <td className="py-3 px-4">4+</td>
                   <td className="py-3 px-4 text-[#B2D8BF]">Save 35–50%</td>
