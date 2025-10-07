@@ -11,10 +11,8 @@ export default function Home() {
         <img 
           src="/axolotly-logo.png" 
           alt="Axolotly Logo" 
-          className="w-48 h-48 mx-auto mb-4"
+          className="w-64 h-64 mx-auto"
         />
-        <h1 className="text-4xl font-bold mb-2">Axolotly</h1>
-        <p className="text-xl font-semibold">Protect What Matters</p>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-12">
@@ -33,28 +31,6 @@ export default function Home() {
             <p>
               Whether you're on the road or at home, Axolotly stands watch — quietly, reliably, and with purpose. Because in a world of endless content, protecting what matters shouldn't be an afterthought.
             </p>
-          </div>
-        </section>
-
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold text-[#566886] mb-6">Brand Colors</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-[#F47950] text-white font-bold text-center p-6 rounded-lg">
-              <div className="mb-2">Coral</div>
-              <div className="text-sm">#F47950</div>
-            </div>
-            <div className="bg-[#566886] text-white font-bold text-center p-6 rounded-lg">
-              <div className="mb-2">Slate Blue</div>
-              <div className="text-sm">#566886</div>
-            </div>
-            <div className="bg-[#C2B7EE] text-gray-800 font-bold text-center p-6 rounded-lg">
-              <div className="mb-2">Lavender</div>
-              <div className="text-sm">#C2B7EE</div>
-            </div>
-            <div className="bg-[#B2D8BF] text-gray-800 font-bold text-center p-6 rounded-lg">
-              <div className="mb-2">Mint</div>
-              <div className="text-sm">#B2D8BF</div>
-            </div>
           </div>
         </section>
 
