@@ -36,7 +36,7 @@ export default function Home() {
 
         <div className="text-center">
           <button
-            onClick={() => router.push('/mode-select')}
+            onClick={() => router.push('/how-it-works')}
             className="bg-[#F47950] hover:bg-[#d66540] text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors"
           >
             Get Started
