@@ -83,13 +83,21 @@ export default function HowItWorks() {
           </section>
         </div>
 
-        <div className="text-center mt-12">
+        <div className="text-center mt-12 space-y-4">
           <button
             onClick={() => router.push('/mode-select')}
             className="bg-[#F47950] hover:bg-[#d66540] text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors"
           >
             Continue to App
           </button>
+          <div>
+            <button
+              onClick={() => router.push('/pricing')}
+              className="text-[#566886] hover:text-[#F47950] font-semibold underline transition-colors"
+            >
+              View Pricing Plans
+            </button>
+          </div>
         </div>
       </main>
 
