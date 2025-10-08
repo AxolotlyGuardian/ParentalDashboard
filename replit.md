@@ -1,10 +1,10 @@
-# Guardian Launcher
+# Axolotly (formerly Guardian Launcher)
 
 A parental control application for managing kids' access to media content with policy enforcement and a kid-friendly launcher.
 
 ## Overview
 
-Guardian Launcher is a full-stack application that allows parents to control which movies and TV shows their children can access. Parents can search for content using the TMDB API, create kid profiles, and manage allow/deny policies for each child. Kids can then log in with their PIN to see only their approved content and launch it directly to streaming platforms.
+Axolotly is a full-stack application that allows parents to control which movies, TV shows, and apps their children can access. Parents can search for content using the TMDB API, create kid profiles, and manage allow/deny policies for each child. The system also supports device pairing for kid-friendly launcher apps that enforce parental controls on Android devices.
 
 ## Project Structure
 
@@ -15,6 +15,7 @@ Guardian Launcher is a full-stack application that allows parents to control whi
     catalog.py    - TMDB content search
     policy.py     - Allow/deny list management
     launch.py     - Content launch validation
+    launcher.py   - Device pairing & launcher API
   /scripts        - Utility scripts
     sync_catalog.py - Nightly TMDB metadata sync
   app.py          - Main FastAPI application
@@ -88,10 +89,19 @@ Guardian Launcher is a full-stack application that allows parents to control whi
 
 ## Database Models
 
+### Streaming Content System
 - **User**: Parent accounts with email/password
 - **KidProfile**: Child profiles with name, age, PIN
 - **Title**: Media content from TMDB (movies/TV shows)
 - **Policy**: Allow/deny rules linking profiles to titles
+
+### Launcher Device System
+- **Device**: Paired launcher devices with secure authentication
+- **PairingCode**: 6-digit codes for device pairing (24hr expiration)
+- **App**: Available apps with metadata (name, package, icons, age rating)
+- **FamilyApp**: App permissions per family (enabled/disabled)
+- **TimeLimit**: Screen time restrictions per family
+- **UsageLog**: App usage tracking for analytics
 
 ## Security
 
@@ -134,6 +144,14 @@ Required environment variables:
 - `POST /launch/check` - Validate launch permission (kid only)
 - `GET /launch/title/{title_id}/profile/{kid_profile_id}` - Check title status (kid only)
 
+### Launcher Device API
+- `POST /api/pair` - Pair device with 6-digit code (returns device credentials)
+- `POST /api/pairing-code/generate` - Generate pairing code (parent auth required)
+- `GET /api/apps` - Get approved apps for device's family (device auth required)
+- `GET /api/time-limits` - Get screen time restrictions (device auth required)
+- `GET /api/stats` - Get dashboard statistics (device auth required)
+- `POST /api/usage-logs` - Log app usage for analytics (device auth required)
+
 ## Running the Application
 
 Both workflows are configured and running:
@@ -160,3 +178,10 @@ The application is fully functional with:
 - 2025-10-06: Implemented smart platform filtering - shows only available streaming services
 - 2025-10-06: Added TMDB JustWatch deep linking with fallback to platform search URLs
 - 2025-10-06: Fixed back button visibility with text-gray-800 styling
+- 2025-10-08: Rebranded to "Axolotly" with complete brand identity and marketing pages
+- 2025-10-08: Added pricing page with subscription tiers and bundle discounts
+- 2025-10-08: Built launcher device API for kid-friendly Android launcher integration
+- 2025-10-08: Implemented device pairing system with 6-digit codes and secure authentication
+- 2025-10-08: Added app management, time limits, usage tracking, and dashboard stats
+- 2025-10-08: Secured pairing code generation with parent authentication requirement
+- 2025-10-08: Fixed usage logging to handle invalid app IDs gracefully
