@@ -1,0 +1,93 @@
+I need to build API endpoints for a kid-friendly launcher app to connect to. The launcher is already built and configured to call my API. Here's what I need:
+
+AUTHENTICATION:
+All API requests (except pairing) will include these headers:
+
+X-Device-ID: Unique identifier for each device/launcher
+X-API-Key: Authentication key for that device
+Validate these headers on every request to ensure the device is authorized.
+
+REQUIRED ENDPOINTS:
+
+1. Device Pairing - POST /api/pair
+
+Request: { "pairingCode": "123456" }
+Response: { 
+  "deviceId": "unique-device-id",
+  "apiKey": "device-api-key",
+  "familyName": "Smith Family" 
+}
+Validate 6-digit pairing code
+Generate unique device ID and API key
+Store device-to-family relationship in database
+Return credentials for the launcher to store
+2. Get Apps - GET /api/apps
+Headers: X-Device-ID, X-API-Key
+
+Response: [
+  {
+    "id": "app-id",
+    "appName": "YouTube Kids",
+    "packageName": "com.google.android.apps.youtube.kids",
+    "iconUrl": "https://...",
+    "coverArt": "https://...",
+    "isEnabled": true,
+    "ageRating": "4+",
+    "category": "Entertainment"
+  }
+]
+Return only apps approved for this device's family
+Include all app metadata (name, icons, enabled status, etc.)
+3. Get Time Limits - GET /api/time-limits
+Headers: X-Device-ID, X-API-Key
+
+Response: {
+  "dailyLimitMinutes": 120,
+  "bedtimeStart": "20:00",
+  "bedtimeEnd": "07:00",
+  "scheduleEnabled": true
+}
+Return screen time restrictions for this family
+4. Get Dashboard Stats - GET /api/stats
+Headers: X-Device-ID, X-API-Key
+
+Response: {
+  "totalAppsEnabled": 8,
+  "timeUsedToday": 45,
+  "timeRemainingToday": 75,
+  "mostUsedApp": "PBS Kids"
+}
+Return statistics for dashboard display
+5. Log App Usage - POST /api/usage-logs
+Headers: X-Device-ID, X-API-Key
+
+Request: {
+  "appId": "app-id",
+  "appName": "PBS Kids", 
+  "startTime": "2024-01-15T10:30:00Z",
+  "endTime": "2024-01-15T10:45:00Z",
+  "durationMinutes": 15
+}
+Response: { "success": true }
+Store usage tracking data for parent viewing
+ERROR RESPONSES:
+
+400: Bad request (invalid data)
+401: Unauthorized (invalid device ID or API key)
+404: Not found (device or resource not found)
+500: Server error
+DATABASE NEEDS:
+You'll need tables for:
+
+Families/parents
+Devices (with deviceId, apiKey, familyId relationship)
+Pairing codes (6-digit codes with expiration)
+Approved apps per family
+Time limits per family
+Usage logs
+CORS:
+Enable CORS for: https://[your-launcher-repl-url].repl.co
+
+The launcher is already configured to call your API at: https://22028cbb-3e54-439d-b333-a16f985586f9-00-37qrlen3su06h.riker.replit.dev
+
+Start with the pairing endpoint first - once that works, the launcher can connect and you can add the other endpoints.

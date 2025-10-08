@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime, JSON
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime, JSON, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from db import Base
+import secrets
 
 class User(Base):
     __tablename__ = "users"
@@ -57,3 +58,87 @@ class Policy(Base):
     
     kid_profile = relationship("KidProfile", back_populates="policies")
     title = relationship("Title", back_populates="policies")
+
+# Launcher System Models
+
+class Device(Base):
+    __tablename__ = "devices"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(String, unique=True, nullable=False, index=True)
+    api_key = Column(String, nullable=False)
+    family_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    device_name = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_active = Column(DateTime, default=datetime.utcnow)
+    
+    family = relationship("User")
+    usage_logs = relationship("UsageLog", back_populates="device")
+
+class PairingCode(Base):
+    __tablename__ = "pairing_codes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(6), unique=True, nullable=False, index=True)
+    family_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    is_used = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    family = relationship("User")
+
+class App(Base):
+    __tablename__ = "apps"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    app_name = Column(String, nullable=False)
+    package_name = Column(String, unique=True, nullable=False, index=True)
+    icon_url = Column(String, nullable=True)
+    cover_art = Column(String, nullable=True)
+    age_rating = Column(String, nullable=True)
+    category = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    family_apps = relationship("FamilyApp", back_populates="app")
+
+class FamilyApp(Base):
+    __tablename__ = "family_apps"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    family_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    app_id = Column(Integer, ForeignKey("apps.id"), nullable=False)
+    is_enabled = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    family = relationship("User")
+    app = relationship("App", back_populates="family_apps")
+
+class TimeLimit(Base):
+    __tablename__ = "time_limits"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    family_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    daily_limit_minutes = Column(Integer, nullable=True)
+    bedtime_start = Column(String, nullable=True)  # Format: "HH:MM"
+    bedtime_end = Column(String, nullable=True)    # Format: "HH:MM"
+    schedule_enabled = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    family = relationship("User")
+
+class UsageLog(Base):
+    __tablename__ = "usage_logs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    app_id = Column(Integer, ForeignKey("apps.id"), nullable=True)
+    app_name = Column(String, nullable=False)
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+    duration_minutes = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    device = relationship("Device", back_populates="usage_logs")
+    app = relationship("App")
