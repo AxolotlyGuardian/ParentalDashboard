@@ -6,6 +6,7 @@ import secrets
 import random
 from db import get_db
 from models import Device, PairingCode, App, FamilyApp, TimeLimit, UsageLog, User
+from auth_utils import require_parent
 
 router = APIRouter()
 
@@ -190,8 +191,15 @@ async def log_usage(
     if app_id:
         try:
             app_id_int = int(app_id)
+            app_exists = db.query(FamilyApp).join(App).filter(
+                FamilyApp.family_id == device.family_id,
+                FamilyApp.app_id == app_id_int
+            ).first()
+            
+            if not app_exists:
+                app_id_int = None
         except:
-            pass
+            app_id_int = None
     
     usage_log = UsageLog(
         device_id=device.id,
@@ -209,7 +217,7 @@ async def log_usage(
 
 @router.post("/pairing-code/generate")
 async def generate_pairing_code(
-    family_id: int,
+    current_user: User = Depends(require_parent),
     db: Session = Depends(get_db)
 ):
     code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
@@ -219,7 +227,7 @@ async def generate_pairing_code(
     
     pairing_code = PairingCode(
         code=code,
-        family_id=family_id,
+        family_id=current_user.id,
         expires_at=datetime.utcnow() + timedelta(hours=24)
     )
     
