@@ -185,3 +185,6 @@ The application is fully functional with:
 - 2025-10-08: Added app management, time limits, usage tracking, and dashboard stats
 - 2025-10-08: Secured pairing code generation with parent authentication requirement
 - 2025-10-08: Fixed usage logging to handle invalid app IDs gracefully
+- 2025-10-09: Modified launcher API to return approved streaming content instead of Android apps
+- 2025-10-09: Launcher now displays parent-approved movies/TV shows from policy system
+- 2025-10-09: API accessible on port 8000 with full TMDB poster/backdrop images

@@ -5,7 +5,7 @@ from typing import Optional
 import secrets
 import random
 from db import get_db
-from models import Device, PairingCode, App, FamilyApp, TimeLimit, UsageLog, User
+from models import Device, PairingCode, App, FamilyApp, TimeLimit, UsageLog, User, KidProfile, Policy, Title
 from auth_utils import require_parent
 
 router = APIRouter()
@@ -78,26 +78,50 @@ async def get_apps(
     device: Device = Depends(get_device_from_headers),
     db: Session = Depends(get_db)
 ):
-    family_apps = db.query(FamilyApp, App).join(
-        App, FamilyApp.app_id == App.id
-    ).filter(
-        FamilyApp.family_id == device.family_id
+    kid_profiles = db.query(KidProfile).filter(
+        KidProfile.parent_id == device.family_id
     ).all()
     
-    apps = []
-    for family_app, app in family_apps:
-        apps.append({
-            "id": str(app.id),
-            "appName": app.app_name,
-            "packageName": app.package_name,
-            "iconUrl": app.icon_url or "",
-            "coverArt": app.cover_art or "",
-            "isEnabled": family_app.is_enabled,
-            "ageRating": app.age_rating or "All",
-            "category": app.category or "Uncategorized"
-        })
+    if not kid_profiles:
+        return []
     
-    return apps
+    allowed_titles = []
+    seen_title_ids = set()
+    
+    for profile in kid_profiles:
+        policies = db.query(Policy, Title).join(
+            Title, Policy.title_id == Title.id
+        ).filter(
+            Policy.kid_profile_id == profile.id,
+            Policy.is_allowed == True
+        ).all()
+        
+        for policy, title in policies:
+            if title.id not in seen_title_ids:
+                seen_title_ids.add(title.id)
+                
+                poster_url = f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else ""
+                backdrop_url = f"https://image.tmdb.org/t/p/w780{title.backdrop_path}" if title.backdrop_path else ""
+                
+                primary_link = ""
+                if title.deep_links and isinstance(title.deep_links, dict):
+                    for provider_id, link in title.deep_links.items():
+                        if link:
+                            primary_link = link
+                            break
+                
+                allowed_titles.append({
+                    "id": str(title.id),
+                    "appName": title.title,
+                    "packageName": primary_link or f"tmdb.{title.media_type}.{title.tmdb_id}",
+                    "iconUrl": poster_url,
+                    "coverArt": backdrop_url,
+                    "isEnabled": True,
+                    "ageRating": title.rating or "All",
+                    "category": title.media_type.upper() if title.media_type else "Content"
+                })
+    
+    return allowed_titles
 
 @router.get("/time-limits")
 async def get_time_limits(
@@ -128,10 +152,20 @@ async def get_stats(
     device: Device = Depends(get_device_from_headers),
     db: Session = Depends(get_db)
 ):
-    total_apps = db.query(FamilyApp).filter(
-        FamilyApp.family_id == device.family_id,
-        FamilyApp.is_enabled == True
-    ).count()
+    kid_profiles = db.query(KidProfile).filter(
+        KidProfile.parent_id == device.family_id
+    ).all()
+    
+    allowed_title_ids = set()
+    for profile in kid_profiles:
+        policies = db.query(Policy).filter(
+            Policy.kid_profile_id == profile.id,
+            Policy.is_allowed == True
+        ).all()
+        for policy in policies:
+            allowed_title_ids.add(policy.title_id)
+    
+    total_apps = len(allowed_title_ids)
     
     today = datetime.utcnow().date()
     today_start = datetime.combine(today, datetime.min.time())
