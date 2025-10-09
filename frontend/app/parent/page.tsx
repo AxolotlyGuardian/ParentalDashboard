@@ -33,6 +33,7 @@ export default function ParentDashboard() {
   const [isSignup, setIsSignup] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [deviceCode, setDeviceCode] = useState('');
   const [userId, setUserId] = useState<number | null>(null);
   const [kidProfiles, setKidProfiles] = useState<KidProfile[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
@@ -65,15 +66,16 @@ export default function ParentDashboard() {
     e.preventDefault();
     try {
       const response = isSignup
-        ? await authApi.parentSignup(email, password)
+        ? await authApi.parentSignup(email, password, deviceCode)
         : await authApi.parentLogin(email, password);
       
       setToken(response.data.access_token);
       setUserId(response.data.user_id);
       setIsLoggedIn(true);
       loadKidProfiles(response.data.user_id);
-    } catch (error) {
-      alert('Authentication failed');
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 'Authentication failed';
+      alert(errorMessage);
     }
   };
 
@@ -192,6 +194,26 @@ export default function ParentDashboard() {
                 required
               />
             </div>
+            
+            {isSignup && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Device Code
+                </label>
+                <input
+                  type="text"
+                  value={deviceCode}
+                  onChange={(e) => setDeviceCode(e.target.value.toUpperCase())}
+                  placeholder="Enter 6-digit code"
+                  maxLength={6}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent text-gray-800 uppercase tracking-wider font-mono text-center text-lg"
+                  required={isSignup}
+                />
+                <p className="mt-2 text-xs text-gray-500">
+                  Find the 6-character code on the sticker at the bottom of your Axolotly device
+                </p>
+              </div>
+            )}
             
             <button
               type="submit"
