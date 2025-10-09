@@ -48,7 +48,7 @@ async def pair_device(
     ).first()
     
     if not code_entry:
-        raise HTTPException(status_code=404, detail="Invalid or expired pairing code")
+        raise HTTPException(status_code=401, detail="Invalid or expired pairing code")
     
     device_id = secrets.token_urlsafe(32)
     api_key = secrets.token_urlsafe(48)

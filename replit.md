@@ -188,3 +188,6 @@ The application is fully functional with:
 - 2025-10-09: Modified launcher API to return approved streaming content instead of Android apps
 - 2025-10-09: Launcher now displays parent-approved movies/TV shows from policy system
 - 2025-10-09: API accessible on port 8000 with full TMDB poster/backdrop images
+- 2025-10-09: Rethemed parent dashboard with pink gradient (#FF6B9D to #FF8FB3) to match launcher
+- 2025-10-09: Updated all parent dashboard UI with rounded corners, card layouts, and pink accents
+- 2025-10-09: Fixed pairing endpoint to return HTTP 401 (instead of 404) for invalid/expired codes
