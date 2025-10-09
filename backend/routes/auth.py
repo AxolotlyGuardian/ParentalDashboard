@@ -6,7 +6,8 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional
 from db import get_db
-from models import User, KidProfile
+from models import User, KidProfile, PairingCode, Device
+import secrets
 from config import settings
 from auth_utils import require_parent
 
@@ -15,6 +16,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 class ParentSignupRequest(BaseModel):
     email: EmailStr
     password: str
+    device_code: str
 
 class ParentLoginRequest(BaseModel):
     email: EmailStr
@@ -50,11 +52,39 @@ def parent_signup(request: ParentSignupRequest, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
+    if not request.device_code or len(request.device_code) != 6:
+        raise HTTPException(status_code=400, detail="Valid 6-character device code is required")
+    
+    pairing_code = db.query(PairingCode).filter(
+        PairingCode.code == request.device_code.upper(),
+        PairingCode.is_used == False,
+        PairingCode.pre_generated == True
+    ).first()
+    
+    if not pairing_code:
+        raise HTTPException(status_code=400, detail="Invalid device code. Please check the sticker on your device.")
+    
     hashed_password = bcrypt.hashpw(request.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     new_user = User(email=request.email, password_hash=hashed_password)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+    
+    pairing_code.family_id = new_user.id
+    pairing_code.is_used = True
+    db.commit()
+    
+    device_id = secrets.token_urlsafe(32)
+    api_key = secrets.token_urlsafe(48)
+    
+    device = Device(
+        device_id=device_id,
+        api_key=api_key,
+        family_id=new_user.id,
+        device_name=f"Axolotly Device ({pairing_code.code})"
+    )
+    db.add(device)
+    db.commit()
     
     access_token = create_access_token({"sub": str(new_user.id), "role": "parent"})
     return TokenResponse(

@@ -80,9 +80,11 @@ class PairingCode(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String(6), unique=True, nullable=False, index=True)
-    family_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    expires_at = Column(DateTime, nullable=False)
+    family_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    expires_at = Column(DateTime, nullable=True)
     is_used = Column(Boolean, default=False)
+    pre_generated = Column(Boolean, default=False)
+    device_serial = Column(String, nullable=True, unique=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     family = relationship("User")
