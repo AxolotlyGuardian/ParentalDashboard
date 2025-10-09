@@ -155,11 +155,16 @@ export default function ParentDashboard() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-            Parent Dashboard
-          </h1>
+      <div className="min-h-screen bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3] flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full">
+          <div className="text-center mb-6">
+            <div className="inline-block bg-pink-50 p-4 rounded-2xl mb-4">
+              <span className="text-5xl">🦎</span>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              Parent Dashboard
+            </h1>
+          </div>
           
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
@@ -170,7 +175,7 @@ export default function ParentDashboard() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent text-gray-800"
                 required
               />
             </div>
@@ -183,14 +188,14 @@ export default function ParentDashboard() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent text-gray-800"
                 required
               />
             </div>
             
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              className="w-full bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
             >
               {isSignup ? 'Sign Up' : 'Log In'}
             </button>
@@ -198,7 +203,7 @@ export default function ParentDashboard() {
             <button
               type="button"
               onClick={() => setIsSignup(!isSignup)}
-              className="w-full text-blue-600 text-sm hover:underline"
+              className="w-full text-pink-600 text-sm hover:underline"
             >
               {isSignup ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
             </button>
@@ -216,13 +221,16 @@ export default function ParentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-md p-4">
+    <div className="min-h-screen bg-white">
+      <nav className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] shadow-lg p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Guardian Launcher - Parent Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">🦎</span>
+            <h1 className="text-2xl font-bold text-white">Axolotly Parent Dashboard</h1>
+          </div>
           <button
             onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            className="px-6 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full hover:bg-white/30 transition-all"
           >
             Logout
           </button>
@@ -230,26 +238,26 @@ export default function ParentDashboard() {
       </nav>
 
       <div className="max-w-7xl mx-auto p-6">
-        <div className="bg-white rounded-2xl p-6 shadow-md mb-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="bg-gray-50 rounded-3xl p-8 shadow-sm border border-gray-100 mb-6">
+          <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800">Kid Profiles</h2>
             <button
               onClick={() => setShowNewKidForm(!showNewKidForm)}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              className="px-6 py-2 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white rounded-full hover:shadow-lg transition-all transform hover:scale-105"
             >
               + Add Kid
             </button>
           </div>
 
           {showNewKidForm && (
-            <form onSubmit={handleCreateKidProfile} className="mb-4 p-4 bg-gray-50 rounded-lg">
+            <form onSubmit={handleCreateKidProfile} className="mb-6 p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
               <div className="flex gap-4">
                 <input
                   type="text"
                   placeholder="Name"
                   value={newKidName}
                   onChange={(e) => setNewKidName(e.target.value)}
-                  className="px-4 py-2 border rounded-lg text-gray-800 flex-1"
+                  className="px-4 py-3 border border-gray-200 rounded-xl text-gray-800 flex-1 focus:ring-2 focus:ring-pink-400 focus:border-transparent"
                   required
                 />
                 <input
@@ -257,10 +265,10 @@ export default function ParentDashboard() {
                   placeholder="Age"
                   value={newKidAge}
                   onChange={(e) => setNewKidAge(e.target.value)}
-                  className="px-4 py-2 border rounded-lg text-gray-800 w-24"
+                  className="px-4 py-3 border border-gray-200 rounded-xl text-gray-800 w-24 focus:ring-2 focus:ring-pink-400 focus:border-transparent"
                   required
                 />
-                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <button type="submit" className="px-8 py-3 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white rounded-xl hover:shadow-lg transition-all transform hover:scale-105">
                   Create Profile
                 </button>
               </div>
@@ -272,10 +280,10 @@ export default function ParentDashboard() {
               <button
                 key={profile.id}
                 onClick={() => setSelectedProfile(profile.id)}
-                className={`p-4 rounded-lg border-2 transition ${
+                className={`p-6 rounded-2xl border-2 transition-all transform hover:scale-105 ${
                   selectedProfile === profile.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 bg-white hover:border-blue-300'
+                    ? 'border-pink-400 bg-pink-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-pink-200 hover:shadow-sm'
                 }`}
               >
                 <div className="text-4xl mb-2">👤</div>
@@ -288,45 +296,45 @@ export default function ParentDashboard() {
 
         {selectedProfile && (
           <>
-            <div className="bg-white rounded-2xl p-6 shadow-md mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Search Titles</h2>
-              <form onSubmit={handleSearch} className="flex gap-2">
+            <div className="bg-gray-50 rounded-3xl p-8 shadow-sm border border-gray-100 mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Search Titles</h2>
+              <form onSubmit={handleSearch} className="flex gap-3">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search movies and TV shows..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-800"
+                  className="flex-1 px-6 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent text-gray-800"
                 />
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-8 py-3 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white rounded-xl hover:shadow-lg transition-all transform hover:scale-105"
                 >
                   Search
                 </button>
               </form>
 
               {searchResults.length > 0 && (
-                <div className="mt-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div className="mt-8 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {searchResults.map((title) => (
-                    <div key={title.id} className="bg-gray-50 rounded-lg p-3">
+                    <div key={title.id} className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all">
                       {title.poster_path && (
                         <img
                           src={title.poster_path}
                           alt={title.title}
-                          className="w-full h-40 object-cover rounded-lg mb-2"
+                          className="w-full h-40 object-cover rounded-xl mb-3"
                         />
                       )}
-                      <div className="text-sm font-semibold mb-2 text-gray-800">{title.title}</div>
+                      <div className="text-sm font-semibold mb-3 text-gray-800">{title.title}</div>
                       <button
                         onClick={() => handleTogglePolicy(title, getTitleStatus(title.id))}
-                        className={`w-full py-1 rounded text-xs font-semibold ${
+                        className={`w-full py-2 rounded-lg text-xs font-semibold transition-all ${
                           getTitleStatus(title.id)
-                            ? 'bg-red-500 text-white hover:bg-red-600'
-                            : 'bg-green-500 text-white hover:bg-green-600'
+                            ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                            : 'bg-green-100 text-green-600 hover:bg-green-200'
                         }`}
                       >
-                        {getTitleStatus(title.id) ? 'Block' : 'Allow'}
+                        {getTitleStatus(title.id) ? '✗ Allowed' : '✓ Allowed'}
                       </button>
                     </div>
                   ))}
@@ -334,20 +342,20 @@ export default function ParentDashboard() {
               )}
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-md">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Current Policies</h2>
+            <div className="bg-gray-50 rounded-3xl p-8 shadow-sm border border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Current Policies</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {policies.map((policy) => (
-                  <div key={policy.policy_id} className="bg-gray-50 rounded-lg p-3">
+                  <div key={policy.policy_id} className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all">
                     {policy.poster_path && (
                       <img
                         src={policy.poster_path}
                         alt={policy.title}
-                        className="w-full h-40 object-cover rounded-lg mb-2"
+                        className="w-full h-40 object-cover rounded-xl mb-3"
                       />
                     )}
                     <div className="text-sm font-semibold mb-2 text-gray-800">{policy.title}</div>
-                    <div className={`text-xs font-bold ${policy.is_allowed ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className={`text-xs font-bold px-3 py-1 rounded-full ${policy.is_allowed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {policy.is_allowed ? '✓ Allowed' : '✗ Blocked'}
                     </div>
                   </div>
