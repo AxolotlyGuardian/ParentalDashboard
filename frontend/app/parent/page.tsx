@@ -140,8 +140,9 @@ export default function ParentDashboard() {
     try {
       const response = await policyApi.getProfilePolicies(selectedProfile);
       console.log('Policies response:', response.data);
-      console.log('Policies count:', response.data?.length);
-      setPolicies(response.data);
+      const policiesData = response.data.policies || response.data;
+      console.log('Policies count:', policiesData.length);
+      setPolicies(policiesData);
     } catch (error) {
       console.error('Failed to load policies', error);
     }
