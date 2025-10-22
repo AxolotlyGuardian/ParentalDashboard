@@ -191,3 +191,8 @@ The application is fully functional with:
 - 2025-10-09: Rethemed parent dashboard with pink gradient (#FF6B9D to #FF8FB3) to match launcher
 - 2025-10-09: Updated all parent dashboard UI with rounded corners, card layouts, and pink accents
 - 2025-10-09: Fixed pairing endpoint to return HTTP 401 (instead of 404) for invalid/expired codes
+- 2025-10-22: Implemented device-first pairing model with pre-generated 6-digit codes
+- 2025-10-22: Parent signup now requires device code from physical device sticker
+- 2025-10-22: Updated PairingCode model with pre_generated flag and nullable expiration
+- 2025-10-22: Device automatically pairs to family during account signup
+- 2025-10-22: Replaced emoji logos with official Axolotly logo across all pages

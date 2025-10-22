@@ -7,9 +7,9 @@ export default function HowItWorks() {
 
   return (
     <div className="min-h-screen bg-[#fdfdfc]">
-      <header className="text-center py-6 bg-[#F47950] text-white">
+      <header className="text-center py-6 bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3] text-white">
         <img 
-          src="/axolotly-logo.png" 
+          src="/images/axolotly-logo.png" 
           alt="Axolotly Logo" 
           className="w-32 h-32 mx-auto cursor-pointer"
           onClick={() => router.push('/')}

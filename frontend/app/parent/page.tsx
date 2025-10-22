@@ -160,8 +160,12 @@ export default function ParentDashboard() {
       <div className="min-h-screen bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3] flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full">
           <div className="text-center mb-6">
-            <div className="inline-block bg-pink-50 p-4 rounded-2xl mb-4">
-              <span className="text-5xl">🦎</span>
+            <div className="inline-block mb-4">
+              <img 
+                src="/images/axolotly-logo.png" 
+                alt="Axolotly" 
+                className="w-24 h-24 mx-auto"
+              />
             </div>
             <h1 className="text-3xl font-bold text-gray-800">
               Parent Dashboard
@@ -247,7 +251,11 @@ export default function ParentDashboard() {
       <nav className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] shadow-lg p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">🦎</span>
+            <img 
+              src="/images/axolotly-logo.png" 
+              alt="Axolotly" 
+              className="w-10 h-10"
+            />
             <h1 className="text-2xl font-bold text-white">Axolotly Parent Dashboard</h1>
           </div>
           <button

@@ -22,8 +22,12 @@ export default function Home() {
         <section className="max-w-5xl mx-auto px-6 py-16">
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12">
             <div className="text-center mb-8">
-              <div className="inline-block bg-pink-50 p-4 rounded-2xl mb-4">
-                <span className="text-5xl">🦎</span>
+              <div className="inline-block mb-4">
+                <img 
+                  src="/images/axolotly-logo.png" 
+                  alt="Axolotly" 
+                  className="w-20 h-20 mx-auto"
+                />
               </div>
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Mission</h2>
             </div>
