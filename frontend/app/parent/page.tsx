@@ -171,7 +171,7 @@ export default function ParentDashboard() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#F77B8A] to-[#F77B8A] flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full">
           <div className="text-center mb-6">
             <div className="inline-block mb-4">
@@ -235,7 +235,7 @@ export default function ParentDashboard() {
             
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
+              className="w-full bg-[#F77B8A] text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
             >
               {isSignup ? 'Sign Up' : 'Log In'}
             </button>
@@ -261,9 +261,9 @@ export default function ParentDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-[#fafafa]">
+    <div className="flex h-screen bg-white">
       {/* Left Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-64 bg-[#f5f5f5] border-r border-gray-200 flex flex-col">
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <img 
@@ -281,10 +281,10 @@ export default function ParentDashboard() {
             </h3>
             <button
               onClick={() => setActiveTab('search')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl mb-2 transition-all ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all ${
                 activeTab === 'search'
-                  ? 'bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white shadow-md'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'bg-[#F77B8A] text-white shadow-md'
+                  : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
               <span className="font-medium">Search Content</span>
@@ -292,10 +292,10 @@ export default function ParentDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('policies')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full transition-all ${
                 activeTab === 'policies'
-                  ? 'bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white shadow-md'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'bg-[#F77B8A] text-white shadow-md'
+                  : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
               <span className="font-medium">Allowed Content</span>
@@ -322,7 +322,7 @@ export default function ParentDashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white px-8 py-4">
+        <header className="bg-[#F77B8A] text-white px-8 py-4">
           <h1 className="text-2xl font-bold">🦎 Axolotly Parent Dashboard</h1>
         </header>
 
@@ -335,7 +335,7 @@ export default function ParentDashboard() {
               {!showNewKidForm && (
                 <button
                   onClick={() => setShowNewKidForm(true)}
-                  className="px-4 py-2 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white rounded-full text-sm font-medium hover:shadow-lg transition-all"
+                  className="px-4 py-2 bg-[#F77B8A] text-white rounded-full text-sm font-medium hover:shadow-lg transition-all"
                 >
                   + Add Kid
                 </button>
@@ -361,7 +361,7 @@ export default function ParentDashboard() {
                     className="px-4 py-2 border border-gray-200 rounded-lg text-gray-800 w-20"
                     required
                   />
-                  <button type="submit" className="px-6 py-2 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white rounded-lg text-sm font-medium">
+                  <button type="submit" className="px-6 py-2 bg-[#F77B8A] text-white rounded-lg text-sm font-medium">
                     Create
                   </button>
                   <button type="button" onClick={() => setShowNewKidForm(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
@@ -378,8 +378,8 @@ export default function ParentDashboard() {
                   onClick={() => setSelectedProfile(profile.id)}
                   className={`p-4 rounded-xl border-2 transition-all ${
                     selectedProfile === profile.id
-                      ? 'border-pink-400 bg-pink-50'
-                      : 'border-gray-200 bg-white hover:border-pink-200'
+                      ? 'border-[#F77B8A] bg-pink-50'
+                      : 'border-gray-200 bg-white hover:border-[#F77B8A]/30'
                   }`}
                 >
                   <div className="text-3xl mb-2">👤</div>
@@ -407,7 +407,7 @@ export default function ParentDashboard() {
                       />
                       <button
                         type="submit"
-                        className="px-8 py-3 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white rounded-xl hover:shadow-lg transition-all font-medium"
+                        className="px-8 py-3 bg-[#F77B8A] text-white rounded-xl hover:shadow-lg transition-all font-medium"
                       >
                         Search
                       </button>
@@ -415,14 +415,14 @@ export default function ParentDashboard() {
                   </form>
 
                   {searchResults.length > 0 ? (
-                    <div className="grid grid-cols-5 gap-4">
+                    <div className="grid grid-cols-6 gap-3">
                       {searchResults.map((title) => (
                         <div key={title.id} className="group relative">
                           {title.poster_path && (
                             <img
                               src={title.poster_path}
                               alt={title.title}
-                              className="w-full aspect-[2/3] object-cover rounded-2xl shadow-md hover:shadow-xl transition-all"
+                              className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all"
                             />
                           )}
                           <button
@@ -454,14 +454,14 @@ export default function ParentDashboard() {
                     Allowed Content ({allowedPoliciesCount})
                   </h2>
                   {allowedPoliciesCount > 0 ? (
-                    <div className="grid grid-cols-6 gap-4">
+                    <div className="grid grid-cols-6 gap-3">
                       {policies.filter(p => p.is_allowed).map((policy) => (
                         <div key={policy.policy_id} className="cursor-pointer group">
                           {policy.poster_path && (
                             <img
                               src={policy.poster_path}
                               alt={policy.title}
-                              className="w-full aspect-[2/3] object-cover rounded-2xl shadow-md hover:shadow-xl transition-all hover:scale-105"
+                              className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all hover:scale-[1.02]"
                             />
                           )}
                         </div>
