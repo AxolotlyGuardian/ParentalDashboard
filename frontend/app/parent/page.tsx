@@ -265,11 +265,11 @@ export default function ParentDashboard() {
       {/* Left Sidebar */}
       <div className="w-64 bg-[#f5f5f5] border-r border-gray-200 flex flex-col">
         {/* Logo */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-4 border-b border-gray-200">
           <img 
             src="/images/axolotly-logo.png" 
             alt="Axolotly" 
-            className="w-20 h-20 mx-auto"
+            className="w-32 h-32 mx-auto"
           />
         </div>
 
