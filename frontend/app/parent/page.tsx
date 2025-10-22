@@ -417,18 +417,17 @@ export default function ParentDashboard() {
                   {searchResults.length > 0 ? (
                     <div className="grid grid-cols-5 gap-4">
                       {searchResults.map((title) => (
-                        <div key={title.id} className="bg-white rounded-xl p-3 border border-gray-200 hover:shadow-md transition-all">
+                        <div key={title.id} className="group relative">
                           {title.poster_path && (
                             <img
                               src={title.poster_path}
                               alt={title.title}
-                              className="w-full h-64 object-cover rounded-lg mb-3"
+                              className="w-full aspect-[2/3] object-cover rounded-2xl shadow-md hover:shadow-xl transition-all"
                             />
                           )}
-                          <div className="text-sm font-semibold mb-3 text-gray-800 line-clamp-2 min-h-[40px]">{title.title}</div>
                           <button
                             onClick={() => handleTogglePolicy(title, getTitleStatus(title.id))}
-                            className={`w-full py-2 rounded-lg text-sm font-semibold transition-all ${
+                            className={`mt-2 w-full py-2 rounded-lg text-sm font-semibold transition-all ${
                               getTitleStatus(title.id)
                                 ? 'bg-green-100 text-green-600 hover:bg-green-200'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -455,17 +454,16 @@ export default function ParentDashboard() {
                     Allowed Content ({allowedPoliciesCount})
                   </h2>
                   {allowedPoliciesCount > 0 ? (
-                    <div className="grid grid-cols-5 gap-4">
+                    <div className="grid grid-cols-6 gap-4">
                       {policies.filter(p => p.is_allowed).map((policy) => (
-                        <div key={policy.policy_id} className="bg-white rounded-xl p-3 border border-gray-200 hover:shadow-md transition-all cursor-pointer">
+                        <div key={policy.policy_id} className="cursor-pointer group">
                           {policy.poster_path && (
                             <img
                               src={policy.poster_path}
                               alt={policy.title}
-                              className="w-full h-64 object-cover rounded-lg mb-3"
+                              className="w-full aspect-[2/3] object-cover rounded-2xl shadow-md hover:shadow-xl transition-all hover:scale-105"
                             />
                           )}
-                          <div className="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]">{policy.title}</div>
                         </div>
                       ))}
                     </div>
