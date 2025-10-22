@@ -73,6 +73,9 @@ export default function ParentDashboard() {
       setToken(response.data.access_token);
       setUserId(response.data.user_id);
       setIsLoggedIn(true);
+      
+      // Small delay to ensure token is saved to localStorage
+      await new Promise(resolve => setTimeout(resolve, 100));
       loadKidProfiles(response.data.user_id);
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || 'Authentication failed';
@@ -136,6 +139,8 @@ export default function ParentDashboard() {
     
     try {
       const response = await policyApi.getProfilePolicies(selectedProfile);
+      console.log('Policies response:', response.data);
+      console.log('Policies count:', response.data?.length);
       setPolicies(response.data);
     } catch (error) {
       console.error('Failed to load policies', error);
