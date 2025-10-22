@@ -161,7 +161,7 @@ export default function ParentDashboard() {
     return policy ? policy.is_allowed : false;
   };
 
-  const allowedPoliciesCount = policies.filter(p => p.is_allowed).length;
+  const allowedPoliciesCount = Array.isArray(policies) ? policies.filter(p => p.is_allowed).length : 0;
 
   if (!isLoggedIn) {
     return (
