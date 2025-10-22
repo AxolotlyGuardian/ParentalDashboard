@@ -322,8 +322,8 @@ export default function ParentDashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-[#F77B8A] text-white px-8 py-4">
-          <h1 className="text-2xl font-bold">🦎 Axolotly Parent Dashboard</h1>
+        <header className="bg-[#f5f5f5] border-b border-gray-200 px-8 py-4">
+          <h1 className="text-2xl font-bold text-gray-800">Axolotly Parent Dashboard</h1>
         </header>
 
         {/* Content Area */}
