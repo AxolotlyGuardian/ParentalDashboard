@@ -43,7 +43,7 @@ export default function ParentDashboard() {
   const [newKidName, setNewKidName] = useState('');
   const [newKidAge, setNewKidAge] = useState('');
   const [showNewKidForm, setShowNewKidForm] = useState(false);
-  const [activeTab, setActiveTab] = useState<'search' | 'policies'>('search');
+  const [activeTab, setActiveTab] = useState<'search' | 'policies'>('policies');
 
   useEffect(() => {
     const user = getUserFromToken();
