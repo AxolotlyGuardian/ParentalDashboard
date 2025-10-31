@@ -188,11 +188,17 @@ The application is fully functional with:
 - 2025-10-09: Modified launcher API to return approved streaming content instead of Android apps
 - 2025-10-09: Launcher now displays parent-approved movies/TV shows from policy system
 - 2025-10-09: API accessible on port 8000 with full TMDB poster/backdrop images
-- 2025-10-09: Rethemed parent dashboard with pink gradient (#FF6B9D to #FF8FB3) to match launcher
-- 2025-10-09: Updated all parent dashboard UI with rounded corners, card layouts, and pink accents
+- 2025-10-09: Rethemed parent dashboard with coral-pink (#F77B8A) to match launcher
+- 2025-10-09: Updated all parent dashboard UI with rounded corners, card layouts, and coral-pink accents
 - 2025-10-09: Fixed pairing endpoint to return HTTP 401 (instead of 404) for invalid/expired codes
 - 2025-10-22: Implemented device-first pairing model with pre-generated 6-digit codes
 - 2025-10-22: Parent signup now requires device code from physical device sticker
 - 2025-10-22: Updated PairingCode model with pre_generated flag and nullable expiration
 - 2025-10-22: Device automatically pairs to family during account signup
 - 2025-10-22: Replaced emoji logos with official Axolotly logo across all pages
+- 2025-10-31: Reworked device pairing to link devices directly to kid profiles
+- 2025-10-31: Added "Add Device" UI in parent dashboard with device ID input
+- 2025-10-31: Parents now enter launcher-generated device ID and select kid profile
+- 2025-10-31: Added kid_profile_id column to devices table with FK relationship
+- 2025-10-31: Implemented security validation to prevent cross-family device hijacking
+- 2025-10-31: Updated parent dashboard design to match launcher aesthetic (coral-pink, poster-only cards)
