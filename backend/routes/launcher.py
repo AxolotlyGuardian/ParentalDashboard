@@ -31,6 +31,63 @@ def get_device_from_headers(
     
     return device
 
+@router.post("/device/pair")
+async def pair_device_to_kid(
+    request: dict,
+    parent_id: int = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Pair a device (by device_id) to a kid profile"""
+    device_id_input = request.get("device_id")
+    kid_profile_id = request.get("kid_profile_id")
+    
+    if not device_id_input or not kid_profile_id:
+        raise HTTPException(status_code=400, detail="device_id and kid_profile_id required")
+    
+    # Verify kid profile belongs to this parent
+    kid_profile = db.query(KidProfile).filter(
+        KidProfile.id == kid_profile_id,
+        KidProfile.parent_id == parent_id
+    ).first()
+    
+    if not kid_profile:
+        raise HTTPException(status_code=404, detail="Kid profile not found")
+    
+    # Check if device already exists
+    device = db.query(Device).filter(Device.device_id == device_id_input).first()
+    
+    if device:
+        # Security: Prevent device hijacking - only allow reassignment if device belongs to this parent
+        if device.family_id != parent_id:
+            raise HTTPException(
+                status_code=403, 
+                detail="This device is already paired to another family"
+            )
+        # Update existing device to link to this kid
+        device.kid_profile_id = kid_profile_id
+        device.last_active = datetime.utcnow()
+    else:
+        # Create new device
+        api_key = secrets.token_urlsafe(48)
+        device = Device(
+            device_id=device_id_input,
+            api_key=api_key,
+            family_id=parent_id,
+            kid_profile_id=kid_profile_id
+        )
+        db.add(device)
+    
+    db.commit()
+    db.refresh(device)
+    
+    return {
+        "device_id": device.device_id,
+        "api_key": device.api_key,
+        "family_id": device.family_id,
+        "kid_profile_id": device.kid_profile_id,
+        "kid_name": kid_profile.name
+    }
+
 @router.post("/pair")
 async def pair_device(
     request: dict,

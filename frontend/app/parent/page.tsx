@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { authApi, catalogApi, policyApi } from '@/lib/api';
+import { authApi, catalogApi, policyApi, deviceApi } from '@/lib/api';
 import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
 
 interface KidProfile {
@@ -43,6 +43,9 @@ export default function ParentDashboard() {
   const [newKidName, setNewKidName] = useState('');
   const [newKidAge, setNewKidAge] = useState('');
   const [showNewKidForm, setShowNewKidForm] = useState(false);
+  const [showAddDeviceForm, setShowAddDeviceForm] = useState(false);
+  const [deviceId, setDeviceId] = useState('');
+  const [selectedKidForDevice, setSelectedKidForDevice] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'search' | 'policies'>('policies');
 
   useEffect(() => {
@@ -95,6 +98,22 @@ export default function ParentDashboard() {
       loadKidProfiles(userId);
     } catch (error) {
       alert('Failed to create kid profile');
+    }
+  };
+
+  const handlePairDevice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedKidForDevice || !deviceId.trim()) return;
+    
+    try {
+      const response = await deviceApi.pairDevice(deviceId, selectedKidForDevice);
+      alert(`Device paired successfully to ${response.data.kid_name}! Device ID: ${response.data.device_id}`);
+      setDeviceId('');
+      setShowAddDeviceForm(false);
+      setSelectedKidForDevice(null);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 'Failed to pair device';
+      alert(errorMessage);
     }
   };
 
@@ -389,6 +408,83 @@ export default function ParentDashboard() {
               ))}
             </div>
           </div>
+
+          {/* Add Device Section */}
+          {kidProfiles.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-800">Devices</h2>
+                {!showAddDeviceForm && (
+                  <button
+                    onClick={() => setShowAddDeviceForm(true)}
+                    className="px-4 py-2 bg-[#F77B8A] text-white rounded-full text-sm font-medium hover:shadow-lg transition-all"
+                  >
+                    + Add Device
+                  </button>
+                )}
+              </div>
+
+              {showAddDeviceForm && (
+                <form onSubmit={handlePairDevice} className="mb-4 p-6 bg-white rounded-xl border border-gray-200">
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Kid Profile
+                    </label>
+                    <select
+                      value={selectedKidForDevice || ''}
+                      onChange={(e) => setSelectedKidForDevice(parseInt(e.target.value))}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg text-gray-800"
+                      required
+                    >
+                      <option value="">Choose a kid...</option>
+                      {kidProfiles.map((profile) => (
+                        <option key={profile.id} value={profile.id}>
+                          {profile.name} (Age {profile.age})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Device ID
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter the device ID from your launcher"
+                      value={deviceId}
+                      onChange={(e) => setDeviceId(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg text-gray-800"
+                      required
+                    />
+                    <p className="mt-2 text-xs text-gray-500">
+                      Find the device ID on your Axolotly launcher device
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button 
+                      type="submit" 
+                      className="px-6 py-2 bg-[#F77B8A] text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
+                    >
+                      Pair Device
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setShowAddDeviceForm(false);
+                        setDeviceId('');
+                        setSelectedKidForDevice(null);
+                      }}
+                      className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
 
           {/* Content Section */}
           {selectedProfile && (

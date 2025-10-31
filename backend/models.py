@@ -68,11 +68,13 @@ class Device(Base):
     device_id = Column(String, unique=True, nullable=False, index=True)
     api_key = Column(String, nullable=False)
     family_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=True)
     device_name = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active = Column(DateTime, default=datetime.utcnow)
     
     family = relationship("User")
+    kid_profile = relationship("KidProfile")
     usage_logs = relationship("UsageLog", back_populates="device")
 
 class PairingCode(Base):
