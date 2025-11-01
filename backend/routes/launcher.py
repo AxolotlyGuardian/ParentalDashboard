@@ -86,7 +86,7 @@ async def check_pairing_status(
 @router.post("/pairing/confirm")
 async def confirm_pairing(
     request: dict,
-    parent_id: int = Depends(require_parent),
+    current_user: User = Depends(require_parent),
     db: Session = Depends(get_db)
 ):
     """Parent confirms pairing by entering the pairing code from the device"""
@@ -99,7 +99,7 @@ async def confirm_pairing(
     # Verify kid profile belongs to this parent
     kid_profile = db.query(KidProfile).filter(
         KidProfile.id == kid_profile_id,
-        KidProfile.parent_id == parent_id
+        KidProfile.parent_id == current_user.id
     ).first()
     
     if not kid_profile:
@@ -124,7 +124,7 @@ async def confirm_pairing(
     device = Device(
         device_id=pending.device_id,
         api_key=api_key,
-        family_id=parent_id,
+        family_id=current_user.id,
         kid_profile_id=kid_profile_id
     )
     
