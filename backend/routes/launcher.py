@@ -5,10 +5,127 @@ from typing import Optional
 import secrets
 import random
 from db import get_db
-from models import Device, PairingCode, App, FamilyApp, TimeLimit, UsageLog, User, KidProfile, Policy, Title
+from models import Device, PairingCode, PendingDevice, App, FamilyApp, TimeLimit, UsageLog, User, KidProfile, Policy, Title
 from auth_utils import require_parent
 
 router = APIRouter()
+
+@router.post("/pairing/initiate")
+async def initiate_pairing(
+    request: dict,
+    db: Session = Depends(get_db)
+):
+    """Device initiates pairing by sending device_id and pairing_code"""
+    device_id = request.get("device_id")
+    pairing_code = request.get("pairing_code")
+    
+    if not device_id or not pairing_code:
+        raise HTTPException(status_code=400, detail="device_id and pairing_code required")
+    
+    if len(pairing_code) != 6 or not pairing_code.isdigit():
+        raise HTTPException(status_code=400, detail="pairing_code must be 6 digits")
+    
+    # Check if device is already paired
+    existing_device = db.query(Device).filter(Device.device_id == device_id).first()
+    if existing_device:
+        raise HTTPException(status_code=409, detail="Device already paired")
+    
+    # Check if pairing code already exists in pending
+    existing_pending = db.query(PendingDevice).filter(
+        PendingDevice.pairing_code == pairing_code
+    ).first()
+    if existing_pending:
+        raise HTTPException(status_code=409, detail="Pairing code already in use")
+    
+    # Create pending device entry with 15 minute expiration
+    expires_at = datetime.utcnow() + timedelta(minutes=15)
+    pending_device = PendingDevice(
+        device_id=device_id,
+        pairing_code=pairing_code,
+        expires_at=expires_at
+    )
+    
+    db.add(pending_device)
+    db.commit()
+    
+    return {"status": "pending_confirmation"}
+
+@router.get("/pairing/status/{device_id}")
+async def check_pairing_status(
+    device_id: str,
+    db: Session = Depends(get_db)
+):
+    """Device polls this endpoint to check if pairing is complete"""
+    # Check if device has been paired (moved from pending to devices table)
+    device = db.query(Device).filter(Device.device_id == device_id).first()
+    
+    if device:
+        return {
+            "is_paired": True,
+            "api_key": device.api_key
+        }
+    
+    return {
+        "is_paired": False,
+        "api_key": None
+    }
+
+@router.post("/pairing/confirm")
+async def confirm_pairing(
+    request: dict,
+    parent_id: int = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Parent confirms pairing by entering the pairing code from the device"""
+    pairing_code = request.get("pairing_code")
+    kid_profile_id = request.get("kid_profile_id")
+    
+    if not pairing_code or not kid_profile_id:
+        raise HTTPException(status_code=400, detail="pairing_code and kid_profile_id required")
+    
+    # Verify kid profile belongs to this parent
+    kid_profile = db.query(KidProfile).filter(
+        KidProfile.id == kid_profile_id,
+        KidProfile.parent_id == parent_id
+    ).first()
+    
+    if not kid_profile:
+        raise HTTPException(status_code=404, detail="Kid profile not found")
+    
+    # Find pending device with this pairing code
+    pending = db.query(PendingDevice).filter(
+        PendingDevice.pairing_code == pairing_code
+    ).first()
+    
+    if not pending:
+        raise HTTPException(status_code=404, detail="Invalid pairing code")
+    
+    # Check if expired
+    if pending.expires_at < datetime.utcnow():
+        db.delete(pending)
+        db.commit()
+        raise HTTPException(status_code=410, detail="Pairing code expired")
+    
+    # Generate API key and create device
+    api_key = secrets.token_urlsafe(48)
+    device = Device(
+        device_id=pending.device_id,
+        api_key=api_key,
+        family_id=parent_id,
+        kid_profile_id=kid_profile_id
+    )
+    
+    db.add(device)
+    # Delete the pending entry
+    db.delete(pending)
+    db.commit()
+    db.refresh(device)
+    
+    return {
+        "success": True,
+        "device_id": device.device_id,
+        "kid_name": kid_profile.name
+    }
 
 def get_device_from_headers(
     x_device_id: Optional[str] = Header(None),

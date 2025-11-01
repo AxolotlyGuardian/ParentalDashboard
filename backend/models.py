@@ -91,6 +91,15 @@ class PairingCode(Base):
     
     family = relationship("User")
 
+class PendingDevice(Base):
+    __tablename__ = "pending_devices"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(String, unique=True, nullable=False, index=True)
+    pairing_code = Column(String(6), unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
+
 class App(Base):
     __tablename__ = "apps"
     
