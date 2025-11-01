@@ -161,6 +161,29 @@ def get_device_from_headers(
     
     return device
 
+@router.get("/device/validate")
+async def validate_device(
+    device: Device = Depends(get_device_from_headers),
+    db: Session = Depends(get_db)
+):
+    """Validate a device's saved credentials and return profile info"""
+    if not device.kid_profile_id:
+        raise HTTPException(status_code=404, detail="Device not linked to a kid profile")
+    
+    kid_profile = db.query(KidProfile).filter(
+        KidProfile.id == device.kid_profile_id
+    ).first()
+    
+    if not kid_profile:
+        raise HTTPException(status_code=404, detail="Kid profile not found")
+    
+    return {
+        "is_paired": True,
+        "kid_profile_id": kid_profile.id,
+        "kid_name": kid_profile.name,
+        "kid_age": kid_profile.age
+    }
+
 @router.post("/device/pair")
 async def pair_device_to_kid(
     request: dict,
