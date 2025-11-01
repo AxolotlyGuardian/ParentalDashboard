@@ -553,14 +553,23 @@ export default function ParentDashboard() {
                   {allowedPoliciesCount > 0 ? (
                     <div className="grid grid-cols-6 gap-3">
                       {policies.filter(p => p.is_allowed).map((policy) => (
-                        <div key={policy.policy_id} className="cursor-pointer group">
+                        <div key={policy.policy_id} className="group relative">
                           {policy.poster_path && (
                             <img
                               src={policy.poster_path}
                               alt={policy.title}
-                              className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all hover:scale-[1.02]"
+                              className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all"
                             />
                           )}
+                          <button
+                            onClick={() => handleTogglePolicy(
+                              { id: policy.title_id, title: policy.title, media_type: '', rating: '', poster_path: policy.poster_path },
+                              true
+                            )}
+                            className="mt-2 w-full py-2 rounded-lg text-sm font-semibold transition-all bg-red-100 text-red-600 hover:bg-red-200"
+                          >
+                            ✕ Remove
+                          </button>
                         </div>
                       ))}
                     </div>
