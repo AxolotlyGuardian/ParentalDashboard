@@ -145,9 +145,19 @@ Required environment variables:
 - `GET /launch/title/{title_id}/profile/{kid_profile_id}` - Check title status (kid only)
 
 ### Launcher Device API
+
+**3-Step Pairing Flow:**
+- `POST /api/pairing/initiate` - Device initiates pairing with device_id and pairing_code (no auth, supports retry)
+- `GET /api/pairing/status/{device_id}` - Device polls to check if pairing is complete (no auth)
+- `POST /api/pairing/confirm` - Parent confirms pairing by entering code (parent auth required)
+
+**Legacy Pairing:**
 - `POST /api/pair` - Pair device with 6-digit code (returns device credentials)
 - `POST /api/pairing-code/generate` - Generate pairing code (parent auth required)
-- `GET /api/apps` - Get approved apps for device's family (device auth required)
+
+**Device Management:**
+- `POST /launcher/device/pair` - Direct device-to-kid pairing (parent auth required)
+- `GET /api/apps` - Get approved content for device's kid profile (device auth required)
 - `GET /api/time-limits` - Get screen time restrictions (device auth required)
 - `GET /api/stats` - Get dashboard statistics (device auth required)
 - `POST /api/usage-logs` - Log app usage for analytics (device auth required)
@@ -202,3 +212,10 @@ The application is fully functional with:
 - 2025-10-31: Added kid_profile_id column to devices table with FK relationship
 - 2025-10-31: Implemented security validation to prevent cross-family device hijacking
 - 2025-10-31: Updated parent dashboard design to match launcher aesthetic (coral-pink, poster-only cards)
+- 2025-11-01: Implemented new 3-step device pairing flow with pending confirmation state
+- 2025-11-01: Added PendingDevices table for temporary pairing code storage (15-min expiration)
+- 2025-11-01: Created POST /api/pairing/initiate (device initiates with 6-digit code)
+- 2025-11-01: Created GET /api/pairing/status/{device_id} (device polls for completion)
+- 2025-11-01: Created POST /api/pairing/confirm (parent confirms pairing in dashboard)
+- 2025-11-01: Updated parent dashboard to accept 6-digit pairing codes instead of device IDs
+- 2025-11-01: Added retry support - devices can re-initiate pairing if they reboot or timeout
