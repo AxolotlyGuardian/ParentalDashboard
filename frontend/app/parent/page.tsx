@@ -44,7 +44,7 @@ export default function ParentDashboard() {
   const [newKidAge, setNewKidAge] = useState('');
   const [showNewKidForm, setShowNewKidForm] = useState(false);
   const [showAddDeviceForm, setShowAddDeviceForm] = useState(false);
-  const [deviceId, setDeviceId] = useState('');
+  const [pairingCode, setPairingCode] = useState('');
   const [selectedKidForDevice, setSelectedKidForDevice] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'search' | 'policies'>('policies');
 
@@ -103,12 +103,12 @@ export default function ParentDashboard() {
 
   const handlePairDevice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedKidForDevice || !deviceId.trim()) return;
+    if (!selectedKidForDevice || !pairingCode.trim()) return;
     
     try {
-      const response = await deviceApi.pairDevice(deviceId, selectedKidForDevice);
-      alert(`Device paired successfully to ${response.data.kid_name}! Device ID: ${response.data.device_id}`);
-      setDeviceId('');
+      const response = await deviceApi.confirmPairing(pairingCode, selectedKidForDevice);
+      alert(`Device paired successfully to ${response.data.kid_name}!`);
+      setPairingCode('');
       setShowAddDeviceForm(false);
       setSelectedKidForDevice(null);
     } catch (error: any) {
@@ -447,18 +447,19 @@ export default function ParentDashboard() {
                   
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Device ID
+                      Pairing Code
                     </label>
                     <input
                       type="text"
-                      placeholder="Enter the device ID from your launcher"
-                      value={deviceId}
-                      onChange={(e) => setDeviceId(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg text-gray-800"
+                      placeholder="Enter 6-digit code"
+                      value={pairingCode}
+                      onChange={(e) => setPairingCode(e.target.value)}
+                      maxLength={6}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg text-gray-800 font-mono text-center text-2xl tracking-widest"
                       required
                     />
                     <p className="mt-2 text-xs text-gray-500">
-                      Find the device ID on your Axolotly launcher device
+                      Enter the 6-digit pairing code shown on your Axolotly launcher device
                     </p>
                   </div>
 
@@ -473,7 +474,7 @@ export default function ParentDashboard() {
                       type="button" 
                       onClick={() => {
                         setShowAddDeviceForm(false);
-                        setDeviceId('');
+                        setPairingCode('');
                         setSelectedKidForDevice(null);
                       }}
                       className="px-4 py-2 text-gray-600 hover:text-gray-800"
