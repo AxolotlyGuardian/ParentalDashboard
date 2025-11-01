@@ -30,22 +30,35 @@ async def initiate_pairing(
     if existing_device:
         raise HTTPException(status_code=409, detail="Device already paired")
     
-    # Check if pairing code already exists in pending
+    # Check if this device already has a pending pairing (allow retries)
     existing_pending = db.query(PendingDevice).filter(
-        PendingDevice.pairing_code == pairing_code
+        PendingDevice.device_id == device_id
     ).first()
-    if existing_pending:
+    
+    # Check if pairing code is already in use by a different device
+    code_in_use = db.query(PendingDevice).filter(
+        PendingDevice.pairing_code == pairing_code,
+        PendingDevice.device_id != device_id
+    ).first()
+    if code_in_use:
         raise HTTPException(status_code=409, detail="Pairing code already in use")
     
-    # Create pending device entry with 15 minute expiration
+    # Create or update pending device entry with 15 minute expiration
     expires_at = datetime.utcnow() + timedelta(minutes=15)
-    pending_device = PendingDevice(
-        device_id=device_id,
-        pairing_code=pairing_code,
-        expires_at=expires_at
-    )
     
-    db.add(pending_device)
+    if existing_pending:
+        # Update existing pending entry (allow retry)
+        existing_pending.pairing_code = pairing_code
+        existing_pending.expires_at = expires_at
+    else:
+        # Create new pending device entry
+        pending_device = PendingDevice(
+            device_id=device_id,
+            pairing_code=pairing_code,
+            expires_at=expires_at
+        )
+        db.add(pending_device)
+    
     db.commit()
     
     return {"status": "pending_confirmation"}
