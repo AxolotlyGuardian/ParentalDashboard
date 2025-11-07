@@ -5,6 +5,10 @@ from typing import List
 from db import get_db
 from models import Policy, Title, KidProfile, User
 from auth_utils import require_parent
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+from catalog import fetch_and_update_providers
 
 router = APIRouter(prefix="/policy", tags=["policy"])
 
@@ -66,7 +70,7 @@ def create_policy(
     return {"id": new_policy.id, "message": "Policy created"}
 
 @router.get("/profile/{kid_profile_id}")
-def get_profile_policies(
+async def get_profile_policies(
     kid_profile_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_parent)
@@ -83,6 +87,11 @@ def get_profile_policies(
     for policy in policies:
         title = db.query(Title).filter(Title.id == policy.title_id).first()
         if title:
+            # Fetch provider info if missing and title has tmdb_id
+            if (not title.providers or len(title.providers) == 0) and hasattr(title, 'tmdb_id') and title.tmdb_id:
+                await fetch_and_update_providers(title, db)
+                db.refresh(title)
+            
             result.append({
                 "policy_id": policy.id,
                 "title_id": title.id,

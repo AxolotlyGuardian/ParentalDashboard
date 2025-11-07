@@ -11,13 +11,50 @@ from auth_utils import require_parent
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
 PROVIDER_MAP = {
-    "Netflix": 8,
-    "Disney": 337,
-    "Prime": 9,
-    "Hulu": 15,
-    "Peacock": 387,
-    "YouTube": 192
+    "netflix": 8,
+    "disney_plus": 337,
+    "prime_video": 9,
+    "hulu": 15,
+    "peacock": 387,
+    "youtube": 192
 }
+
+async def fetch_and_update_providers(title: Title, db: Session):
+    """Fetch provider information from TMDB and update the title"""
+    if not settings.TMDB_API_KEY:
+        return
+    
+    media_type = "movie" if title.media_type == "movie" else "tv"
+    url = f"{settings.TMDB_API_BASE_URL}/{media_type}/{title.tmdb_id}/watch/providers"
+    params = {"api_key": settings.TMDB_API_KEY}
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, params=params)
+            if response.status_code != 200:
+                return
+            
+            data = response.json()
+            us_providers = data.get("results", {}).get("US", {})
+            
+            all_providers = []
+            for category in ["flatrate", "ads", "free"]:
+                all_providers.extend(us_providers.get(category, []))
+            
+            id_to_name = {v: k for k, v in PROVIDER_MAP.items()}
+            
+            available_providers = []
+            for provider in all_providers:
+                provider_id = provider.get("provider_id")
+                if provider_id in id_to_name:
+                    our_name = id_to_name[provider_id]
+                    if our_name not in available_providers:
+                        available_providers.append(our_name)
+            
+            title.providers = available_providers
+            db.commit()
+    except Exception as e:
+        print(f"Error fetching providers for title {title.id}: {e}")
 
 @router.get("/search")
 async def search_titles(
