@@ -19,6 +19,40 @@ PROVIDER_MAP = {
     "youtube": 192
 }
 
+# Legacy mapping for backwards compatibility
+LEGACY_PROVIDER_MAP = {
+    "Netflix": "netflix",
+    "Disney": "disney_plus",
+    "Disney+": "disney_plus",
+    "Prime": "prime_video",
+    "Prime Video": "prime_video",
+    "Hulu": "hulu",
+    "Peacock": "peacock",
+    "YouTube": "youtube"
+}
+
+def normalize_providers(providers: list) -> list:
+    """Normalize provider names to canonical format"""
+    if not providers:
+        return []
+    
+    normalized = []
+    for provider in providers:
+        # Check if it's already in canonical format
+        if provider in PROVIDER_MAP:
+            normalized.append(provider)
+        # Check if it's a legacy name
+        elif provider in LEGACY_PROVIDER_MAP:
+            canonical = LEGACY_PROVIDER_MAP[provider]
+            if canonical not in normalized:
+                normalized.append(canonical)
+        else:
+            # Unknown provider, keep as-is
+            if provider not in normalized:
+                normalized.append(provider)
+    
+    return normalized
+
 async def fetch_and_update_providers(title: Title, db: Session):
     """Fetch provider information from TMDB and update the title"""
     if not settings.TMDB_API_KEY:

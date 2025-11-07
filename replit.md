@@ -224,3 +224,6 @@ The application is fully functional with:
 - 2025-11-07: Implemented streaming service categorization in parent dashboard
 - 2025-11-07: Allowed content now grouped by service (Netflix, Disney+, Hulu, Prime Video, etc.)
 - 2025-11-07: Each service displays with branded emoji and content count
+- 2025-11-07: Added automatic provider normalization to fix legacy data (Disney → disney_plus)
+- 2025-11-07: Backend now auto-migrates old provider names to canonical format on load
+- 2025-11-07: Fixed duplicate Disney categories by unifying all Disney content under "Disney+"

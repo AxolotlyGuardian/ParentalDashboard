@@ -8,7 +8,7 @@ from auth_utils import require_parent
 import sys
 import os
 sys.path.append(os.path.dirname(__file__))
-from catalog import fetch_and_update_providers
+from catalog import fetch_and_update_providers, normalize_providers
 
 router = APIRouter(prefix="/policy", tags=["policy"])
 
@@ -87,6 +87,14 @@ async def get_profile_policies(
     for policy in policies:
         title = db.query(Title).filter(Title.id == policy.title_id).first()
         if title:
+            # Normalize existing provider data to canonical format
+            if title.providers:
+                normalized = normalize_providers(title.providers)
+                if normalized != title.providers:
+                    title.providers = normalized
+                    db.commit()
+                    db.refresh(title)
+            
             # Fetch provider info if missing and title has tmdb_id
             if (not title.providers or len(title.providers) == 0) and hasattr(title, 'tmdb_id') and title.tmdb_id:
                 await fetch_and_update_providers(title, db)
