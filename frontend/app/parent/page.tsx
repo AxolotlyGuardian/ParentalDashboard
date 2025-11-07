@@ -40,6 +40,7 @@ export default function ParentDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Title[]>([]);
   const [policies, setPolicies] = useState<Policy[]>([]);
+  const [policySearchQuery, setPolicySearchQuery] = useState('');
   const [newKidName, setNewKidName] = useState('');
   const [newKidAge, setNewKidAge] = useState('');
   const [showNewKidForm, setShowNewKidForm] = useState(false);
@@ -550,36 +551,72 @@ export default function ParentDashboard() {
                   <h2 className="text-xl font-bold text-gray-800 mb-4">
                     Allowed Content ({allowedPoliciesCount})
                   </h2>
-                  {allowedPoliciesCount > 0 ? (
-                    <div className="grid grid-cols-6 gap-3">
-                      {policies.filter(p => p.is_allowed).map((policy) => (
-                        <div key={policy.policy_id} className="group relative">
-                          {policy.poster_path && (
-                            <img
-                              src={policy.poster_path}
-                              alt={policy.title}
-                              className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all"
-                            />
-                          )}
-                          <button
-                            onClick={() => handleTogglePolicy(
-                              { id: policy.title_id, title: policy.title, media_type: '', rating: '', poster_path: policy.poster_path },
-                              true
-                            )}
-                            className="mt-2 w-full py-2 rounded-lg text-sm font-semibold transition-all bg-red-100 text-red-600 hover:bg-red-200"
-                          >
-                            ✕ Remove
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-16">
-                      <div className="text-gray-400 text-6xl mb-4">📺</div>
-                      <h3 className="text-lg font-semibold text-gray-600 mb-2">No allowed content</h3>
-                      <p className="text-sm text-gray-500">Search and add content for your kids to watch</p>
+                  
+                  {allowedPoliciesCount > 0 && (
+                    <div className="mb-6">
+                      <input
+                        type="text"
+                        value={policySearchQuery}
+                        onChange={(e) => setPolicySearchQuery(e.target.value)}
+                        placeholder="Search allowed content..."
+                        className="w-full px-6 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent text-gray-800 bg-white"
+                      />
                     </div>
                   )}
+                  
+                  {(() => {
+                    const filteredPolicies = policies
+                      .filter(p => p.is_allowed)
+                      .filter(p => 
+                        policySearchQuery.trim() === '' || 
+                        p.title.toLowerCase().includes(policySearchQuery.toLowerCase())
+                      );
+                    
+                    if (allowedPoliciesCount === 0) {
+                      return (
+                        <div className="text-center py-16">
+                          <div className="text-gray-400 text-6xl mb-4">📺</div>
+                          <h3 className="text-lg font-semibold text-gray-600 mb-2">No allowed content</h3>
+                          <p className="text-sm text-gray-500">Search and add content for your kids to watch</p>
+                        </div>
+                      );
+                    }
+                    
+                    if (filteredPolicies.length === 0) {
+                      return (
+                        <div className="text-center py-16">
+                          <div className="text-gray-400 text-6xl mb-4">🔍</div>
+                          <h3 className="text-lg font-semibold text-gray-600 mb-2">No matches found</h3>
+                          <p className="text-sm text-gray-500">Try a different search term</p>
+                        </div>
+                      );
+                    }
+                    
+                    return (
+                      <div className="grid grid-cols-6 gap-3">
+                        {filteredPolicies.map((policy) => (
+                          <div key={policy.policy_id} className="group relative">
+                            {policy.poster_path && (
+                              <img
+                                src={policy.poster_path}
+                                alt={policy.title}
+                                className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all"
+                              />
+                            )}
+                            <button
+                              onClick={() => handleTogglePolicy(
+                                { id: policy.title_id, title: policy.title, media_type: '', rating: '', poster_path: policy.poster_path },
+                                true
+                              )}
+                              className="mt-2 w-full py-2 rounded-lg text-sm font-semibold transition-all bg-red-100 text-red-600 hover:bg-red-200"
+                            >
+                              ✕ Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
