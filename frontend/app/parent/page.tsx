@@ -25,6 +25,7 @@ interface Policy {
   title: string;
   poster_path?: string;
   is_allowed: boolean;
+  providers?: string[];
 }
 
 export default function ParentDashboard() {
@@ -592,28 +593,103 @@ export default function ParentDashboard() {
                       );
                     }
                     
+                    // Group policies by streaming service
+                    const providerGroups: { [key: string]: typeof filteredPolicies } = {};
+                    const unknownProvider: typeof filteredPolicies = [];
+                    
+                    filteredPolicies.forEach(policy => {
+                      if (policy.providers && policy.providers.length > 0) {
+                        policy.providers.forEach(provider => {
+                          if (!providerGroups[provider]) {
+                            providerGroups[provider] = [];
+                          }
+                          if (!providerGroups[provider].find(p => p.policy_id === policy.policy_id)) {
+                            providerGroups[provider].push(policy);
+                          }
+                        });
+                      } else {
+                        unknownProvider.push(policy);
+                      }
+                    });
+                    
+                    // Provider display names and emojis
+                    const providerInfo: { [key: string]: { name: string; emoji: string } } = {
+                      'netflix': { name: 'Netflix', emoji: '🔴' },
+                      'disney_plus': { name: 'Disney+', emoji: '✨' },
+                      'hulu': { name: 'Hulu', emoji: '💚' },
+                      'prime_video': { name: 'Prime Video', emoji: '📦' },
+                      'peacock': { name: 'Peacock', emoji: '🦚' },
+                      'youtube': { name: 'YouTube', emoji: '▶️' }
+                    };
+                    
                     return (
-                      <div className="grid grid-cols-6 gap-3">
-                        {filteredPolicies.map((policy) => (
-                          <div key={policy.policy_id} className="group relative">
-                            {policy.poster_path && (
-                              <img
-                                src={policy.poster_path}
-                                alt={policy.title}
-                                className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all"
-                              />
-                            )}
-                            <button
-                              onClick={() => handleTogglePolicy(
-                                { id: policy.title_id, title: policy.title, media_type: '', rating: '', poster_path: policy.poster_path },
-                                true
-                              )}
-                              className="mt-2 w-full py-2 rounded-lg text-sm font-semibold transition-all bg-red-100 text-red-600 hover:bg-red-200"
-                            >
-                              ✕ Remove
-                            </button>
+                      <div className="space-y-8">
+                        {Object.keys(providerGroups).sort().map(provider => {
+                          const info = providerInfo[provider] || { name: provider, emoji: '📺' };
+                          return (
+                            <div key={provider}>
+                              <h3 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                <span>{info.emoji}</span>
+                                <span>{info.name}</span>
+                                <span className="text-sm font-normal text-gray-500">({providerGroups[provider].length})</span>
+                              </h3>
+                              <div className="grid grid-cols-6 gap-3">
+                                {providerGroups[provider].map((policy) => (
+                                  <div key={`${provider}-${policy.policy_id}`} className="group relative">
+                                    {policy.poster_path && (
+                                      <img
+                                        src={policy.poster_path}
+                                        alt={policy.title}
+                                        className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all"
+                                      />
+                                    )}
+                                    <button
+                                      onClick={() => handleTogglePolicy(
+                                        { id: policy.title_id, title: policy.title, media_type: '', rating: '', poster_path: policy.poster_path },
+                                        true
+                                      )}
+                                      className="mt-2 w-full py-2 rounded-lg text-sm font-semibold transition-all bg-red-100 text-red-600 hover:bg-red-200"
+                                    >
+                                      ✕ Remove
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        {unknownProvider.length > 0 && (
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
+                              <span>❓</span>
+                              <span>Other</span>
+                              <span className="text-sm font-normal text-gray-500">({unknownProvider.length})</span>
+                            </h3>
+                            <div className="grid grid-cols-6 gap-3">
+                              {unknownProvider.map((policy) => (
+                                <div key={policy.policy_id} className="group relative">
+                                  {policy.poster_path && (
+                                    <img
+                                      src={policy.poster_path}
+                                      alt={policy.title}
+                                      className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all"
+                                    />
+                                  )}
+                                  <button
+                                    onClick={() => handleTogglePolicy(
+                                      { id: policy.title_id, title: policy.title, media_type: '', rating: '', poster_path: policy.poster_path },
+                                      true
+                                    )}
+                                    className="mt-2 w-full py-2 rounded-lg text-sm font-semibold transition-all bg-red-100 text-red-600 hover:bg-red-200"
+                                  >
+                                    ✕ Remove
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        ))}
+                        )}
                       </div>
                     );
                   })()}

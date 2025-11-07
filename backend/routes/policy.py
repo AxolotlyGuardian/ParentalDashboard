@@ -89,7 +89,8 @@ def get_profile_policies(
                 "title": title.title,
                 "media_type": title.media_type,
                 "poster_path": f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else None,
-                "is_allowed": policy.is_allowed
+                "is_allowed": policy.is_allowed,
+                "providers": title.providers or []
             })
     
     return {"kid_profile_id": kid_profile_id, "policies": result}

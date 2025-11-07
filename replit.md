@@ -219,3 +219,8 @@ The application is fully functional with:
 - 2025-11-01: Created POST /api/pairing/confirm (parent confirms pairing in dashboard)
 - 2025-11-01: Updated parent dashboard to accept 6-digit pairing codes instead of device IDs
 - 2025-11-01: Added retry support - devices can re-initiate pairing if they reboot or timeout
+- 2025-11-07: Added search functionality to "Allowed Content" tab for filtering approved shows
+- 2025-11-07: Updated policy endpoint to include provider information (streaming services)
+- 2025-11-07: Implemented streaming service categorization in parent dashboard
+- 2025-11-07: Allowed content now grouped by service (Netflix, Disney+, Hulu, Prime Video, etc.)
+- 2025-11-07: Each service displays with branded emoji and content count
