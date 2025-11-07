@@ -293,7 +293,7 @@ async def get_apps(
     ).all()
     
     if not kid_profiles:
-        return {"categories": [], "total_count": 0}
+        return []
     
     provider_groups = {}
     seen_title_ids = set()
@@ -362,10 +362,7 @@ async def get_apps(
             "count": len(provider_groups[provider_id])
         })
     
-    return {
-        "categories": categories,
-        "total_count": len(seen_title_ids)
-    }
+    return categories
 
 @router.get("/time-limits")
 async def get_time_limits(
