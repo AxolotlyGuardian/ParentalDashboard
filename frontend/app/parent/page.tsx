@@ -145,7 +145,7 @@ export default function ParentDashboard() {
         title.rating
       );
       
-      loadPolicies();
+      await loadPolicies();
       
       setSearchResults(prev =>
         prev.map(t => t.id === title.id ? title : t)
