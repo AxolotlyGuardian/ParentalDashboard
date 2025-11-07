@@ -81,21 +81,24 @@ async def get_profile_policies(
     if profile.parent_id != current_user.id:
         raise HTTPException(status_code=403, detail="Can only view your own kid's policies")
     
-    policies = db.query(Policy).filter(Policy.kid_profile_id == kid_profile_id).all()
+    policies_with_titles = db.query(Policy, Title).join(
+        Title, Policy.title_id == Title.id
+    ).filter(
+        Policy.kid_profile_id == kid_profile_id
+    ).all()
     
-    result = []
-    for policy in policies:
-        title = db.query(Title).filter(Title.id == policy.title_id).first()
-        if title:
-            result.append({
-                "policy_id": policy.id,
-                "title_id": title.id,
-                "title": title.title,
-                "media_type": title.media_type,
-                "poster_path": f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else None,
-                "is_allowed": policy.is_allowed,
-                "providers": title.providers or []
-            })
+    result = [
+        {
+            "policy_id": policy.id,
+            "title_id": title.id,
+            "title": title.title,
+            "media_type": title.media_type,
+            "poster_path": f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else None,
+            "is_allowed": policy.is_allowed,
+            "providers": title.providers or []
+        }
+        for policy, title in policies_with_titles
+    ]
     
     return {"kid_profile_id": kid_profile_id, "policies": result}
 
