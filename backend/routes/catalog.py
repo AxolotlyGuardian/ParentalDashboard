@@ -56,6 +56,11 @@ def normalize_providers(providers: list) -> list:
 async def fetch_and_update_providers(title: Title, db: Session):
     """Fetch provider information from TMDB and update the title"""
     if not settings.TMDB_API_KEY:
+        print(f"No TMDB API key configured")
+        return
+    
+    if not title.tmdb_id:
+        print(f"Title {title.id} has no TMDB ID")
         return
     
     media_type = "movie" if title.media_type == "movie" else "tv"
@@ -66,6 +71,7 @@ async def fetch_and_update_providers(title: Title, db: Session):
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=params)
             if response.status_code != 200:
+                print(f"TMDB API returned {response.status_code} for title {title.id}")
                 return
             
             data = response.json()
@@ -87,8 +93,33 @@ async def fetch_and_update_providers(title: Title, db: Session):
             
             title.providers = available_providers
             db.commit()
+            print(f"Updated title {title.id} ({title.title}) with providers: {available_providers}")
     except Exception as e:
         print(f"Error fetching providers for title {title.id}: {e}")
+
+@router.post("/update-all-providers")
+async def update_all_providers(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
+    """Batch update provider information for all titles missing it"""
+    titles = db.query(Title).filter(Title.tmdb_id.isnot(None)).all()
+    updated = 0
+    skipped = 0
+    
+    for title in titles:
+        if not title.providers or len(title.providers) == 0:
+            await fetch_and_update_providers(title, db)
+            updated += 1
+        else:
+            skipped += 1
+    
+    return {
+        "message": f"Provider update complete",
+        "updated": updated,
+        "skipped": skipped,
+        "total": len(titles)
+    }
 
 @router.get("/search")
 async def search_titles(
