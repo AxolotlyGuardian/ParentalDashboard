@@ -121,6 +121,37 @@ async def update_all_providers(
         "total": len(titles)
     }
 
+async def check_streaming_availability(tmdb_id: int, media_type: str, client: httpx.AsyncClient) -> list:
+    """Check if content has streaming providers in our supported list"""
+    url = f"{settings.TMDB_API_BASE_URL}/{media_type}/{tmdb_id}/watch/providers"
+    params = {"api_key": settings.TMDB_API_KEY}
+    
+    try:
+        response = await client.get(url, params=params)
+        if response.status_code != 200:
+            return []
+        
+        data = response.json()
+        us_providers = data.get("results", {}).get("US", {})
+        
+        all_providers = []
+        for category in ["flatrate", "ads", "free"]:
+            all_providers.extend(us_providers.get(category, []))
+        
+        id_to_name = {v: k for k, v in PROVIDER_MAP.items()}
+        
+        available_providers = []
+        for provider in all_providers:
+            provider_id = provider.get("provider_id")
+            if provider_id in id_to_name:
+                our_name = id_to_name[provider_id]
+                if our_name not in available_providers:
+                    available_providers.append(our_name)
+        
+        return available_providers
+    except:
+        return []
+
 @router.get("/search")
 async def search_titles(
     query: str,
@@ -155,25 +186,36 @@ async def search_titles(
                 continue
             
             tmdb_id = item.get("id")
+            item_media_type = item.get("media_type")
+            
+            providers = await check_streaming_availability(tmdb_id, item_media_type, client)
+            
+            if not providers:
+                continue
+            
             existing_title = db.query(Title).filter(Title.tmdb_id == tmdb_id).first()
             
             if not existing_title:
                 new_title = Title(
                     tmdb_id=tmdb_id,
                     title=item.get("title") or item.get("name", ""),
-                    media_type=item.get("media_type"),
+                    media_type=item_media_type,
                     overview=item.get("overview"),
                     poster_path=item.get("poster_path"),
                     backdrop_path=item.get("backdrop_path"),
                     release_date=item.get("release_date") or item.get("first_air_date"),
                     rating=str(item.get("vote_average", 0)),
                     genres=item.get("genre_ids", []),
+                    providers=providers,
                     last_synced=datetime.utcnow()
                 )
                 db.add(new_title)
                 db.commit()
                 db.refresh(new_title)
                 existing_title = new_title
+            else:
+                existing_title.providers = providers
+                db.commit()
             
             results.append({
                 "id": existing_title.id,
@@ -183,7 +225,8 @@ async def search_titles(
                 "overview": existing_title.overview,
                 "poster_path": f"https://image.tmdb.org/t/p/w500{existing_title.poster_path}" if existing_title.poster_path else None,
                 "release_date": existing_title.release_date,
-                "rating": existing_title.rating
+                "rating": existing_title.rating,
+                "providers": existing_title.providers
             })
         
         return {"results": results}

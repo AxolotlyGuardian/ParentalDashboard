@@ -227,3 +227,7 @@ The application is fully functional with:
 - 2025-11-07: Added automatic provider normalization to fix legacy data (Disney → disney_plus)
 - 2025-11-07: Backend now auto-migrates old provider names to canonical format on load
 - 2025-11-07: Fixed duplicate Disney categories by unifying all Disney content under "Disney+"
+- 2025-11-07: Implemented smart search filtering - only shows streamable content with provider data
+- 2025-11-07: Search now excludes specials, episodes, and non-streaming content from results
+- 2025-11-07: Created update_providers.py batch script for backfilling provider data
+- 2025-11-07: Search results now include provider information automatically fetched from TMDB
