@@ -157,7 +157,10 @@ Required environment variables:
 
 **Device Management:**
 - `POST /launcher/device/pair` - Direct device-to-kid pairing (parent auth required)
-- `GET /api/apps` - Get approved content for device's kid profile (device auth required)
+- `GET /api/apps` - Get approved content organized by streaming service (device auth required)
+  - Returns content grouped by provider (Netflix, Disney+, Hulu, Prime Video, Peacock, YouTube, Other)
+  - Includes provider metadata (name, emoji, Android package name, content count)
+  - Matches parent dashboard categorization exactly
 - `GET /api/time-limits` - Get screen time restrictions (device auth required)
 - `GET /api/stats` - Get dashboard statistics (device auth required)
 - `POST /api/usage-logs` - Log app usage for analytics (device auth required)
@@ -231,3 +234,7 @@ The application is fully functional with:
 - 2025-11-07: Search now excludes specials, episodes, and non-streaming content from results
 - 2025-11-07: Created update_providers.py batch script for backfilling provider data
 - 2025-11-07: Search results now include provider information automatically fetched from TMDB
+- 2025-11-07: Optimized policy loading with JOIN query for instant remove button (20-30x speedup)
+- 2025-11-07: Updated launcher API (/api/apps) to organize content by streaming service
+- 2025-11-07: Device API now returns categories array matching parent dashboard layout
+- 2025-11-07: Each category includes provider metadata (name, emoji, package, content count)

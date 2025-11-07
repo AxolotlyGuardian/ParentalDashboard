@@ -293,9 +293,9 @@ async def get_apps(
     ).all()
     
     if not kid_profiles:
-        return []
+        return {"categories": [], "total_count": 0}
     
-    allowed_titles = []
+    provider_groups = {}
     seen_title_ids = set()
     
     for profile in kid_profiles:
@@ -320,7 +320,7 @@ async def get_apps(
                             primary_link = link
                             break
                 
-                allowed_titles.append({
+                content_item = {
                     "id": str(title.id),
                     "appName": title.title,
                     "packageName": primary_link or f"tmdb.{title.media_type}.{title.tmdb_id}",
@@ -328,10 +328,45 @@ async def get_apps(
                     "coverArt": backdrop_url,
                     "isEnabled": True,
                     "ageRating": title.rating or "All",
-                    "category": title.media_type.upper() if title.media_type else "Content"
-                })
+                    "mediaType": title.media_type.upper() if title.media_type else "Content"
+                }
+                
+                if title.providers and len(title.providers) > 0:
+                    for provider in title.providers:
+                        if provider not in provider_groups:
+                            provider_groups[provider] = []
+                        provider_groups[provider].append(content_item)
+                else:
+                    if "other" not in provider_groups:
+                        provider_groups["other"] = []
+                    provider_groups["other"].append(content_item)
     
-    return allowed_titles
+    provider_info = {
+        "netflix": {"name": "Netflix", "emoji": "🔴", "package": "com.netflix.mediaclient"},
+        "disney_plus": {"name": "Disney+", "emoji": "✨", "package": "com.disney.disneyplus"},
+        "hulu": {"name": "Hulu", "emoji": "💚", "package": "com.hulu.plus"},
+        "prime_video": {"name": "Prime Video", "emoji": "📦", "package": "com.amazon.avod.thirdpartyclient"},
+        "peacock": {"name": "Peacock", "emoji": "🦚", "package": "com.peacocktv.peacockandroid"},
+        "youtube": {"name": "YouTube", "emoji": "▶️", "package": "com.google.android.youtube"},
+        "other": {"name": "Other", "emoji": "❓", "package": ""}
+    }
+    
+    categories = []
+    for provider_id in sorted(provider_groups.keys()):
+        info = provider_info.get(provider_id, {"name": provider_id.title(), "emoji": "📺", "package": ""})
+        categories.append({
+            "id": provider_id,
+            "name": info["name"],
+            "emoji": info["emoji"],
+            "package": info["package"],
+            "content": provider_groups[provider_id],
+            "count": len(provider_groups[provider_id])
+        })
+    
+    return {
+        "categories": categories,
+        "total_count": len(seen_title_ids)
+    }
 
 @router.get("/time-limits")
 async def get_time_limits(
