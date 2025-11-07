@@ -342,22 +342,21 @@ async def get_apps(
                     provider_groups["other"].append(content_item)
     
     provider_info = {
-        "netflix": {"name": "Netflix", "emoji": "🔴", "package": "com.netflix.mediaclient"},
-        "disney_plus": {"name": "Disney+", "emoji": "✨", "package": "com.disney.disneyplus"},
-        "hulu": {"name": "Hulu", "emoji": "💚", "package": "com.hulu.plus"},
-        "prime_video": {"name": "Prime Video", "emoji": "📦", "package": "com.amazon.avod.thirdpartyclient"},
-        "peacock": {"name": "Peacock", "emoji": "🦚", "package": "com.peacocktv.peacockandroid"},
-        "youtube": {"name": "YouTube", "emoji": "▶️", "package": "com.google.android.youtube"},
-        "other": {"name": "Other", "emoji": "❓", "package": ""}
+        "netflix": {"name": "Netflix", "package": "com.netflix.mediaclient"},
+        "disney_plus": {"name": "Disney+", "package": "com.disney.disneyplus"},
+        "hulu": {"name": "Hulu", "package": "com.hulu.plus"},
+        "prime_video": {"name": "Prime Video", "package": "com.amazon.avod.thirdpartyclient"},
+        "peacock": {"name": "Peacock", "package": "com.peacocktv.peacockandroid"},
+        "youtube": {"name": "YouTube", "package": "com.google.android.youtube"},
+        "other": {"name": "Other", "package": ""}
     }
     
     categories = []
     for provider_id in sorted(provider_groups.keys()):
-        info = provider_info.get(provider_id, {"name": provider_id.title(), "emoji": "📺", "package": ""})
+        info = provider_info.get(provider_id, {"name": provider_id.title(), "package": ""})
         categories.append({
             "id": provider_id,
             "name": info["name"],
-            "emoji": info["emoji"],
             "package": info["package"],
             "content": provider_groups[provider_id],
             "count": len(provider_groups[provider_id])

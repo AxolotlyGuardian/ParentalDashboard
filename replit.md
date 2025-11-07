@@ -159,7 +159,7 @@ Required environment variables:
 - `POST /launcher/device/pair` - Direct device-to-kid pairing (parent auth required)
 - `GET /api/apps` - Get approved content organized by streaming service (device auth required)
   - Returns content grouped by provider (Netflix, Disney+, Hulu, Prime Video, Peacock, YouTube, Other)
-  - Includes provider metadata (name, emoji, Android package name, content count)
+  - Includes provider metadata (name, Android package name, content count)
   - Matches parent dashboard categorization exactly
 - `GET /api/time-limits` - Get screen time restrictions (device auth required)
 - `GET /api/stats` - Get dashboard statistics (device auth required)
@@ -226,7 +226,7 @@ The application is fully functional with:
 - 2025-11-07: Updated policy endpoint to include provider information (streaming services)
 - 2025-11-07: Implemented streaming service categorization in parent dashboard
 - 2025-11-07: Allowed content now grouped by service (Netflix, Disney+, Hulu, Prime Video, etc.)
-- 2025-11-07: Each service displays with branded emoji and content count
+- 2025-11-07: Each service displays with content count
 - 2025-11-07: Added automatic provider normalization to fix legacy data (Disney → disney_plus)
 - 2025-11-07: Backend now auto-migrates old provider names to canonical format on load
 - 2025-11-07: Fixed duplicate Disney categories by unifying all Disney content under "Disney+"
@@ -237,4 +237,5 @@ The application is fully functional with:
 - 2025-11-07: Optimized policy loading with JOIN query for instant remove button (20-30x speedup)
 - 2025-11-07: Updated launcher API (/api/apps) to organize content by streaming service
 - 2025-11-07: Device API now returns categories array matching parent dashboard layout
-- 2025-11-07: Each category includes provider metadata (name, emoji, package, content count)
+- 2025-11-07: Each category includes provider metadata (name, package, content count)
+- 2025-11-07: Removed emojis from streaming service display (frontend and API)

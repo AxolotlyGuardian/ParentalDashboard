@@ -612,24 +612,23 @@ export default function ParentDashboard() {
                       }
                     });
                     
-                    // Provider display names and emojis
-                    const providerInfo: { [key: string]: { name: string; emoji: string } } = {
-                      'netflix': { name: 'Netflix', emoji: '🔴' },
-                      'disney_plus': { name: 'Disney+', emoji: '✨' },
-                      'hulu': { name: 'Hulu', emoji: '💚' },
-                      'prime_video': { name: 'Prime Video', emoji: '📦' },
-                      'peacock': { name: 'Peacock', emoji: '🦚' },
-                      'youtube': { name: 'YouTube', emoji: '▶️' }
+                    // Provider display names
+                    const providerInfo: { [key: string]: { name: string } } = {
+                      'netflix': { name: 'Netflix' },
+                      'disney_plus': { name: 'Disney+' },
+                      'hulu': { name: 'Hulu' },
+                      'prime_video': { name: 'Prime Video' },
+                      'peacock': { name: 'Peacock' },
+                      'youtube': { name: 'YouTube' }
                     };
                     
                     return (
                       <div className="space-y-8">
                         {Object.keys(providerGroups).sort().map(provider => {
-                          const info = providerInfo[provider] || { name: provider, emoji: '📺' };
+                          const info = providerInfo[provider] || { name: provider };
                           return (
                             <div key={provider}>
                               <h3 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
-                                <span>{info.emoji}</span>
                                 <span>{info.name}</span>
                                 <span className="text-sm font-normal text-gray-500">({providerGroups[provider].length})</span>
                               </h3>
@@ -662,7 +661,6 @@ export default function ParentDashboard() {
                         {unknownProvider.length > 0 && (
                           <div>
                             <h3 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
-                              <span>❓</span>
                               <span>Other</span>
                               <span className="text-sm font-normal text-gray-500">({unknownProvider.length})</span>
                             </h3>
