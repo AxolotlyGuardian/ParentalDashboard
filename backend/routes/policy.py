@@ -170,3 +170,33 @@ def get_allowed_titles(
             })
     
     return {"allowed_titles": titles}
+
+@router.get("/admin/all-policies")
+def get_all_policies_admin(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Admin endpoint to view all policies across all families"""
+    policies = db.query(Policy).offset(skip).limit(limit).all()
+    
+    result = []
+    for policy in policies:
+        title = db.query(Title).filter(Title.id == policy.title_id).first()
+        kid = db.query(KidProfile).filter(KidProfile.id == policy.kid_profile_id).first()
+        parent = db.query(User).filter(User.id == kid.parent_id).first() if kid else None
+        
+        result.append({
+            "policy_id": policy.id,
+            "title_id": policy.title_id,
+            "title_name": title.title if title else None,
+            "media_type": title.media_type if title else None,
+            "kid_profile_id": policy.kid_profile_id,
+            "kid_name": kid.name if kid else None,
+            "parent_email": parent.email if parent else None,
+            "is_allowed": policy.is_allowed,
+            "created_at": policy.created_at
+        })
+    
+    return result

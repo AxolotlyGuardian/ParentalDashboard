@@ -167,3 +167,54 @@ def get_kid_profiles(
 def get_all_kid_profiles(db: Session = Depends(get_db)):
     profiles = db.query(KidProfile).all()
     return [{"id": p.id, "name": p.name, "age": p.age} for p in profiles]
+
+@router.get("/admin/parents")
+def get_all_parents(
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Admin endpoint to view all parent accounts"""
+    parents = db.query(User).filter(User.role == "parent").all()
+    
+    result = []
+    for parent in parents:
+        kid_profiles = db.query(KidProfile).filter(KidProfile.parent_id == parent.id).all()
+        devices = db.query(Device).join(KidProfile).filter(KidProfile.parent_id == parent.id).all()
+        
+        result.append({
+            "id": parent.id,
+            "email": parent.email,
+            "created_at": parent.created_at,
+            "kid_profiles_count": len(kid_profiles),
+            "devices_count": len(devices),
+            "kid_profiles": [{"id": k.id, "name": k.name, "age": k.age} for k in kid_profiles]
+        })
+    
+    return result
+
+@router.get("/admin/kid-profiles")
+def get_all_kid_profiles_admin(
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Admin endpoint to view all kid profiles with parent info"""
+    profiles = db.query(KidProfile).all()
+    
+    result = []
+    for profile in profiles:
+        parent = db.query(User).filter(User.id == profile.parent_id).first()
+        policies = db.query(Policy).filter(Policy.kid_profile_id == profile.id).all()
+        devices = db.query(Device).filter(Device.kid_profile_id == profile.id).all()
+        
+        result.append({
+            "id": profile.id,
+            "name": profile.name,
+            "age": profile.age,
+            "parent_email": parent.email if parent else None,
+            "parent_id": profile.parent_id,
+            "policies_count": len(policies),
+            "devices_count": len(devices),
+            "created_at": profile.created_at
+        })
+    
+    return result
