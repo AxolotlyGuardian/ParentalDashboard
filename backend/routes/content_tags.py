@@ -20,6 +20,18 @@ class TagResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class TagCreateRequest(BaseModel):
+    category: str
+    slug: str
+    display_name: str
+    description: Optional[str] = None
+
+class TagUpdateRequest(BaseModel):
+    category: Optional[str] = None
+    slug: Optional[str] = None
+    display_name: Optional[str] = None
+    description: Optional[str] = None
+
 class ContentReportRequest(BaseModel):
     title_id: int
     tag_id: int
@@ -61,6 +73,82 @@ def get_tags(
 def get_tag_categories(db: Session = Depends(get_db)):
     categories = db.query(ContentTag.category).distinct().all()
     return [{"category": cat[0]} for cat in categories]
+
+@router.post("/tags", response_model=TagResponse)
+def create_tag(
+    tag: TagCreateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    existing_tag = db.query(ContentTag).filter(ContentTag.slug == tag.slug).first()
+    if existing_tag:
+        raise HTTPException(status_code=400, detail="Tag with this slug already exists")
+    
+    new_tag = ContentTag(
+        category=tag.category,
+        slug=tag.slug,
+        display_name=tag.display_name,
+        description=tag.description
+    )
+    
+    db.add(new_tag)
+    db.commit()
+    db.refresh(new_tag)
+    
+    return new_tag
+
+@router.put("/tags/{tag_id}", response_model=TagResponse)
+def update_tag(
+    tag_id: int,
+    tag: TagUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    existing_tag = db.query(ContentTag).filter(ContentTag.id == tag_id).first()
+    if not existing_tag:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    
+    if tag.category is not None:
+        existing_tag.category = tag.category
+    if tag.slug is not None:
+        slug_check = db.query(ContentTag).filter(
+            ContentTag.slug == tag.slug,
+            ContentTag.id != tag_id
+        ).first()
+        if slug_check:
+            raise HTTPException(status_code=400, detail="Tag with this slug already exists")
+        existing_tag.slug = tag.slug
+    if tag.display_name is not None:
+        existing_tag.display_name = tag.display_name
+    if tag.description is not None:
+        existing_tag.description = tag.description
+    
+    db.commit()
+    db.refresh(existing_tag)
+    
+    return existing_tag
+
+@router.delete("/tags/{tag_id}")
+def delete_tag(
+    tag_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    tag = db.query(ContentTag).filter(ContentTag.id == tag_id).first()
+    if not tag:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    
+    title_tags_count = db.query(TitleTag).filter(TitleTag.tag_id == tag_id).count()
+    if title_tags_count > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot delete tag. It is currently applied to {title_tags_count} title(s)."
+        )
+    
+    db.delete(tag)
+    db.commit()
+    
+    return {"message": "Tag deleted successfully", "tag_id": tag_id}
 
 @router.post("/content-reports", response_model=ContentReportResponse)
 def create_content_report(
