@@ -511,3 +511,65 @@ async def generate_pairing_code(
     db.refresh(pairing_code)
     
     return {"code": code, "expires_at": pairing_code.expires_at}
+
+@router.get("/devices")
+async def get_devices(
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Get all devices for the current parent's family"""
+    devices = db.query(Device).filter(
+        Device.family_id == current_user.id
+    ).all()
+    
+    result = []
+    for device in devices:
+        kid_profile = None
+        if device.kid_profile_id:
+            kid_profile = db.query(KidProfile).filter(
+                KidProfile.id == device.kid_profile_id
+            ).first()
+        
+        result.append({
+            "id": device.id,
+            "device_id": device.device_id,
+            "device_name": device.device_name or f"Device {device.device_id[:8]}",
+            "kid_profile_name": kid_profile.name if kid_profile else "Unassigned",
+            "kid_profile_id": device.kid_profile_id,
+            "created_at": device.created_at.isoformat() if device.created_at else None,
+            "last_active": device.last_active.isoformat() if device.last_active else None
+        })
+    
+    return result
+
+@router.put("/device/{device_id}/name")
+async def update_device_name(
+    device_id: int,
+    request: dict,
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Update a device's display name"""
+    device_name = request.get("device_name")
+    
+    if not device_name:
+        raise HTTPException(status_code=400, detail="device_name is required")
+    
+    # Find device and verify it belongs to this parent
+    device = db.query(Device).filter(
+        Device.id == device_id,
+        Device.family_id == current_user.id
+    ).first()
+    
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    
+    device.device_name = device_name
+    db.commit()
+    db.refresh(device)
+    
+    return {
+        "id": device.id,
+        "device_id": device.device_id,
+        "device_name": device.device_name
+    }

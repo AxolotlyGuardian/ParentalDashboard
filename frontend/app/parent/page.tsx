@@ -48,7 +48,10 @@ export default function ParentDashboard() {
   const [showAddDeviceForm, setShowAddDeviceForm] = useState(false);
   const [pairingCode, setPairingCode] = useState('');
   const [selectedKidForDevice, setSelectedKidForDevice] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'search' | 'policies'>('policies');
+  const [activeTab, setActiveTab] = useState<'search' | 'policies' | 'devices'>('policies');
+  const [devices, setDevices] = useState<any[]>([]);
+  const [editingDeviceId, setEditingDeviceId] = useState<number | null>(null);
+  const [editingDeviceName, setEditingDeviceName] = useState('');
 
   useEffect(() => {
     const user = getUserFromToken();
@@ -56,6 +59,7 @@ export default function ParentDashboard() {
       setIsLoggedIn(true);
       setUserId(parseInt(user.sub));
       loadKidProfiles(parseInt(user.sub));
+      loadDevices();
     }
   }, []);
 
@@ -65,6 +69,15 @@ export default function ParentDashboard() {
       setKidProfiles(response.data);
     } catch (error) {
       console.error('Failed to load kid profiles', error);
+    }
+  };
+
+  const loadDevices = async () => {
+    try {
+      const response = await deviceApi.getDevices();
+      setDevices(response.data);
+    } catch (error) {
+      console.error('Failed to load devices', error);
     }
   };
 
@@ -82,6 +95,7 @@ export default function ParentDashboard() {
       // Small delay to ensure token is saved to localStorage
       await new Promise(resolve => setTimeout(resolve, 100));
       loadKidProfiles(response.data.user_id);
+      loadDevices();
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || 'Authentication failed';
       alert(errorMessage);
@@ -113,9 +127,31 @@ export default function ParentDashboard() {
       setPairingCode('');
       setShowAddDeviceForm(false);
       setSelectedKidForDevice(null);
+      loadDevices();
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || 'Failed to pair device';
       alert(errorMessage);
+    }
+  };
+
+  const handleUpdateDeviceName = async (deviceId: number, newName: string) => {
+    if (!newName.trim()) {
+      alert('Device name cannot be empty');
+      setEditingDeviceId(null);
+      setEditingDeviceName('');
+      return;
+    }
+    
+    try {
+      await deviceApi.updateDeviceName(deviceId, newName.trim());
+      setEditingDeviceId(null);
+      setEditingDeviceName('');
+      loadDevices();
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 'Failed to update device name';
+      alert(errorMessage);
+      setEditingDeviceId(null);
+      setEditingDeviceName('');
     }
   };
 
@@ -313,7 +349,7 @@ export default function ParentDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('policies')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-full transition-all ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all ${
                 activeTab === 'policies'
                   ? 'bg-[#F77B8A] text-white shadow-md'
                   : 'text-gray-700 hover:bg-gray-200'
@@ -321,6 +357,17 @@ export default function ParentDashboard() {
             >
               <span className="font-medium">Allowed Content</span>
               <span className="text-sm">{allowedPoliciesCount}</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('devices')}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full transition-all ${
+                activeTab === 'devices'
+                  ? 'bg-[#F77B8A] text-white shadow-md'
+                  : 'text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <span className="font-medium">Devices</span>
+              <span className="text-sm">{devices.length}</span>
             </button>
           </div>
         </div>
@@ -693,10 +740,87 @@ export default function ParentDashboard() {
                   })()}
                 </div>
               )}
+
+              {activeTab === 'devices' && (
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800 mb-4">
+                    Paired Devices ({devices.length})
+                  </h2>
+                  
+                  {devices.length === 0 ? (
+                    <div className="text-center py-16">
+                      <div className="text-gray-400 text-6xl mb-4">📱</div>
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">No devices paired</h3>
+                      <p className="text-sm text-gray-500">Add a device using the "Add Device" button above</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {devices.map((device) => (
+                        <div key={device.id} className="p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-[#F77B8A]/30 transition-all">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              {editingDeviceId === device.id ? (
+                                <input
+                                  type="text"
+                                  value={editingDeviceName}
+                                  onChange={(e) => setEditingDeviceName(e.target.value)}
+                                  onBlur={() => {
+                                    if (editingDeviceName.trim()) {
+                                      handleUpdateDeviceName(device.id, editingDeviceName);
+                                    } else {
+                                      setEditingDeviceId(null);
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && editingDeviceName.trim()) {
+                                      handleUpdateDeviceName(device.id, editingDeviceName);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingDeviceId(null);
+                                    }
+                                  }}
+                                  autoFocus
+                                  className="text-lg font-semibold text-gray-800 border-b-2 border-[#F77B8A] focus:outline-none w-full"
+                                />
+                              ) : (
+                                <h3 className="text-lg font-semibold text-gray-800">{device.device_name}</h3>
+                              )}
+                              <p className="text-sm text-gray-600 mt-1">Linked to: {device.kid_profile_name}</p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setEditingDeviceId(device.id);
+                                setEditingDeviceName(device.device_name);
+                              }}
+                              className="ml-4 px-3 py-1 text-sm text-[#F77B8A] hover:bg-pink-50 rounded-lg transition-all"
+                            >
+                              Rename
+                            </button>
+                          </div>
+                          
+                          <div className="space-y-2 text-sm text-gray-600">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Device ID:</span>
+                              <span className="font-mono text-xs">{device.device_id}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Paired:</span>
+                              <span>{device.created_at ? new Date(device.created_at).toLocaleDateString() : 'Unknown'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Last Active:</span>
+                              <span>{device.last_active ? new Date(device.last_active).toLocaleString() : 'Never'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
-          {!selectedProfile && (
+          {!selectedProfile && activeTab !== 'devices' && (
             <div className="text-center py-16">
               <div className="text-gray-400 text-6xl mb-4">👤</div>
               <h3 className="text-lg font-semibold text-gray-600 mb-2">Select a kid profile</h3>
