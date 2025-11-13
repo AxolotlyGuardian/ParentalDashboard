@@ -95,7 +95,8 @@ async def get_profile_policies(
             "media_type": title.media_type,
             "poster_path": f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else None,
             "is_allowed": policy.is_allowed,
-            "providers": title.providers or []
+            "providers": title.providers or [],
+            "deep_links": title.deep_links or {}
         }
         for policy, title in policies_with_titles
     ]

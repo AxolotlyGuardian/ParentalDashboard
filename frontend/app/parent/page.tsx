@@ -26,6 +26,7 @@ interface Policy {
   poster_path?: string;
   is_allowed: boolean;
   providers?: string[];
+  deep_links?: { [key: string]: string };
 }
 
 export default function ParentDashboard() {
@@ -189,6 +190,16 @@ export default function ParentDashboard() {
     } catch (error) {
       console.error('Failed to toggle policy', error);
     }
+  };
+
+  const handleLaunchContent = (policy: Policy) => {
+    if (!policy.deep_links || Object.keys(policy.deep_links).length === 0) {
+      alert('No streaming link available for this content');
+      return;
+    }
+    
+    const firstLink = Object.values(policy.deep_links)[0];
+    window.open(firstLink, '_blank');
   };
 
   const loadPolicies = async () => {
@@ -686,7 +697,8 @@ export default function ParentDashboard() {
                                       <img
                                         src={policy.poster_path}
                                         alt={policy.title}
-                                        className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all"
+                                        onClick={() => handleLaunchContent(policy)}
+                                        className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer hover:scale-105"
                                       />
                                     )}
                                     <button
@@ -718,7 +730,8 @@ export default function ParentDashboard() {
                                     <img
                                       src={policy.poster_path}
                                       alt={policy.title}
-                                      className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all"
+                                      onClick={() => handleLaunchContent(policy)}
+                                      className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer hover:scale-105"
                                     />
                                   )}
                                   <button
