@@ -1,0 +1,66 @@
+Here’s a clean, modular Replit prompt you can use to prototype the Movie of the Night enrichment flow with a bonus caching layer using Flask and Redis. This setup assumes you’re capturing deep links from Axolotly Launcher and enriching them server-side.
+
+🧪 Replit Prompt: Flask + Redis Deep Link Enrichment
+"""
+Axolotly Deep Link Enrichment API
+- Captures deep link payloads from Axolotly Launcher
+- Enriches with Movie of the Night API
+- Caches results in Redis to reduce API load
+"""
+
+from flask import Flask, request, jsonify
+import requests
+import redis
+import hashlib
+import os
+
+app = Flask(__name__)
+
+# Redis setup
+redis_client = redis.Redis(host='localhost', port=6379, db=0)
+
+# Movie of the Night API key (store securely in production)
+MOVIE_API_KEY = os.getenv("MOVIE_OF_THE_NIGHT_KEY")
+
+def hash_deep_link(deep_link):
+    return hashlib.sha256(deep_link.encode()).hexdigest()
+
+def fetch_movie_metadata(deep_link):
+    cache_key = f"motn:{hash_deep_link(deep_link)}"
+    cached = redis_client.get(cache_key)
+    if cached:
+        return jsonify({"source": "cache", "data": eval(cached.decode())})
+
+    # Replace with actual Movie of the Night API endpoint
+    response = requests.get(
+        f"https://api.movieofthenight.com/v1/lookup",
+        params={"deep_link": deep_link},
+        headers={"Authorization": f"Bearer {MOVIE_API_KEY}"}
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+        redis_client.setex(cache_key, 86400, str(data))  # Cache for 1 day
+        return jsonify({"source": "api", "data": data})
+    else:
+        return jsonify({"error": "Failed to fetch metadata"}), response.status_code
+
+@app.route("/enrich", methods=["POST"])
+def enrich_deep_link():
+    payload = request.json
+    deep_link = payload.get("deep_link")
+    if not deep_link:
+        return jsonify({"error": "Missing deep_link"}), 400
+    return fetch_movie_metadata(deep_link)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
+
+🧠 What This Does
+- Accepts a POST request with a deep link (e.g., disneyplus://play/abc123)
+- Checks Redis cache first
+- If not cached, queries Movie of the Night API
+- Stores the result in Redis for 24 hours
+- Returns enriched metadata to Axolotly’s dashboard or override engine
