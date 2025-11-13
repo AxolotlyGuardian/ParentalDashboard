@@ -76,7 +76,55 @@ The system enriches device-reported episode URLs using the Movie of the Night AP
 ### Workflow
 1. Device reports episode URL to `/api/launcher/device/episode-report`
 2. System matches URL to Episode record
-3. Calls `movie_api_client.enrich_deep_link(url)` for metadata
-4. Stores enrichment data in EpisodeLink record
-5. Sets `motn_verified=True` if API returns data
-6. Future requests use cached data (24hr TTL)
+3. Calls `movie_api_client.enrich_episode_link()` with TMDB metadata
+4. API validates URL against official episode deep links
+5. Stores enrichment data in EpisodeLink record
+6. Sets `motn_verified=True` only if API confirms URL match
+7. Future requests use cached data (24hr TTL)
+
+## Crowdsourced Content Tagging System
+
+The system enables parents to report specific scary or concerning content in movies and TV shows, building a community-driven content database:
+
+### Features
+- **72 Predefined Tags**: Organized into 9 categories (creatures, situations, death_loss, visuals, intensity, social, rating, age, content_warning)
+- **Parent Reporting**: Right-click or button-click on any thumbnail to submit content reports
+- **Episode-Level Reporting**: For TV shows, specify exact season and episode numbers
+- **Review Workflow**: Reports start as "pending" and require community approval before tags are applied
+- **Self-Approval Prevention**: Parents cannot approve their own reports
+
+### Database Schema
+- **ContentTag**: Master tag list with categories (creatures: spiders, clowns, sharks; situations: darkness, heights; etc.)
+- **TitleTag**: Junction table linking titles to tags with source tracking
+- **ContentReport**: Parent-submitted reports with season/episode, notes, status (pending/approved/rejected)
+
+### API Endpoints
+- `GET /api/tags` - Get all content tags (optionally filter by category)
+- `GET /api/tags/categories` - Get list of tag categories
+- `GET /api/titles/{id}/tags` - Get all tags applied to a specific title
+- `POST /api/content-reports` - Submit content report
+- `GET /api/content-reports` - View content reports (filter by status)
+- `PATCH /api/content-reports/{id}/approve` - Approve report and auto-apply tag (prevents self-approval)
+- `PATCH /api/content-reports/{id}/reject` - Reject report (prevents self-rejection)
+
+**Security Note:** The approval/rejection endpoints currently prevent self-approval but do not enforce admin-only access. In production, these endpoints should be protected with role-based access control. For MVP/community-driven usage, the system relies on trust among users. Future enhancement: implement admin role system and gate these endpoints behind admin authorization.
+
+### Content Tag Categories
+1. **Creatures & Characters**: clowns, spiders, snakes, sharks, dinosaurs, monsters, ghosts, zombies, witches, etc.
+2. **Situations & Themes**: darkness, confined_spaces, heights, water_danger, thunderstorms, fire, medical_procedures, etc.
+3. **Death & Loss**: parent_death, child_death, pet_death, funeral_scenes, grief_themes
+4. **Scary Visuals**: jump_scares, suspense_music, shadows, nightmares, hallucinations, intense_chases
+5. **Intensity Levels**: mild_peril, moderate_peril, intense_action, psychological_horror
+6. **Social Fears**: bullying, public_embarrassment, social_rejection
+7. **Content Ratings**: G, PG, PG-13, R, TV-Y, TV-Y7, TV-G, TV-PG, TV-14, TV-MA
+8. **Age Appropriateness**: preschool, early_childhood, kids, teens, family_friendly
+9. **Content Warnings**: violence, language, sexual_content, drug_use
+
+### User Workflow
+1. Parent browses content in dashboard
+2. Right-clicks thumbnail (or clicks "Report Content" button)
+3. Modal opens pre-filled with series name
+4. Parent selects tag (e.g., "Spiders"), inputs season 1 episode 5, adds notes
+5. Report submitted with status="pending"
+6. Community member reviews and approves → tag automatically applied to title
+7. Future parents see tag warnings when browsing that title

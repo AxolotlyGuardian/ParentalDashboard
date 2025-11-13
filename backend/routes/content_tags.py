@@ -141,18 +141,37 @@ def get_content_reports(
     
     return result
 
+@router.get("/content-reports/admin", response_model=List[ContentReportResponse])
+def get_content_reports_admin(
+    status: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return get_content_reports(status, current_user, db)
+
 @router.patch("/content-reports/{report_id}/approve")
 def approve_content_report(
     report_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """
+    Admin-only endpoint: Approve content report and apply tag to title.
+    TODO: Add admin role check when role system is implemented.
+    For now, parents should not self-approve reports - honor system.
+    """
     report = db.query(ContentReport).filter(ContentReport.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
     
     if report.status != "pending":
         raise HTTPException(status_code=400, detail="Report already processed")
+    
+    if report.reported_by == current_user.id:
+        raise HTTPException(
+            status_code=403, 
+            detail="You cannot approve your own content reports"
+        )
     
     existing_tag = db.query(TitleTag).filter(
         TitleTag.title_id == report.title_id,
@@ -182,12 +201,23 @@ def reject_content_report(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """
+    Admin-only endpoint: Reject content report without applying tag.
+    TODO: Add admin role check when role system is implemented.
+    For now, parents should not self-reject reports - honor system.
+    """
     report = db.query(ContentReport).filter(ContentReport.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
     
     if report.status != "pending":
         raise HTTPException(status_code=400, detail="Report already processed")
+    
+    if report.reported_by == current_user.id:
+        raise HTTPException(
+            status_code=403, 
+            detail="You cannot reject your own content reports"
+        )
     
     report.status = "rejected"
     report.reviewed_by = current_user.id
