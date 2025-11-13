@@ -668,11 +668,17 @@ async def report_episode_url(
                 
                 # Try to enrich with Movie of the Night API
                 try:
-                    enrichment = movie_api_client.enrich_deep_link(url)
+                    enrichment = movie_api_client.enrich_episode_link(
+                        url=url,
+                        tmdb_id=report.tmdb_title_id,
+                        season=report.season_hint,
+                        episode=report.episode_hint
+                    )
                     if enrichment and enrichment.get("data"):
                         existing_link.enrichment_data = json.dumps(enrichment["data"])
                         existing_link.last_enriched_at = datetime.utcnow()
-                        if enrichment.get("source") == "api":
+                        # Only mark as verified if API actually confirmed it
+                        if enrichment.get("verified") is True:
                             existing_link.motn_verified = True
                 except Exception as e:
                     print(f"Enrichment failed: {e}")
@@ -691,11 +697,17 @@ async def report_episode_url(
                 
                 # Try to enrich with Movie of the Night API
                 try:
-                    enrichment = movie_api_client.enrich_deep_link(url)
+                    enrichment = movie_api_client.enrich_episode_link(
+                        url=url,
+                        tmdb_id=report.tmdb_title_id,
+                        season=report.season_hint,
+                        episode=report.episode_hint
+                    )
                     if enrichment and enrichment.get("data"):
                         episode_link.enrichment_data = json.dumps(enrichment["data"])
                         episode_link.last_enriched_at = datetime.utcnow()
-                        if enrichment.get("source") == "api":
+                        # Only mark as verified if API actually confirmed it
+                        if enrichment.get("verified") is True:
                             episode_link.motn_verified = True
                 except Exception as e:
                     print(f"Enrichment failed: {e}")

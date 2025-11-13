@@ -151,38 +151,77 @@ class MovieAPIClient:
         
         return None
     
-    def enrich_deep_link(self, url: str) -> Optional[Dict[str, Any]]:
+    def enrich_episode_link(
+        self,
+        url: str,
+        tmdb_id: int,
+        season: int,
+        episode: int
+    ) -> Optional[Dict[str, Any]]:
         """
-        Enrich a deep link with metadata from Movie of the Night
+        Enrich an episode link by validating it against Movie of the Night API
         
         Args:
-            url: Deep link URL to enrich
+            url: Deep link URL to validate
+            tmdb_id: TMDB ID of the show
+            season: Season number
+            episode: Episode number
         
         Returns:
-            Enriched metadata or None if not found
+            Enriched metadata with verification status
         """
-        # Cache key based on URL hash
-        cache_key = f"motn:enrich:{hashlib.sha256(url.encode()).hexdigest()}"
+        # Cache key based on URL + metadata hash
+        cache_key = f"motn:episode:{tmdb_id}:{season}:{episode}:{hashlib.sha256(url.encode()).hexdigest()}"
         
         # Check cache
         cached = self._get_from_cache(cache_key)
         if cached:
-            return {"source": "cache", "data": cached, "cached_at": cached.get("cached_at")}
+            return {"source": "cache", "verified": True, "data": cached}
         
-        # Note: Movie of the Night API doesn't have a reverse lookup endpoint
-        # This would need to be implemented if they add such functionality
-        # For now, we'll return basic URL analysis
+        # Get show details from Movie of the Night
+        show_data = self.get_show_details(tmdb_id, "series")
         
-        result = {
-            "url": url,
-            "analyzed_at": datetime.utcnow().isoformat(),
-            "provider": self._detect_provider(url),
-            "cached_at": datetime.utcnow().isoformat()
+        if not show_data:
+            return {"source": "local", "verified": False, "data": {"provider": self._detect_provider(url)}}
+        
+        # Check if this episode's deep link is available
+        streaming_options = show_data.get("streamingOptions", {}).get("us", [])
+        provider = self._detect_provider(url)
+        
+        for option in streaming_options:
+            service = option.get("service", {}).get("id", "")
+            
+            if provider in service.lower() or service.lower() in provider:
+                # Check for episode-level deep link
+                episodes = option.get("episodes", [])
+                
+                for ep in episodes:
+                    if ep.get("seasonNumber") == season and ep.get("episodeNumber") == episode:
+                        api_link = ep.get("link", "")
+                        
+                        # Validate URL matches
+                        if api_link and (api_link == url or api_link in url or url in api_link):
+                            result = {
+                                "verified": True,
+                                "api_url": api_link,
+                                "reported_url": url,
+                                "match_type": "exact" if api_link == url else "partial",
+                                "provider": provider,
+                                "show_data": show_data.get("title", ""),
+                                "verified_at": datetime.utcnow().isoformat()
+                            }
+                            self._set_cache(cache_key, result, ttl=86400)
+                            return {"source": "api", "verified": True, "data": result}
+        
+        # URL not verified by API
+        return {
+            "source": "local",
+            "verified": False,
+            "data": {
+                "provider": provider,
+                "note": "URL not verified by Movie of the Night API"
+            }
         }
-        
-        self._set_cache(cache_key, result, ttl=604800)  # Cache for 7 days
-        
-        return {"source": "analysis", "data": result}
     
     def _detect_provider(self, url: str) -> str:
         """Detect streaming provider from URL"""
