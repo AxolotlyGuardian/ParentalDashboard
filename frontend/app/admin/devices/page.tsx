@@ -48,7 +48,9 @@ export default function DevicesPage() {
               <tr key={device.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">{device.device_name}</td>
                 <td className="px-6 py-4 text-xs text-gray-500 font-mono">{device.device_id}</td>
-                <td className="px-6 py-4 text-xs text-gray-500">{new Date(device.paired_at).toLocaleDateString()}</td>
+                <td className="px-6 py-4 text-xs text-gray-500">
+                  {device.created_at ? new Date(device.created_at).toLocaleDateString() : 'N/A'}
+                </td>
                 <td className="px-6 py-4 text-xs text-gray-500">{device.last_active ? new Date(device.last_active).toLocaleString() : 'Never'}</td>
               </tr>
             ))}
