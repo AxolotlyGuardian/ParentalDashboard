@@ -367,7 +367,7 @@ export default function ParentDashboard() {
               }`}
             >
               <span className="font-medium">Devices</span>
-              <span className="text-sm">{devices.length}</span>
+              <span className="text-sm">{selectedProfile ? devices.filter(d => d.kid_profile_id === selectedProfile).length : devices.length}</span>
             </button>
           </div>
         </div>
@@ -741,21 +741,28 @@ export default function ParentDashboard() {
                 </div>
               )}
 
-              {activeTab === 'devices' && (
+              {activeTab === 'devices' && selectedProfile && (
                 <div>
                   <h2 className="text-xl font-bold text-gray-800 mb-4">
-                    Paired Devices ({devices.length})
+                    Paired Devices ({devices.filter(d => d.kid_profile_id === selectedProfile).length})
                   </h2>
                   
-                  {devices.length === 0 ? (
-                    <div className="text-center py-16">
-                      <div className="text-gray-400 text-6xl mb-4">📱</div>
-                      <h3 className="text-lg font-semibold text-gray-600 mb-2">No devices paired</h3>
-                      <p className="text-sm text-gray-500">Add a device using the "Add Device" button above</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {devices.map((device) => (
+                  {(() => {
+                    const profileDevices = devices.filter(d => d.kid_profile_id === selectedProfile);
+                    
+                    if (profileDevices.length === 0) {
+                      return (
+                        <div className="text-center py-16">
+                          <div className="text-gray-400 text-6xl mb-4">📱</div>
+                          <h3 className="text-lg font-semibold text-gray-600 mb-2">No devices paired</h3>
+                          <p className="text-sm text-gray-500">Add a device using the "Add Device" button above</p>
+                        </div>
+                      );
+                    }
+                    
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {profileDevices.map((device) => (
                         <div key={device.id} className="p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-[#F77B8A]/30 transition-all">
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex-1">
@@ -812,19 +819,20 @@ export default function ParentDashboard() {
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
           )}
 
-          {!selectedProfile && activeTab !== 'devices' && (
+          {!selectedProfile && (
             <div className="text-center py-16">
               <div className="text-gray-400 text-6xl mb-4">👤</div>
               <h3 className="text-lg font-semibold text-gray-600 mb-2">Select a kid profile</h3>
-              <p className="text-sm text-gray-500">Choose a profile above to manage their content</p>
+              <p className="text-sm text-gray-500">Choose a profile above to manage their content and devices</p>
             </div>
           )}
         </div>
