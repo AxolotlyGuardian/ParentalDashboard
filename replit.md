@@ -67,6 +67,8 @@ Axolotly is a full-stack application that allows parents to control which movies
 - View content metadata (posters, ratings, descriptions)
 - Create allow/deny policies per kid profile
 - Manage existing policies with visual feedback
+- View and rename paired devices across all profiles
+- Track device pairing dates and last active timestamps
 
 ### Kids Launcher
 - PIN-based login for kids
@@ -157,6 +159,8 @@ Required environment variables:
 
 **Device Management:**
 - `POST /launcher/device/pair` - Direct device-to-kid pairing (parent auth required)
+- `GET /launcher/devices` - List all paired devices for parent with metadata (parent auth required)
+- `PUT /launcher/device/{device_id}/name` - Update device display name (parent auth required)
 - `GET /api/apps` - Get approved content organized by streaming service (device auth required)
   - Returns content grouped by provider (Netflix, Disney+, Hulu, Prime Video, Peacock, YouTube, Other)
   - Includes provider metadata (name, Android package name, content count)
@@ -239,3 +243,9 @@ The application is fully functional with:
 - 2025-11-07: Device API now returns categories array matching parent dashboard layout
 - 2025-11-07: Each category includes provider metadata (name, package, content count)
 - 2025-11-07: Removed emojis from streaming service display (frontend and API)
+- 2025-11-13: Added "Devices" tab to parent dashboard for device management
+- 2025-11-13: Implemented device listing with kid profile, pairing date, and last active info
+- 2025-11-13: Added inline rename functionality for devices with validation and error handling
+- 2025-11-13: Created GET /launcher/devices endpoint to list all parent's devices
+- 2025-11-13: Created PUT /launcher/device/{device_id}/name endpoint to rename devices
+- 2025-11-13: Fixed null-safety for device timestamps (created_at, last_active)
