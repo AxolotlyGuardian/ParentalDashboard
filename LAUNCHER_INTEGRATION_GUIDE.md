@@ -456,6 +456,135 @@ GET https://your-domain:8000/api/time-limits
 
 ---
 
+### 4. Report Episode URLs (Automatic Deep Link Collection)
+
+The launcher should automatically detect and report streaming URLs during playback. This builds a crowdsourced database of episode-specific deep links.
+
+```kotlin
+POST /api/launcher/device/episode-report
+Headers:
+  X-Device-ID: your-device-id
+  X-API-Key: your-api-key
+Content-Type: application/json
+
+{
+  "url": "https://www.disneyplus.com/play/5f37b14c-483e-4322-8247-ca11ceb92415",
+  "provider": "com.disney.disneyplus",
+  "title": "Bluey",
+  "season_number": 1,
+  "episode_number": 5,
+  "tmdb_title_id": 82856,
+  "playback_position": 120
+}
+
+Response 200:
+{
+  "report_id": 123,
+  "status": "matched_new",
+  "message": "Episode URL reported successfully"
+}
+```
+
+#### When to Report URLs
+
+The launcher should automatically detect and report URLs whenever:
+1. A new streaming URL is loaded during playback
+2. An episode changes (new URL detected)
+3. User starts playing content from the approved list
+
+#### Detection Strategy
+
+```kotlin
+// Monitor WebView or streaming app intent for URL changes
+class UrlDetector {
+    private var lastReportedUrl: String? = null
+    
+    fun onUrlChanged(newUrl: String, mediaInfo: MediaInfo) {
+        // Only report if URL changed
+        if (newUrl != lastReportedUrl) {
+            lastReportedUrl = newUrl
+            reportUrlToApi(newUrl, mediaInfo)
+        }
+    }
+}
+```
+
+#### Request Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `url` | Yes | The actual streaming URL being played |
+| `provider` | Yes | Android package name (e.g., `com.disney.disneyplus`) |
+| `title` | No | Show/movie title if known |
+| `season_number` | No | Season number if episode content |
+| `episode_number` | No | Episode number if episode content |
+| `tmdb_title_id` | No | TMDB ID from approved content list |
+| `playback_position` | No | Current playback position in seconds |
+
+#### Provider Package Names
+
+| Service | Package Name |
+|---------|--------------|
+| Disney+ | `com.disney.disneyplus` |
+| Netflix | `com.netflix.mediaclient` |
+| Hulu | `com.hulu.plus` |
+| Prime Video | `com.amazon.avod.thirdpartyclient` |
+| Peacock | `com.peacocktv.peacockandroid` |
+| YouTube | `com.google.android.youtube.tv` |
+
+#### Implementation Example
+
+```kotlin
+suspend fun reportEpisodeUrl(
+    url: String,
+    provider: String,
+    contentItem: ContentItem?,
+    seasonNumber: Int? = null,
+    episodeNumber: Int? = null
+) {
+    withContext(Dispatchers.IO) {
+        val json = JSONObject().apply {
+            put("url", url)
+            put("provider", provider)
+            contentItem?.let {
+                put("title", it.appName)
+                put("tmdb_title_id", it.id.toIntOrNull())
+            }
+            seasonNumber?.let { put("season_number", it) }
+            episodeNumber?.let { put("episode_number", it) }
+        }
+
+        val body = json.toString().toRequestBody("application/json".toMediaType())
+        val request = Request.Builder()
+            .url("$baseUrl/api/launcher/device/episode-report")
+            .addHeader("X-Device-ID", deviceId)
+            .addHeader("X-API-Key", apiKey)
+            .post(body)
+            .build()
+
+        try {
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                Log.d("Launcher", "Episode URL reported successfully")
+            }
+        } catch (e: Exception) {
+            // Silent failure - don't interrupt playback
+            Log.w("Launcher", "Failed to report episode URL", e)
+        }
+    }
+}
+```
+
+#### Best Practices
+
+1. **Report silently** - Don't interrupt playback or show errors
+2. **Deduplicate** - Only report when URL changes
+3. **Include metadata** - Send season/episode numbers when available
+4. **Match TMDB IDs** - Use the content ID from `/api/apps` response
+5. **Fire and forget** - Don't block playback waiting for response
+
+---
+
 ## Support
 
 For integration support, contact your backend team or refer to the API documentation at `/docs` (FastAPI automatic documentation).

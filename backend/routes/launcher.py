@@ -5,7 +5,7 @@ from typing import Optional
 import secrets
 import random
 from db import get_db
-from models import Device, PairingCode, PendingDevice, App, FamilyApp, TimeLimit, UsageLog, User, KidProfile, Policy, Title
+from models import Device, PairingCode, PendingDevice, App, FamilyApp, TimeLimit, UsageLog, User, KidProfile, Policy, Title, DeviceEpisodeReport, Episode, EpisodeLink
 from auth_utils import require_parent
 
 router = APIRouter()
@@ -572,4 +572,119 @@ async def update_device_name(
         "id": device.id,
         "device_id": device.device_id,
         "device_name": device.device_name
+    }
+
+@router.post("/device/episode-report")
+async def report_episode_url(
+    request: dict,
+    device: Device = Depends(get_device_from_headers),
+    db: Session = Depends(get_db)
+):
+    """
+    Device reports an episode URL during playback.
+    This builds a crowdsourced database of episode-specific deep links.
+    """
+    url = request.get("url")
+    provider = request.get("provider")
+    
+    if not url or not provider:
+        raise HTTPException(status_code=400, detail="url and provider are required")
+    
+    # Normalize provider name for internal lookups
+    provider_map = {
+        "com.disney.disneyplus": "disney_plus",
+        "com.netflix.mediaclient": "netflix",
+        "com.hulu.plus": "hulu",
+        "com.amazon.avod.thirdpartyclient": "prime_video",
+        "com.peacocktv.peacockandroid": "peacock",
+        "com.google.android.youtube.tv": "youtube"
+    }
+    normalized_provider = provider_map.get(provider, provider)
+    
+    # Parse TMDB ID as integer (comes as string from JSON)
+    tmdb_title_id = None
+    if request.get("tmdb_title_id"):
+        try:
+            tmdb_title_id = int(request.get("tmdb_title_id"))
+        except (ValueError, TypeError):
+            pass
+    
+    # Create episode report (store both raw and normalized)
+    report = DeviceEpisodeReport(
+        device_id=device.id,
+        raw_url=url,
+        provider=provider,
+        normalized_provider=normalized_provider,
+        reported_title=request.get("title"),
+        season_hint=request.get("season_number"),
+        episode_hint=request.get("episode_number"),
+        tmdb_title_id=tmdb_title_id,
+        kid_profile_id=device.kid_profile_id,
+        playback_position=request.get("playback_position")
+    )
+    
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+    
+    # Try immediate matching if TMDB info provided
+    if report.tmdb_title_id and report.season_hint is not None and report.episode_hint is not None:
+        # First, find the Title record using TMDB ID
+        title = db.query(Title).filter(Title.tmdb_id == report.tmdb_title_id).first()
+        
+        if not title:
+            return {
+                "report_id": report.id,
+                "status": "pending",
+                "message": "Title not found in database - will process later"
+            }
+        
+        # Now find the episode using the internal title ID
+        episode = db.query(Episode).filter(
+            Episode.title_id == title.id,
+            Episode.season_number == report.season_hint,
+            Episode.episode_number == report.episode_hint
+        ).first()
+        
+        if episode:
+            # Check if this URL already exists (check all provider combinations for backward compatibility)
+            existing_link = db.query(EpisodeLink).filter(
+                EpisodeLink.episode_id == episode.id,
+                EpisodeLink.deep_link_url == url
+            ).filter(
+                (EpisodeLink.raw_provider == provider) | 
+                (EpisodeLink.raw_provider == normalized_provider) |
+                (EpisodeLink.provider == provider) |
+                (EpisodeLink.provider == normalized_provider)
+            ).first()
+            
+            if existing_link:
+                # Update confirmation count
+                existing_link.confirmed_count += 1
+                existing_link.last_confirmed_at = datetime.utcnow()
+                report.processing_status = "matched_existing"
+                db.commit()
+            else:
+                # Create new episode link (store both raw and normalized)
+                episode_link = EpisodeLink(
+                    episode_id=episode.id,
+                    raw_provider=provider,
+                    provider=normalized_provider,
+                    deep_link_url=url,
+                    source="device_report",
+                    confidence_score=1.0
+                )
+                db.add(episode_link)
+                report.processing_status = "matched_new"
+                db.commit()
+            
+            report.matched_episode_id = episode.id
+            report.confidence_score = 1.0
+            report.processed_at = datetime.utcnow()
+            db.commit()
+    
+    return {
+        "report_id": report.id,
+        "status": report.processing_status,
+        "message": "Episode URL reported successfully"
     }

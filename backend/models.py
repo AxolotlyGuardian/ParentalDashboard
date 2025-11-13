@@ -155,3 +155,65 @@ class UsageLog(Base):
     
     device = relationship("Device", back_populates="usage_logs")
     app = relationship("App")
+
+# Episode Deep Linking System
+
+class Episode(Base):
+    __tablename__ = "episodes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False)
+    tmdb_episode_id = Column(Integer, unique=True, nullable=True, index=True)
+    season_number = Column(Integer, nullable=False)
+    episode_number = Column(Integer, nullable=False)
+    episode_name = Column(String, nullable=True)
+    overview = Column(Text, nullable=True)
+    runtime = Column(Integer, nullable=True)
+    thumbnail_path = Column(String, nullable=True)
+    air_date = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    title = relationship("Title")
+    episode_links = relationship("EpisodeLink", back_populates="episode")
+
+class EpisodeLink(Base):
+    __tablename__ = "episode_links"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=False)
+    raw_provider = Column(String, nullable=False)
+    provider = Column(String, nullable=False, index=True)
+    deep_link_url = Column(String, nullable=False)
+    source = Column(String, default="device_report")
+    confidence_score = Column(Float, default=0.0)
+    first_seen_at = Column(DateTime, default=datetime.utcnow)
+    last_confirmed_at = Column(DateTime, default=datetime.utcnow)
+    is_active = Column(Boolean, default=True)
+    confirmed_count = Column(Integer, default=1)
+    
+    episode = relationship("Episode", back_populates="episode_links")
+
+class DeviceEpisodeReport(Base):
+    __tablename__ = "device_episode_reports"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    raw_url = Column(String, nullable=False)
+    provider = Column(String, nullable=False, index=True)
+    normalized_provider = Column(String, nullable=False, index=True)
+    reported_title = Column(String, nullable=True)
+    season_hint = Column(Integer, nullable=True)
+    episode_hint = Column(Integer, nullable=True)
+    tmdb_title_id = Column(Integer, nullable=True)
+    kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=True)
+    playback_position = Column(Integer, nullable=True)
+    processing_status = Column(String, default="pending", index=True)
+    matched_episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=True)
+    confidence_score = Column(Float, nullable=True)
+    reported_at = Column(DateTime, default=datetime.utcnow)
+    processed_at = Column(DateTime, nullable=True)
+    
+    device = relationship("Device")
+    kid_profile = relationship("KidProfile")
+    matched_episode = relationship("Episode")
