@@ -18,9 +18,10 @@ The application features a parent dashboard and a kid's launcher. The parent das
 -   **Deep Linking**: Supports crowdsourced episode-level deep linking where devices report streaming URLs, which are then processed, matched to TMDB episodes, and stored.
 
 ### Feature Specifications
--   **Parent Dashboard**: Create and manage kid profiles, search and view TMDB content, create and manage allow/deny policies, view and rename paired devices, track device pairing dates and last active timestamps.
+-   **Parent Dashboard**: Create and manage kid profiles, search and view TMDB content, create and manage allow/deny policies, view and rename paired devices, track device pairing dates and last active timestamps, submit content reports with tags.
 -   **Kids Launcher**: PIN-based login, grid view of allowed content, tap-to-launch, blocked content screen, deep link support for major streaming platforms.
--   **Launcher Device API**: Provides endpoints for device pairing, retrieving approved content organized by streaming service, screen time limits, and app usage logging.
+-   **Launcher Device API**: Provides endpoints for device pairing, retrieving approved content organized by streaming service, screen time limits, app usage logging, and episode deep link reporting.
+-   **Admin Dashboard** (MVP): Comprehensive backend data management accessible at `/admin` route. Includes 12 pages: Content Reports (review/approve parent submissions), Content Tags (CRUD for 72+ tags), Titles (search/filter/view all media), Episode Links (crowdsourced URLs with MOTN verification), Parents (view all accounts), Kid Profiles (view across families), Devices (view all paired devices), Policies (view all allow/deny rules), plus placeholder pages for Stats, TMDB Sync, and Settings. **Security Note**: Admin endpoints accessible to any authenticated parent (no admin-role gate) - accepted MVP approach for community-driven usage.
 
 ### System Design Choices
 -   **Backend**: FastAPI with PostgreSQL database, SQLAlchemy ORM, JWT for authentication, and APScheduler for scheduled tasks.
