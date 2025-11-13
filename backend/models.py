@@ -224,3 +224,49 @@ class DeviceEpisodeReport(Base):
     device = relationship("Device")
     kid_profile = relationship("KidProfile")
     matched_episode = relationship("Episode")
+
+# Content Tagging System
+
+class ContentTag(Base):
+    __tablename__ = "content_tags"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    category = Column(String, nullable=False, index=True)
+    slug = Column(String, unique=True, nullable=False, index=True)
+    display_name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    title_tags = relationship("TitleTag", back_populates="tag")
+
+class TitleTag(Base):
+    __tablename__ = "title_tags"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False)
+    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False)
+    source = Column(String, default="manual")
+    confidence = Column(Float, default=1.0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    title = relationship("Title")
+    tag = relationship("ContentTag", back_populates="title_tags")
+
+class ContentReport(Base):
+    __tablename__ = "content_reports"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False)
+    reported_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False)
+    season_number = Column(Integer, nullable=True)
+    episode_number = Column(Integer, nullable=True)
+    notes = Column(Text, nullable=True)
+    status = Column(String, default="pending", index=True)
+    reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    title = relationship("Title")
+    reporter = relationship("User", foreign_keys=[reported_by])
+    reviewer = relationship("User", foreign_keys=[reviewed_by])
