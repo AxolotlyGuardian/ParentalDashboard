@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi, catalogApi, policyApi, deviceApi } from '@/lib/api';
 import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
+import ContentReportModal from '@/components/ContentReportModal';
 
 interface KidProfile {
   id: number;
@@ -53,6 +54,8 @@ export default function ParentDashboard() {
   const [devices, setDevices] = useState<any[]>([]);
   const [editingDeviceId, setEditingDeviceId] = useState<number | null>(null);
   const [editingDeviceName, setEditingDeviceName] = useState('');
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [selectedTitleForReport, setSelectedTitleForReport] = useState<Title | null>(null);
 
   useEffect(() => {
     const user = getUserFromToken();
@@ -233,6 +236,24 @@ export default function ParentDashboard() {
   const getTitleStatus = (titleId: number) => {
     const policy = policies.find(p => p.title_id === titleId);
     return policy ? policy.is_allowed : false;
+  };
+
+  const handleOpenReportModal = (title: Title, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setSelectedTitleForReport(title);
+    setIsReportModalOpen(true);
+  };
+
+  const handleCloseReportModal = () => {
+    setIsReportModalOpen(false);
+    setSelectedTitleForReport(null);
+  };
+
+  const handleReportSuccess = () => {
+    alert('Content report submitted successfully! Our team will review it.');
   };
 
   const allowedPoliciesCount = Array.isArray(policies) ? policies.filter(p => p.is_allowed).length : 0;
@@ -574,12 +595,16 @@ export default function ParentDashboard() {
                   {searchResults.length > 0 ? (
                     <div className="grid grid-cols-6 gap-3">
                       {searchResults.map((title) => (
-                        <div key={title.id} className="group relative">
+                        <div 
+                          key={title.id} 
+                          className="group relative"
+                          onContextMenu={(e) => handleOpenReportModal(title, e)}
+                        >
                           {title.poster_path && (
                             <img
                               src={title.poster_path}
                               alt={title.title}
-                              className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all"
+                              className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer"
                             />
                           )}
                           <button
@@ -591,6 +616,15 @@ export default function ParentDashboard() {
                             }`}
                           >
                             {getTitleStatus(title.id) ? '✓ Allowed' : '+ Allow'}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenReportModal(title);
+                            }}
+                            className="mt-1 w-full py-1 rounded-lg text-xs bg-orange-100 text-orange-600 hover:bg-orange-200 transition-all"
+                          >
+                            📝 Report Content
                           </button>
                         </div>
                       ))}
@@ -850,6 +884,13 @@ export default function ParentDashboard() {
           )}
         </div>
       </div>
+
+      <ContentReportModal
+        isOpen={isReportModalOpen}
+        title={selectedTitleForReport}
+        onClose={handleCloseReportModal}
+        onSubmitSuccess={handleReportSuccess}
+      />
     </div>
   );
 }
