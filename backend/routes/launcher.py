@@ -512,7 +512,7 @@ async def generate_pairing_code(
     
     return {"code": code, "expires_at": pairing_code.expires_at}
 
-@router.get("/devices")
+@router.get("/launcher/devices")
 async def get_devices(
     current_user: User = Depends(require_parent),
     db: Session = Depends(get_db)
@@ -542,7 +542,7 @@ async def get_devices(
     
     return result
 
-@router.put("/device/{device_id}/name")
+@router.put("/launcher/device/{device_id}/name")
 async def update_device_name(
     device_id: int,
     request: dict,
