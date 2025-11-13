@@ -38,7 +38,7 @@ class MovieAPIClient:
         
         try:
             cached = self.redis_client.get(cache_key)
-            if cached:
+            if cached and isinstance(cached, str):
                 import json
                 return json.loads(cached)
         except Exception as e:
@@ -46,9 +46,9 @@ class MovieAPIClient:
         
         return None
     
-    def _set_cache(self, cache_key: str, data: Dict, ttl: int = 86400):
+    def _set_cache(self, cache_key: str, data: Optional[Dict], ttl: int = 86400):
         """Cache response for specified TTL (default 24 hours)"""
-        if not self.redis_client:
+        if not self.redis_client or data is None:
             return
         
         try:

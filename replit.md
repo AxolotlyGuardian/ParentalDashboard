@@ -29,9 +29,10 @@ The application features a parent dashboard and a kid's launcher. The parent das
 
 ## External Dependencies
 
--   **Database**: PostgreSQL
+-   **Database**: PostgreSQL, Redis (for API caching)
 -   **API**:
     -   TMDB API (The Movie Database) for movie/TV show metadata
+    -   Movie of the Night / Streaming Availability API (via RapidAPI) for episode-level deep links and URL enrichment
 -   **Authentication**:
     -   JWT (JSON Web Tokens)
     -   bcrypt (for password/PIN hashing)
@@ -43,3 +44,39 @@ The application features a parent dashboard and a kid's launcher. The parent das
     -   Hulu
     -   Peacock
     -   YouTube
+
+## Episode Deep Linking with Movie of the Night
+
+The system enriches device-reported episode URLs using the Movie of the Night API (Streaming Availability API via RapidAPI):
+
+### Features
+- **Automatic Enrichment**: When devices report episode URLs, the system attempts to enrich them with Movie of the Night metadata
+- **Redis Caching**: API responses are cached for 24 hours to reduce API calls and improve performance
+- **Metadata Storage**: Enrichment data stored in `enrichment_data` JSON field on `EpisodeLink` records
+- **Verification Tracking**: `motn_verified` flag indicates URLs validated by Movie of the Night API
+- **Quality Scoring**: `motn_quality_score` field for future ranking and recommendation systems
+- **Custom Tags**: `custom_tags` field for manual categorization and filtering
+
+### Database Schema
+- **EpisodeLink** enrichment fields:
+  - `motn_verified`: Boolean flag for API-verified URLs
+  - `motn_quality_score`: Float for quality/popularity metrics
+  - `custom_tags`: String for manual tags (comma-separated)
+  - `enrichment_data`: JSON text field for full API response
+  - `last_enriched_at`: Timestamp of last enrichment attempt
+
+### API Integration
+- **Client**: `backend/services/movie_api.py` - MovieAPIClient class
+- **Caching**: Redis with 24-hour TTL for episode data, 7-day TTL for URL enrichment
+- **Authentication**: RapidAPI key via `MOVIE_OF_THE_NIGHT_API_KEY` environment variable
+- **Endpoints Used**:
+  - `/shows/series/{tmdb_id}` - Get show details and streaming availability
+  - Episode-specific deep link extraction from streaming options
+  
+### Workflow
+1. Device reports episode URL to `/api/launcher/device/episode-report`
+2. System matches URL to Episode record
+3. Calls `movie_api_client.enrich_deep_link(url)` for metadata
+4. Stores enrichment data in EpisodeLink record
+5. Sets `motn_verified=True` if API returns data
+6. Future requests use cached data (24hr TTL)

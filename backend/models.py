@@ -192,6 +192,13 @@ class EpisodeLink(Base):
     is_active = Column(Boolean, default=True)
     confirmed_count = Column(Integer, default=1)
     
+    # Movie of the Night API enrichment fields
+    motn_verified = Column(Boolean, default=False)
+    motn_quality_score = Column(Float, nullable=True)
+    custom_tags = Column(String, nullable=True)
+    enrichment_data = Column(Text, nullable=True)
+    last_enriched_at = Column(DateTime, nullable=True)
+    
     episode = relationship("Episode", back_populates="episode_links")
 
 class DeviceEpisodeReport(Base):

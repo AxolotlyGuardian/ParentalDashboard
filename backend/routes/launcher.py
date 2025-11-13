@@ -7,6 +7,8 @@ import random
 from db import get_db
 from models import Device, PairingCode, PendingDevice, App, FamilyApp, TimeLimit, UsageLog, User, KidProfile, Policy, Title, DeviceEpisodeReport, Episode, EpisodeLink
 from auth_utils import require_parent
+from services.movie_api import movie_api_client
+import json
 
 router = APIRouter()
 
@@ -663,6 +665,18 @@ async def report_episode_url(
                 existing_link.confirmed_count += 1
                 existing_link.last_confirmed_at = datetime.utcnow()
                 report.processing_status = "matched_existing"
+                
+                # Try to enrich with Movie of the Night API
+                try:
+                    enrichment = movie_api_client.enrich_deep_link(url)
+                    if enrichment and enrichment.get("data"):
+                        existing_link.enrichment_data = json.dumps(enrichment["data"])
+                        existing_link.last_enriched_at = datetime.utcnow()
+                        if enrichment.get("source") == "api":
+                            existing_link.motn_verified = True
+                except Exception as e:
+                    print(f"Enrichment failed: {e}")
+                
                 db.commit()
             else:
                 # Create new episode link (store both raw and normalized)
@@ -674,6 +688,18 @@ async def report_episode_url(
                     source="device_report",
                     confidence_score=1.0
                 )
+                
+                # Try to enrich with Movie of the Night API
+                try:
+                    enrichment = movie_api_client.enrich_deep_link(url)
+                    if enrichment and enrichment.get("data"):
+                        episode_link.enrichment_data = json.dumps(enrichment["data"])
+                        episode_link.last_enriched_at = datetime.utcnow()
+                        if enrichment.get("source") == "api":
+                            episode_link.motn_verified = True
+                except Exception as e:
+                    print(f"Enrichment failed: {e}")
+                
                 db.add(episode_link)
                 report.processing_status = "matched_new"
                 db.commit()
