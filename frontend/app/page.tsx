@@ -8,11 +8,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <header className="text-center py-12 bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3]">
-        <img 
-          src="/axolotly-logo.png" 
-          alt="Axolotly Logo" 
-          className="w-48 h-48 mx-auto drop-shadow-lg"
-        />
         <h1 className="text-4xl font-bold text-white mt-6">Axolotly</h1>
         <p className="text-white/90 mt-2 text-lg">Safe, simple parental controls</p>
       </header>
@@ -22,13 +17,6 @@ export default function Home() {
         <section className="max-w-5xl mx-auto px-6 py-16">
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12">
             <div className="text-center mb-8">
-              <div className="inline-block mb-4">
-                <img 
-                  src="/images/axolotly-logo.png" 
-                  alt="Axolotly" 
-                  className="w-20 h-20 mx-auto"
-                />
-              </div>
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Mission</h2>
             </div>
             <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
@@ -42,9 +30,6 @@ export default function Home() {
           <div className="max-w-5xl mx-auto px-6">
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12">
               <div className="text-center mb-8">
-                <div className="inline-block bg-pink-50 p-4 rounded-2xl mb-4">
-                  <span className="text-5xl">💖</span>
-                </div>
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Axolotl?</h2>
               </div>
               <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
@@ -58,9 +43,6 @@ export default function Home() {
         <section className="max-w-5xl mx-auto px-6 py-16">
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12">
             <div className="text-center mb-8">
-              <div className="inline-block bg-pink-50 p-4 rounded-2xl mb-4">
-                <span className="text-5xl">🛡️</span>
-              </div>
               <h2 className="text-3xl font-bold text-gray-800 mb-4">The Problem We're Solving</h2>
             </div>
             <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
@@ -81,19 +63,15 @@ export default function Home() {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
                 <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl text-center hover:bg-white/30 transition-all">
-                  <div className="text-4xl mb-3">🦎</div>
                   <div className="text-sm font-semibold">Symbolic Logo</div>
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl text-center hover:bg-white/30 transition-all">
-                  <div className="text-4xl mb-3">🎨</div>
                   <div className="text-sm font-semibold">Color Palette</div>
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl text-center hover:bg-white/30 transition-all">
-                  <div className="text-4xl mb-3">🔒</div>
                   <div className="text-sm font-semibold">Enforcement Logic</div>
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl text-center hover:bg-white/30 transition-all">
-                  <div className="text-4xl mb-3">👥</div>
                   <div className="text-sm font-semibold">Community Flagging</div>
                 </div>
               </div>
@@ -109,11 +87,6 @@ export default function Home() {
               <p className="text-lg text-gray-600 leading-relaxed mb-8 max-w-3xl mx-auto">
                 Whether you're on the road or at home, Axolotly stands watch — quietly, reliably, and with purpose. Because in a world of endless content, protecting what matters shouldn't be an afterthought.
               </p>
-              <div className="flex justify-center gap-8 text-5xl mb-8">
-                <div className="bg-pink-50 p-4 rounded-2xl">📱</div>
-                <div className="bg-pink-50 p-4 rounded-2xl">💻</div>
-                <div className="bg-pink-50 p-4 rounded-2xl">🛡️</div>
-              </div>
             </div>
           </div>
         </section>
