@@ -1,20 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Header from '@/components/Header';
 
 export default function Pricing() {
   const router = useRouter();
 
   return (
     <div className="min-h-screen bg-[#fdfdfc]">
-      <header className="text-center py-6 bg-[#F47950] text-white">
-        <img 
-          src="/axolotly-logo.png" 
-          alt="Axolotly Logo" 
-          className="w-32 h-32 mx-auto cursor-pointer"
-          onClick={() => router.push('/')}
-        />
-      </header>
+      <Header variant="pink" />
 
       <main className="max-w-6xl mx-auto px-6 py-12">
         {/* Hero Section */}

@@ -1,16 +1,19 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Header from '@/components/Header';
 
 export default function Home() {
   const router = useRouter();
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="text-center py-12 bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3]">
+      <Header variant="pink" />
+      
+      <div className="text-center py-12 bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3]">
         <h1 className="text-4xl font-bold text-white mt-6">Axolotly</h1>
         <p className="text-white/90 mt-2 text-lg">Safe, simple parental controls</p>
-      </header>
+      </div>
 
       <main>
         {/* Section 1: Our Mission */}

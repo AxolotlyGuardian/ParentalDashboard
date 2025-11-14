@@ -1,20 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Header from '@/components/Header';
 
 export default function HowItWorks() {
   const router = useRouter();
 
   return (
     <div className="min-h-screen bg-[#fdfdfc]">
-      <header className="text-center py-6 bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3] text-white">
-        <h1 
-          className="text-3xl font-bold cursor-pointer"
-          onClick={() => router.push('/')}
-        >
-          Axolotly
-        </h1>
-      </header>
+      <Header variant="blue" />
 
       <main className="max-w-4xl mx-auto px-6 py-12">
         <h1 className="text-4xl font-bold text-[#566886] mb-8 text-center">How Axolotly Works for Parents</h1>

@@ -11,6 +11,14 @@ I want iterative development. Ask before making major changes.
 ### UI/UX Decisions
 The application features a parent dashboard and a kid's launcher. The parent dashboard UI uses a coral-pink (`#F77B8A`) color scheme with rounded corners and card layouts, matching the launcher's aesthetic. Content is displayed with poster-only cards. The kid's launcher provides a grid view of allowed content.
 
+**Public Pages Navigation**: All public-facing pages (Home, How It Works, Pricing) feature a unified navigation header with:
+- Axolotly logo (left side) - Pink variant for Home/Pricing pages, Blue variant for How It Works page
+- Navigation buttons (center) - Home, How It Works, Pricing
+- Login button (top right) - Links to mode selection for dashboard access
+- Mobile-responsive hamburger menu for smaller screens
+
+**Color Scheme Evolution**: How It Works page uses #688ac6 (light blue) for accent colors instead of the original coral-pink, creating a softer, more approachable feel while maintaining brand consistency.
+
 ### Technical Implementations
 -   **Authentication**: JWT-based for parents (email/password) and PIN-based for kids. All passwords and PINs are hashed using bcrypt. Role-based access control is enforced across all endpoints.
 -   **Content Management**: Integrates with TMDB for real-time search and metadata. A nightly script syncs popular titles. Content policies are enforced, and deep links are generated for streaming platforms (e.g., Netflix, Disney+, Amazon Prime Video, Hulu, Peacock, YouTube) with fallback URLs. Content is categorized and grouped by streaming service for easy navigation.
