@@ -13,7 +13,7 @@ export default function Home() {
       <main>
         {/* Section 1: Our Mission */}
         <section className="max-w-5xl mx-auto px-6 py-10">
-          <div className="bg-pink-50/30 rounded-3xl shadow-md border border-pink-100 p-12">
+          <div className="bg-white rounded-3xl shadow-md border border-pink-100 p-12">
             <div className="text-center mb-6">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Mission</h2>
             </div>
@@ -26,7 +26,7 @@ export default function Home() {
         {/* Section 2: Why Axolotl? */}
         <section className="bg-gradient-to-r from-pink-50 to-pink-100/50 py-10">
           <div className="max-w-5xl mx-auto px-6">
-            <div className="bg-pink-50/40 rounded-3xl shadow-md border border-pink-200 p-12">
+            <div className="bg-white rounded-3xl shadow-md border border-pink-200 p-12">
               <div className="text-center mb-6">
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Axolotly?</h2>
               </div>
@@ -39,7 +39,7 @@ export default function Home() {
 
         {/* Section 3: The Problem We're Solving */}
         <section className="max-w-5xl mx-auto px-6 py-10">
-          <div className="bg-blue-50/30 rounded-3xl shadow-md border border-blue-100 p-12">
+          <div className="bg-white rounded-3xl shadow-md border border-blue-100 p-12">
             <div className="text-center mb-6">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">The Problem We're Solving</h2>
             </div>
@@ -65,7 +65,7 @@ export default function Home() {
 
         {/* Section 5: Always Within Reach */}
         <section className="max-w-5xl mx-auto px-6 py-10">
-          <div className="bg-blue-50/30 rounded-3xl shadow-md border border-blue-100 p-12">
+          <div className="bg-white rounded-3xl shadow-md border border-pink-100 p-12">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Always Within Reach</h2>
               <p className="text-lg text-gray-600 leading-relaxed mb-8 max-w-3xl mx-auto">
