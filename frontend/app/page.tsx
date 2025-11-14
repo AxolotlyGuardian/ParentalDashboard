@@ -74,16 +74,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        {/* Get Started Button */}
-        <section className="max-w-4xl mx-auto px-6 py-10 text-center">
-          <button
-            onClick={() => router.push('/how-it-works')}
-            className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] hover:shadow-lg text-white font-bold py-4 px-12 rounded-full text-xl transition-all transform hover:scale-105"
-          >
-            Get Started
-          </button>
-        </section>
       </main>
 
       <footer className="text-center py-8 bg-gradient-to-r from-pink-100 to-blue-100 border-t border-pink-200">
