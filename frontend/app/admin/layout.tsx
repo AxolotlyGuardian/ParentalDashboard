@@ -32,17 +32,17 @@ export default function AdminLayout({
   }
 
   const navItems = [
-    { href: '/admin/content-reports', label: 'Content Reports', icon: '📋' },
-    { href: '/admin/content-tags', label: 'Content Tags', icon: '🏷️' },
-    { href: '/admin/titles', label: 'Titles', icon: '🎬' },
-    { href: '/admin/episode-links', label: 'Episode Links', icon: '🔗' },
-    { href: '/admin/parents', label: 'Parents', icon: '👤' },
-    { href: '/admin/kids', label: 'Kid Profiles', icon: '👶' },
-    { href: '/admin/devices', label: 'Devices', icon: '📱' },
-    { href: '/admin/policies', label: 'Policies', icon: '✅' },
-    { href: '/admin/stats', label: 'Usage Stats', icon: '📊' },
-    { href: '/admin/tmdb-sync', label: 'TMDB Sync', icon: '🔄' },
-    { href: '/admin/settings', label: 'Settings', icon: '⚙️' },
+    { href: '/admin/content-reports', label: 'Content Reports' },
+    { href: '/admin/content-tags', label: 'Content Tags' },
+    { href: '/admin/titles', label: 'Titles' },
+    { href: '/admin/episode-links', label: 'Episode Links' },
+    { href: '/admin/parents', label: 'Parents' },
+    { href: '/admin/kids', label: 'Kid Profiles' },
+    { href: '/admin/devices', label: 'Devices' },
+    { href: '/admin/policies', label: 'Policies' },
+    { href: '/admin/stats', label: 'Usage Stats' },
+    { href: '/admin/tmdb-sync', label: 'TMDB Sync' },
+    { href: '/admin/settings', label: 'Settings' },
   ];
 
   return (
@@ -57,10 +57,9 @@ export default function AdminLayout({
           <nav className="p-4">
             <Link
               href="/parent"
-              className="flex items-center gap-3 px-4 py-2 mb-4 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+              className="px-4 py-2 mb-4 text-gray-700 hover:bg-gray-100 rounded-lg transition block"
             >
-              <span>←</span>
-              <span>Back to Parent Dashboard</span>
+              Back to Parent Dashboard
             </Link>
             
             <div className="space-y-1">
@@ -68,14 +67,13 @@ export default function AdminLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                  className={`block px-4 py-2 rounded-lg transition ${
                     pathname === item.href
                       ? 'bg-[#F77B8A] text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <span className="text-xl">{item.icon}</span>
-                  <span>{item.label}</span>
+                  {item.label}
                 </Link>
               ))}
             </div>
