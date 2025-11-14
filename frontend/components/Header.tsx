@@ -11,10 +11,6 @@ interface HeaderProps {
 export default function Header({ variant = 'pink' }: HeaderProps) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  const logoSrc = variant === 'blue' 
-    ? '/logos/axolotly-logo-blue.png'
-    : '/logos/axolotly-logo-pink.png';
 
   const handleNavigation = (path: string) => {
     router.push(path);
@@ -31,10 +27,10 @@ export default function Header({ variant = 'pink' }: HeaderProps) {
             onClick={() => handleNavigation('/')}
           >
             <Image 
-              src={logoSrc}
+              src="/logos/axolotly-icon.png"
               alt="Axolotly Logo" 
-              width={50}
-              height={50}
+              width={45}
+              height={45}
               className="object-contain"
             />
             <span className="text-xl font-bold text-gray-800">Axolotly</span>
