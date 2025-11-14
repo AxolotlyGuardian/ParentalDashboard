@@ -37,22 +37,22 @@ export default function Header({ variant = 'pink' }: HeaderProps) {
           </div>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-2">
             <button
               onClick={() => handleNavigation('/')}
-              className="text-gray-700 hover:text-[#FF6B9D] font-medium transition-colors"
+              className="text-gray-700 hover:text-[#FF6B9D] hover:bg-pink-50 font-medium transition-all px-4 py-2 rounded-lg"
             >
               Home
             </button>
             <button
               onClick={() => handleNavigation('/how-it-works')}
-              className="text-gray-700 hover:text-[#688ac6] font-medium transition-colors"
+              className="text-gray-700 hover:text-[#688ac6] hover:bg-blue-50 font-medium transition-all px-4 py-2 rounded-lg"
             >
               How It Works
             </button>
             <button
               onClick={() => handleNavigation('/pricing')}
-              className="text-gray-700 hover:text-[#FF6B9D] font-medium transition-colors"
+              className="text-gray-700 hover:text-[#FF6B9D] hover:bg-pink-50 font-medium transition-all px-4 py-2 rounded-lg"
             >
               Pricing
             </button>
@@ -90,28 +90,28 @@ export default function Header({ variant = 'pink' }: HeaderProps) {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-gray-200 pt-4">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               <button
                 onClick={() => handleNavigation('/')}
-                className="text-gray-700 hover:text-[#FF6B9D] font-medium text-left transition-colors"
+                className="text-gray-700 hover:text-[#FF6B9D] hover:bg-pink-50 font-medium text-left transition-all px-4 py-2 rounded-lg"
               >
                 Home
               </button>
               <button
                 onClick={() => handleNavigation('/how-it-works')}
-                className="text-gray-700 hover:text-[#688ac6] font-medium text-left transition-colors"
+                className="text-gray-700 hover:text-[#688ac6] hover:bg-blue-50 font-medium text-left transition-all px-4 py-2 rounded-lg"
               >
                 How It Works
               </button>
               <button
                 onClick={() => handleNavigation('/pricing')}
-                className="text-gray-700 hover:text-[#FF6B9D] font-medium text-left transition-colors"
+                className="text-gray-700 hover:text-[#FF6B9D] hover:bg-pink-50 font-medium text-left transition-all px-4 py-2 rounded-lg"
               >
                 Pricing
               </button>
               <button
                 onClick={() => handleNavigation('/mode-select')}
-                className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] hover:shadow-lg text-white font-semibold py-2 px-6 rounded-full transition-all text-center"
+                className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] hover:shadow-lg text-white font-semibold py-2 px-6 rounded-full transition-all text-center mt-2"
               >
                 Login
               </button>
