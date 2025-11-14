@@ -339,10 +339,10 @@ export default function ParentDashboard() {
           </form>
           
           <button
-            onClick={() => router.push('/mode-select')}
+            onClick={() => router.push('/')}
             className="w-full mt-4 text-gray-600 text-sm hover:underline"
           >
-            ← Back to mode select
+            ← Back to home
           </button>
         </div>
       </div>
@@ -354,11 +354,11 @@ export default function ParentDashboard() {
       {/* Left Sidebar */}
       <div className="w-64 bg-[#f5f5f5] border-r border-gray-200 flex flex-col">
         {/* Logo */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-gray-200 cursor-pointer" onClick={() => router.push('/')}>
           <img 
             src="/images/axolotly-logo.png" 
             alt="Axolotly" 
-            className="w-32 h-32 mx-auto"
+            className="w-32 h-32 mx-auto hover:opacity-80 transition-opacity"
           />
         </div>
 
