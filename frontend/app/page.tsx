@@ -7,14 +7,14 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-pink-50/30 to-blue-50/30">
       <Header variant="pink" />
 
       <main>
         {/* Section 1: Our Mission */}
-        <section className="max-w-5xl mx-auto px-6 py-16">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12">
-            <div className="text-center mb-8">
+        <section className="max-w-5xl mx-auto px-6 py-10">
+          <div className="bg-white rounded-3xl shadow-md border border-pink-100 p-12">
+            <div className="text-center mb-6">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Mission</h2>
             </div>
             <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
@@ -24,10 +24,10 @@ export default function Home() {
         </section>
 
         {/* Section 2: Why Axolotl? */}
-        <section className="bg-gray-50 py-16">
+        <section className="bg-gradient-to-r from-pink-50 to-pink-100/50 py-10">
           <div className="max-w-5xl mx-auto px-6">
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12">
-              <div className="text-center mb-8">
+            <div className="bg-white rounded-3xl shadow-md border border-pink-200 p-12">
+              <div className="text-center mb-6">
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Axolotly?</h2>
               </div>
               <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
@@ -38,9 +38,9 @@ export default function Home() {
         </section>
 
         {/* Section 3: The Problem We're Solving */}
-        <section className="max-w-5xl mx-auto px-6 py-16">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12">
-            <div className="text-center mb-8">
+        <section className="max-w-5xl mx-auto px-6 py-10">
+          <div className="bg-white rounded-3xl shadow-md border border-blue-100 p-12">
+            <div className="text-center mb-6">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">The Problem We're Solving</h2>
             </div>
             <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
@@ -50,7 +50,7 @@ export default function Home() {
         </section>
 
         {/* Section 4: Family-First Design */}
-        <section className="bg-gray-50 py-16">
+        <section className="bg-gradient-to-r from-blue-50 to-blue-100/50 py-10">
           <div className="max-w-5xl mx-auto px-6">
             <div className="bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3] rounded-3xl shadow-lg p-12 text-white">
               <div className="text-center">
@@ -64,8 +64,8 @@ export default function Home() {
         </section>
 
         {/* Section 5: Always Within Reach */}
-        <section className="max-w-5xl mx-auto px-6 py-16">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12">
+        <section className="max-w-5xl mx-auto px-6 py-10">
+          <div className="bg-white rounded-3xl shadow-md border border-pink-100 p-12">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Always Within Reach</h2>
               <p className="text-lg text-gray-600 leading-relaxed mb-8 max-w-3xl mx-auto">
@@ -76,7 +76,7 @@ export default function Home() {
         </section>
 
         {/* Get Started Button */}
-        <section className="max-w-4xl mx-auto px-6 py-16 text-center">
+        <section className="max-w-4xl mx-auto px-6 py-10 text-center">
           <button
             onClick={() => router.push('/how-it-works')}
             className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] hover:shadow-lg text-white font-bold py-4 px-12 rounded-full text-xl transition-all transform hover:scale-105"
@@ -86,8 +86,8 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="text-center py-8 bg-gray-50 border-t border-gray-100 mt-12">
-        <p className="text-gray-600">&copy; 2025 Axolotly. Built with love and protection.</p>
+      <footer className="text-center py-8 bg-gradient-to-r from-pink-100 to-blue-100 border-t border-pink-200">
+        <p className="text-gray-700">&copy; 2025 Axolotly. Built with love and protection.</p>
       </footer>
     </div>
   );
