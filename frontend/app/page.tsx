@@ -9,11 +9,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <Header variant="pink" />
-      
-      <div className="text-center py-12 bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3]">
-        <h1 className="text-4xl font-bold text-white mt-6">Axolotly</h1>
-        <p className="text-white/90 mt-2 text-lg">Safe, simple parental controls</p>
-      </div>
 
       <main>
         {/* Section 1: Our Mission */}
