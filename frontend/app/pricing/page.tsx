@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 
 export default function Pricing() {
   const router = useRouter();
+  const [selectedPlan, setSelectedPlan] = useState<'starter' | 'family' | 'educator'>('family');
 
   return (
     <div className="min-h-screen bg-[#fdfdfc]">
@@ -26,7 +28,19 @@ export default function Pricing() {
         <section className="mb-16">
           <div className="grid md:grid-cols-3 gap-8">
             {/* Starter Plan */}
-            <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-[#688ac6] hover:shadow-xl transition-shadow">
+            <div 
+              onClick={() => setSelectedPlan('starter')}
+              className={`bg-white rounded-lg p-8 border-t-4 border-[#688ac6] cursor-pointer transition-all ${
+                selectedPlan === 'starter' 
+                  ? 'shadow-xl transform md:scale-105' 
+                  : 'shadow-lg hover:shadow-xl'
+              } relative`}
+            >
+              {selectedPlan === 'starter' && (
+                <div className="absolute top-0 right-0 bg-gradient-to-r from-[#688ac6] to-[#5276b3] text-white px-4 py-1 rounded-bl-lg text-sm font-semibold">
+                  Most Popular
+                </div>
+              )}
               <h3 className="text-2xl font-bold text-[#566886] mb-2">Starter</h3>
               <div className="mb-6">
                 <div className="text-sm text-gray-500">$39 per unit +</div>
@@ -52,11 +66,20 @@ export default function Pricing() {
               </button>
             </div>
 
-            {/* Family Plan - Featured */}
-            <div className="bg-white rounded-lg shadow-xl p-8 border-t-4 border-[#FF6B9D] transform md:scale-105 relative">
-              <div className="absolute top-0 right-0 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white px-4 py-1 rounded-bl-lg text-sm font-semibold">
-                Most Popular
-              </div>
+            {/* Family Plan */}
+            <div 
+              onClick={() => setSelectedPlan('family')}
+              className={`bg-white rounded-lg p-8 border-t-4 border-[#FF6B9D] cursor-pointer transition-all ${
+                selectedPlan === 'family' 
+                  ? 'shadow-xl transform md:scale-105' 
+                  : 'shadow-lg hover:shadow-xl'
+              } relative`}
+            >
+              {selectedPlan === 'family' && (
+                <div className="absolute top-0 right-0 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white px-4 py-1 rounded-bl-lg text-sm font-semibold">
+                  Most Popular
+                </div>
+              )}
               <h3 className="text-2xl font-bold text-[#566886] mb-2">Family</h3>
               <div className="mb-6">
                 <div className="text-sm text-gray-500">$39 per unit +</div>
@@ -83,7 +106,19 @@ export default function Pricing() {
             </div>
 
             {/* Educator Plan */}
-            <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-[#9B8DC6] hover:shadow-xl transition-shadow">
+            <div 
+              onClick={() => setSelectedPlan('educator')}
+              className={`bg-white rounded-lg p-8 border-t-4 border-[#9B8DC6] cursor-pointer transition-all ${
+                selectedPlan === 'educator' 
+                  ? 'shadow-xl transform md:scale-105' 
+                  : 'shadow-lg hover:shadow-xl'
+              } relative`}
+            >
+              {selectedPlan === 'educator' && (
+                <div className="absolute top-0 right-0 bg-gradient-to-r from-[#9B8DC6] to-[#8778b3] text-white px-4 py-1 rounded-bl-lg text-sm font-semibold">
+                  Most Popular
+                </div>
+              )}
               <h3 className="text-2xl font-bold text-[#566886] mb-2">Educator</h3>
               <div className="mb-6">
                 <div className="text-sm text-gray-500">$39 per unit +</div>
