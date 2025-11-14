@@ -33,7 +33,7 @@ export default function Header({ variant = 'pink' }: HeaderProps) {
               height={45}
               className="object-contain"
             />
-            <span className="text-xl font-bold text-[#FF6B9D]">Axolotly</span>
+            <span className="text-xl font-bold text-[#fb7f95]">Axolotly</span>
           </div>
 
           {/* Desktop Navigation Links */}
