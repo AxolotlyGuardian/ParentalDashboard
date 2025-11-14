@@ -79,7 +79,7 @@ export default function HowItWorks() {
 
         <div className="text-center mt-12 space-y-4">
           <button
-            onClick={() => router.push('/mode-select')}
+            onClick={() => router.push('/parent')}
             className="bg-[#688ac6] hover:bg-[#5276b3] text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors"
           >
             Continue to App

@@ -60,7 +60,7 @@ export default function Header({ variant = 'pink' }: HeaderProps) {
 
           {/* Desktop Login Button */}
           <button
-            onClick={() => handleNavigation('/mode-select')}
+            onClick={() => handleNavigation('/parent')}
             className="hidden md:block bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] hover:shadow-lg text-white font-semibold py-2 px-6 rounded-full transition-all"
           >
             Login
@@ -110,7 +110,7 @@ export default function Header({ variant = 'pink' }: HeaderProps) {
                 Pricing
               </button>
               <button
-                onClick={() => handleNavigation('/mode-select')}
+                onClick={() => handleNavigation('/parent')}
                 className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] hover:shadow-lg text-white font-semibold py-2 px-6 rounded-full transition-all text-center mt-2"
               >
                 Login

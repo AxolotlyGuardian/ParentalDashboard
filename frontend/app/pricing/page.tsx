@@ -209,7 +209,7 @@ export default function Pricing() {
           <h2 className="text-3xl font-bold mb-4">Start Protecting Today</h2>
           <p className="text-lg mb-8">No contracts. Cancel anytime. Your family's safety, always within reach.</p>
           <button 
-            onClick={() => router.push('/mode-select')}
+            onClick={() => router.push('/parent')}
             className="bg-white text-[#FF6B9D] hover:bg-gray-100 font-bold py-4 px-8 rounded-full text-xl transition-colors"
           >
             Get Started Now
