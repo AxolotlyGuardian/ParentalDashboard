@@ -17,7 +17,7 @@ export default function Pricing() {
           <p className="text-xl text-gray-600 mb-4">
             Choose the plan that fits your needs — whether you're a solo parent, a growing household, or an educator.
           </p>
-          <div className="inline-block bg-[#F47950] text-white px-6 py-3 rounded-lg text-lg font-semibold">
+          <div className="inline-block bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white px-6 py-3 rounded-lg text-lg font-semibold">
             $39 per Axolotly unit + subscription fee
           </div>
         </div>
@@ -26,97 +26,85 @@ export default function Pricing() {
         <section className="mb-16">
           <div className="grid md:grid-cols-3 gap-8">
             {/* Starter Plan */}
-            <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-[#B2D8BF] hover:shadow-xl transition-shadow">
+            <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-[#688ac6] hover:shadow-xl transition-shadow">
               <h3 className="text-2xl font-bold text-[#566886] mb-2">Starter</h3>
-              <div className="mb-2">
+              <div className="mb-6">
                 <div className="text-sm text-gray-500">$39 per unit +</div>
-                <span className="text-4xl font-bold text-[#F47950]">$4.99</span>
+                <span className="text-4xl font-bold text-[#688ac6]">$4.99</span>
                 <span className="text-gray-600">/month</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start">
-                  <span className="text-[#B2D8BF] mr-2">✓</span>
                   <span className="text-gray-700">1 device</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#B2D8BF] mr-2">✓</span>
                   <span className="text-gray-700">Real-time analytics</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#B2D8BF] mr-2">✓</span>
                   <span className="text-gray-700">Content filtering</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#B2D8BF] mr-2">✓</span>
                   <span className="text-gray-700">Remote dashboard</span>
                 </li>
               </ul>
-              <button className="w-full bg-[#B2D8BF] hover:bg-[#9ac4a8] text-gray-800 font-bold py-3 rounded-lg transition-colors">
+              <button className="w-full bg-[#688ac6] hover:bg-[#5276b3] text-white font-bold py-3 rounded-lg transition-colors">
                 Choose Starter
               </button>
             </div>
 
             {/* Family Plan - Featured */}
-            <div className="bg-white rounded-lg shadow-xl p-8 border-t-4 border-[#F47950] transform md:scale-105 relative">
-              <div className="absolute top-0 right-0 bg-[#F47950] text-white px-4 py-1 rounded-bl-lg text-sm font-semibold">
+            <div className="bg-white rounded-lg shadow-xl p-8 border-t-4 border-[#FF6B9D] transform md:scale-105 relative">
+              <div className="absolute top-0 right-0 bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white px-4 py-1 rounded-bl-lg text-sm font-semibold">
                 Most Popular
               </div>
               <h3 className="text-2xl font-bold text-[#566886] mb-2">Family</h3>
-              <div className="mb-2">
+              <div className="mb-6">
                 <div className="text-sm text-gray-500">$39 per unit +</div>
-                <span className="text-4xl font-bold text-[#F47950]">$9.99</span>
+                <span className="text-4xl font-bold text-[#FF6B9D]">$9.99</span>
                 <span className="text-gray-600">/month</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start">
-                  <span className="text-[#F47950] mr-2">✓</span>
                   <span className="text-gray-700">Up to 3 devices</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#F47950] mr-2">✓</span>
                   <span className="text-gray-700">Shared dashboard</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#F47950] mr-2">✓</span>
                   <span className="text-gray-700">Enforcement tiers</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#F47950] mr-2">✓</span>
                   <span className="text-gray-700">Alert summaries</span>
                 </li>
               </ul>
-              <button className="w-full bg-[#F47950] hover:bg-[#d66540] text-white font-bold py-3 rounded-lg transition-colors">
+              <button className="w-full bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] hover:shadow-lg text-white font-bold py-3 rounded-lg transition-all">
                 Choose Family
               </button>
             </div>
 
             {/* Educator Plan */}
-            <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-[#C2B7EE] hover:shadow-xl transition-shadow">
+            <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-[#9B8DC6] hover:shadow-xl transition-shadow">
               <h3 className="text-2xl font-bold text-[#566886] mb-2">Educator</h3>
-              <div className="mb-2">
+              <div className="mb-6">
                 <div className="text-sm text-gray-500">$39 per unit +</div>
-                <span className="text-4xl font-bold text-[#F47950]">$19.99</span>
+                <span className="text-4xl font-bold text-[#9B8DC6]">$19.99</span>
                 <span className="text-gray-600">/month</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start">
-                  <span className="text-[#C2B7EE] mr-2">✓</span>
                   <span className="text-gray-700">Up to 10 devices</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#C2B7EE] mr-2">✓</span>
                   <span className="text-gray-700">Classroom mode</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#C2B7EE] mr-2">✓</span>
                   <span className="text-gray-700">Group analytics</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-[#C2B7EE] mr-2">✓</span>
                   <span className="text-gray-700">Content presets</span>
                 </li>
               </ul>
-              <button className="w-full bg-[#C2B7EE] hover:bg-[#b3a4e3] text-gray-800 font-bold py-3 rounded-lg transition-colors">
+              <button className="w-full bg-[#9B8DC6] hover:bg-[#8778b3] text-white font-bold py-3 rounded-lg transition-colors">
                 Choose Educator
               </button>
             </div>
@@ -125,21 +113,17 @@ export default function Pricing() {
           {/* All Plans Include */}
           <div className="mt-8 p-6 bg-gray-50 rounded-lg">
             <h4 className="font-bold text-[#566886] mb-3 text-center">All plans include:</h4>
-            <div className="grid md:grid-cols-2 gap-3 text-gray-700 text-sm">
+            <div className="grid md:grid-cols-2 gap-3 text-gray-700">
               <div className="flex items-center">
-                <span className="text-[#F47950] mr-2">•</span>
                 Symbolic Guardian protection logic
               </div>
               <div className="flex items-center">
-                <span className="text-[#F47950] mr-2">•</span>
                 Access to the parent dashboard
               </div>
               <div className="flex items-center">
-                <span className="text-[#F47950] mr-2">•</span>
                 Community flagging and content updates
               </div>
               <div className="flex items-center">
-                <span className="text-[#F47950] mr-2">•</span>
                 Secure cloud syncing
               </div>
             </div>
@@ -147,7 +131,7 @@ export default function Pricing() {
         </section>
 
         {/* Bundle Add-On */}
-        <section className="mb-16 bg-[#566886] text-white rounded-xl p-8">
+        <section className="mb-16 bg-[#688ac6] text-white rounded-xl p-8">
           <h2 className="text-3xl font-bold mb-4 text-center">Bundle Add-On: Multi-Unit Discount</h2>
           <p className="text-center mb-8 text-lg">Add extra Axolotly units to your subscription and save on hardware costs.</p>
           
@@ -166,19 +150,19 @@ export default function Pricing() {
                   <td className="py-3 px-4 font-semibold">+1 Unit</td>
                   <td className="py-3 px-4">$31 per unit</td>
                   <td className="py-3 px-4">2</td>
-                  <td className="py-3 px-4 text-[#B2D8BF]">Save 20%</td>
+                  <td className="py-3 px-4 text-white/90">Save 20%</td>
                 </tr>
                 <tr className="border-b border-white/10">
                   <td className="py-3 px-4 font-semibold">+2 Units</td>
                   <td className="py-3 px-4">$27 per unit</td>
                   <td className="py-3 px-4">3</td>
-                  <td className="py-3 px-4 text-[#B2D8BF]">Save 30%</td>
+                  <td className="py-3 px-4 text-white/90">Save 30%</td>
                 </tr>
                 <tr>
                   <td className="py-3 px-4 font-semibold">+3+ Units</td>
                   <td className="py-3 px-4">Custom Quote</td>
                   <td className="py-3 px-4">4+</td>
-                  <td className="py-3 px-4 text-[#B2D8BF]">Save 35–50%</td>
+                  <td className="py-3 px-4 text-white/90">Save 35–50%</td>
                 </tr>
               </tbody>
             </table>
@@ -186,19 +170,19 @@ export default function Pricing() {
         </section>
 
         {/* Call to Action */}
-        <section className="text-center bg-[#F47950] text-white rounded-xl p-12">
+        <section className="text-center bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white rounded-xl p-12">
           <h2 className="text-3xl font-bold mb-4">Start Protecting Today</h2>
           <p className="text-lg mb-8">No contracts. Cancel anytime. Your family's safety, always within reach.</p>
           <button 
             onClick={() => router.push('/mode-select')}
-            className="bg-white text-[#F47950] hover:bg-gray-100 font-bold py-4 px-8 rounded-lg text-xl transition-colors"
+            className="bg-white text-[#FF6B9D] hover:bg-gray-100 font-bold py-4 px-8 rounded-full text-xl transition-colors"
           >
             Get Started Now
           </button>
         </section>
       </main>
 
-      <footer className="text-center py-6 bg-[#F47950] text-white mt-12">
+      <footer className="text-center py-6 bg-[#688ac6] text-white mt-12">
         <p>&copy; 2025 Axolotly. Built with love and protection.</p>
       </footer>
     </div>
