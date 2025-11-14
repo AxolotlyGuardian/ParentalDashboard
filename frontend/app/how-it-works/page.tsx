@@ -8,16 +8,16 @@ export default function HowItWorks() {
   return (
     <div className="min-h-screen bg-[#fdfdfc]">
       <header className="text-center py-6 bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3] text-white">
-        <img 
-          src="/images/axolotly-logo.png" 
-          alt="Axolotly Logo" 
-          className="w-32 h-32 mx-auto cursor-pointer"
+        <h1 
+          className="text-3xl font-bold cursor-pointer"
           onClick={() => router.push('/')}
-        />
+        >
+          Axolotly
+        </h1>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold text-[#566886] mb-8 text-center">🧭 How Axolotly Works for Parents</h1>
+        <h1 className="text-4xl font-bold text-[#566886] mb-8 text-center">How Axolotly Works for Parents</h1>
         
         <p className="text-lg text-gray-700 mb-12 leading-relaxed">
           Axolotly is designed to empower parents with intuitive, symbolic tools that protect their children's digital experiences — without friction, fear, or complexity. Here's how it works:
@@ -25,7 +25,7 @@ export default function HowItWorks() {
 
         <div className="space-y-8">
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#F47950]">
-            <h2 className="text-2xl font-bold text-[#566886] mb-4">🛡️ 1. Plug In Protection</h2>
+            <h2 className="text-2xl font-bold text-[#566886] mb-4">1. Plug In Protection</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
               Axolotly activates instantly when connected to your child's device. It begins monitoring screen activity, flagging inappropriate content, and enforcing boundaries — all without requiring complex setup.
             </p>
@@ -37,7 +37,7 @@ export default function HowItWorks() {
           </section>
 
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#566886]">
-            <h2 className="text-2xl font-bold text-[#566886] mb-4">👁️ 2. Real-Time Visibility</h2>
+            <h2 className="text-2xl font-bold text-[#566886] mb-4">2. Real-Time Visibility</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
               Parents receive real-time insights into what their child is watching, playing, or browsing. Axolotly doesn't spy — it informs.
             </p>
@@ -49,7 +49,7 @@ export default function HowItWorks() {
           </section>
 
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#C2B7EE]">
-            <h2 className="text-2xl font-bold text-[#566886] mb-4">🔒 3. Enforcement That Feels Natural</h2>
+            <h2 className="text-2xl font-bold text-[#566886] mb-4">3. Enforcement That Feels Natural</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
               Axolotly uses gentle enforcement logic inspired by the axolotl's regenerative nature. It doesn't punish — it redirects.
             </p>
@@ -61,7 +61,7 @@ export default function HowItWorks() {
           </section>
 
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#B2D8BF]">
-            <h2 className="text-2xl font-bold text-[#566886] mb-4">🧠 4. Parent-Centric Design</h2>
+            <h2 className="text-2xl font-bold text-[#566886] mb-4">4. Parent-Centric Design</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
               Every feature is built with your emotional clarity in mind. You don't need to be tech-savvy — just family-savvy.
             </p>
@@ -73,7 +73,7 @@ export default function HowItWorks() {
           </section>
 
           <section className="bg-[#F47950] text-white p-6 rounded-lg">
-            <h2 className="text-2xl font-bold mb-4">🦎 Why the Axolotl?</h2>
+            <h2 className="text-2xl font-bold mb-4">Why the Axolotl?</h2>
             <p className="leading-relaxed mb-4">
               The axolotl is more than a mascot — it's a metaphor. Known for its ability to regenerate and adapt, it represents the kind of protection we believe in: gentle, resilient, and ever-watchful. It's also my child's favorite animal — a personal reminder that this brand is built by a parent, for parents.
             </p>
