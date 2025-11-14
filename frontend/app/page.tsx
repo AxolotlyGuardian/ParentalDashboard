@@ -52,10 +52,10 @@ export default function Home() {
         {/* Section 4: Family-First Design */}
         <section className="bg-gradient-to-r from-blue-100 to-blue-200/70 py-10">
           <div className="max-w-5xl mx-auto px-6">
-            <div className="bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3] rounded-3xl shadow-lg p-12 text-white">
+            <div className="bg-white rounded-3xl shadow-md border border-blue-200 p-12">
               <div className="text-center">
-                <h2 className="text-3xl font-bold mb-4">Family-First Design</h2>
-                <p className="text-lg leading-relaxed opacity-95 max-w-3xl mx-auto">
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">Family-First Design</h2>
+                <p className="text-lg text-gray-600 leading-relaxed max-w-3xl mx-auto">
                   As a family-first creator, I've poured my values into every detail — from the symbolic logo to the enforcement logic, from the community flagging system to the calming color palette. Axolotly isn't just software. It's a promise to help parents feel confident, informed, and supported.
                 </p>
               </div>
