@@ -40,19 +40,19 @@ export default function Header({ variant = 'pink' }: HeaderProps) {
           <div className="hidden md:flex items-center gap-2">
             <button
               onClick={() => handleNavigation('/')}
-              className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] hover:shadow-md text-white font-semibold transition-all px-5 py-2 rounded-full"
+              className="text-gray-700 hover:text-[#FF6B9D] hover:bg-pink-50 font-medium transition-all px-4 py-2 rounded-lg"
             >
               Home
             </button>
             <button
               onClick={() => handleNavigation('/how-it-works')}
-              className="bg-[#688ac6] hover:bg-[#5276b3] hover:shadow-md text-white font-semibold transition-all px-5 py-2 rounded-full"
+              className="text-gray-700 hover:text-[#688ac6] hover:bg-blue-50 font-medium transition-all px-4 py-2 rounded-lg"
             >
               How It Works
             </button>
             <button
               onClick={() => handleNavigation('/pricing')}
-              className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] hover:shadow-md text-white font-semibold transition-all px-5 py-2 rounded-full"
+              className="text-gray-700 hover:text-[#FF6B9D] hover:bg-pink-50 font-medium transition-all px-4 py-2 rounded-lg"
             >
               Pricing
             </button>
@@ -93,19 +93,19 @@ export default function Header({ variant = 'pink' }: HeaderProps) {
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => handleNavigation('/')}
-                className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] hover:shadow-md text-white font-semibold transition-all px-5 py-2 rounded-full text-center"
+                className="text-gray-700 hover:text-[#FF6B9D] hover:bg-pink-50 font-medium text-left transition-all px-4 py-2 rounded-lg"
               >
                 Home
               </button>
               <button
                 onClick={() => handleNavigation('/how-it-works')}
-                className="bg-[#688ac6] hover:bg-[#5276b3] hover:shadow-md text-white font-semibold transition-all px-5 py-2 rounded-full text-center"
+                className="text-gray-700 hover:text-[#688ac6] hover:bg-blue-50 font-medium text-left transition-all px-4 py-2 rounded-lg"
               >
                 How It Works
               </button>
               <button
                 onClick={() => handleNavigation('/pricing')}
-                className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] hover:shadow-md text-white font-semibold transition-all px-5 py-2 rounded-full text-center"
+                className="text-gray-700 hover:text-[#FF6B9D] hover:bg-pink-50 font-medium text-left transition-all px-4 py-2 rounded-lg"
               >
                 Pricing
               </button>
