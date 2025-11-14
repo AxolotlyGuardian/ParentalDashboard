@@ -13,11 +13,11 @@ export default function Home() {
       <main>
         {/* Section 1: Our Mission */}
         <section className="max-w-5xl mx-auto px-6 py-10">
-          <div className="bg-white rounded-3xl shadow-md border border-pink-100 p-12">
+          <div className="bg-pink-50/30 rounded-3xl shadow-md border border-pink-100 p-12">
             <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-pink-900 mb-4">Our Mission</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Mission</h2>
             </div>
-            <p className="text-lg text-pink-800/80 leading-relaxed text-center max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
               Every parent deserves tools that protect their children without compromising trust, freedom, or joy. Axolotly is built to make protection intuitive, symbolic, and strong — not restrictive or complicated.
             </p>
           </div>
@@ -26,11 +26,11 @@ export default function Home() {
         {/* Section 2: Why Axolotl? */}
         <section className="bg-gradient-to-r from-pink-50 to-pink-100/50 py-10">
           <div className="max-w-5xl mx-auto px-6">
-            <div className="bg-white rounded-3xl shadow-md border border-pink-200 p-12">
+            <div className="bg-pink-50/40 rounded-3xl shadow-md border border-pink-200 p-12">
               <div className="text-center mb-6">
-                <h2 className="text-3xl font-bold text-pink-900 mb-4">Why Axolotly?</h2>
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Axolotly?</h2>
               </div>
-              <p className="text-lg text-pink-800/80 leading-relaxed text-center max-w-3xl mx-auto">
+              <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
                 The name comes from my child's favorite animal: the axolotl. Known for its regenerative powers and gentle nature, it became our symbol of resilience, adaptability, and guardianship. It's not just cute — it's powerful. Just like the parents we serve.
               </p>
             </div>
@@ -39,11 +39,11 @@ export default function Home() {
 
         {/* Section 3: The Problem We're Solving */}
         <section className="max-w-5xl mx-auto px-6 py-10">
-          <div className="bg-white rounded-3xl shadow-md border border-blue-100 p-12">
+          <div className="bg-blue-50/30 rounded-3xl shadow-md border border-blue-100 p-12">
             <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-blue-900 mb-4">The Problem We're Solving</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">The Problem We're Solving</h2>
             </div>
-            <p className="text-lg text-blue-800/80 leading-relaxed text-center max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
               In today's ever-expanding internet environment, kids have access to more content than ever before — much of it unfiltered, overwhelming, or simply not age-appropriate. Axolotly helps parents monitor, guide, and protect their children's digital experiences with clarity and confidence.
             </p>
           </div>
@@ -65,10 +65,10 @@ export default function Home() {
 
         {/* Section 5: Always Within Reach */}
         <section className="max-w-5xl mx-auto px-6 py-10">
-          <div className="bg-white rounded-3xl shadow-md border border-pink-100 p-12">
+          <div className="bg-blue-50/30 rounded-3xl shadow-md border border-blue-100 p-12">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-blue-900 mb-4">Always Within Reach</h2>
-              <p className="text-lg text-blue-800/80 leading-relaxed mb-8 max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">Always Within Reach</h2>
+              <p className="text-lg text-gray-600 leading-relaxed mb-8 max-w-3xl mx-auto">
                 Whether you're on the road or at home, Axolotly stands watch — quietly, reliably, and with purpose. Because in a world of endless content, protecting what matters shouldn't be an afterthought.
               </p>
             </div>
@@ -87,7 +87,7 @@ export default function Home() {
       </main>
 
       <footer className="text-center py-8 bg-gradient-to-r from-pink-100 to-blue-100 border-t border-pink-200">
-        <p className="text-pink-900/80">&copy; 2025 Axolotly. Built with love and protection.</p>
+        <p className="text-gray-700">&copy; 2025 Axolotly. Built with love and protection.</p>
       </footer>
     </div>
   );
