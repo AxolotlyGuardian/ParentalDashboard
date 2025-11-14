@@ -30,7 +30,7 @@ export default function Home() {
           <div className="max-w-5xl mx-auto px-6">
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Axolotl?</h2>
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Axolotly?</h2>
               </div>
               <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
                 The name comes from my child's favorite animal: the axolotl. Known for its regenerative powers and gentle nature, it became our symbol of resilience, adaptability, and guardianship. It's not just cute — it's powerful. Just like the parents we serve.
