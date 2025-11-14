@@ -75,6 +75,6 @@ channel = "stable-25_05"
 packages = ["redis"]
 
 [deployment]
-deploymentTarget = "autoscale"
+deploymentTarget = "gce"
 build = ["npm", "run", "build", "--prefix", "frontend"]
-run = ["./start-production.sh"]
+run = ["sh", "-c", "./start.sh"]
