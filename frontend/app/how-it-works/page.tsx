@@ -24,7 +24,7 @@ export default function HowItWorks() {
         </p>
 
         <div className="space-y-8">
-          <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#2A4D8F]">
+          <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#688ac6]">
             <h2 className="text-2xl font-bold text-[#566886] mb-4">1. Plug In Protection</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
               Axolotly activates instantly when connected to your child's device. It begins monitoring screen activity, flagging inappropriate content, and enforcing boundaries — all without requiring complex setup.
@@ -72,7 +72,7 @@ export default function HowItWorks() {
             </ul>
           </section>
 
-          <section className="bg-[#2A4D8F] text-white p-6 rounded-lg">
+          <section className="bg-[#688ac6] text-white p-6 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Why the Axolotl?</h2>
             <p className="leading-relaxed mb-4">
               The axolotl is more than a mascot — it's a metaphor. Known for its ability to regenerate and adapt, it represents the kind of protection we believe in: gentle, resilient, and ever-watchful. It's also my child's favorite animal — a personal reminder that this brand is built by a parent, for parents.
@@ -86,14 +86,14 @@ export default function HowItWorks() {
         <div className="text-center mt-12 space-y-4">
           <button
             onClick={() => router.push('/mode-select')}
-            className="bg-[#2A4D8F] hover:bg-[#1e3766] text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors"
+            className="bg-[#688ac6] hover:bg-[#5276b3] text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors"
           >
             Continue to App
           </button>
           <div>
             <button
               onClick={() => router.push('/pricing')}
-              className="text-[#566886] hover:text-[#2A4D8F] font-semibold underline transition-colors"
+              className="text-[#566886] hover:text-[#688ac6] font-semibold underline transition-colors"
             >
               View Pricing Plans
             </button>
@@ -101,7 +101,7 @@ export default function HowItWorks() {
         </div>
       </main>
 
-      <footer className="text-center py-6 bg-[#2A4D8F] text-white mt-12">
+      <footer className="text-center py-6 bg-[#688ac6] text-white mt-12">
         <p>&copy; 2025 Axolotly. Built with love and protection.</p>
       </footer>
     </div>
