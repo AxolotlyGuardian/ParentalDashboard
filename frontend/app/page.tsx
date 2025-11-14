@@ -55,25 +55,11 @@ export default function Home() {
         <section className="bg-gray-50 py-16">
           <div className="max-w-5xl mx-auto px-6">
             <div className="bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3] rounded-3xl shadow-lg p-12 text-white">
-              <div className="text-center mb-8">
+              <div className="text-center">
                 <h2 className="text-3xl font-bold mb-4">Family-First Design</h2>
                 <p className="text-lg leading-relaxed opacity-95 max-w-3xl mx-auto">
                   As a family-first creator, I've poured my values into every detail — from the symbolic logo to the enforcement logic, from the community flagging system to the calming color palette. Axolotly isn't just software. It's a promise to help parents feel confident, informed, and supported.
                 </p>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl text-center hover:bg-white/30 transition-all">
-                  <div className="text-sm font-semibold">Symbolic Logo</div>
-                </div>
-                <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl text-center hover:bg-white/30 transition-all">
-                  <div className="text-sm font-semibold">Color Palette</div>
-                </div>
-                <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl text-center hover:bg-white/30 transition-all">
-                  <div className="text-sm font-semibold">Enforcement Logic</div>
-                </div>
-                <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl text-center hover:bg-white/30 transition-all">
-                  <div className="text-sm font-semibold">Community Flagging</div>
-                </div>
               </div>
             </div>
           </div>
