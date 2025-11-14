@@ -7,7 +7,7 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50/30 to-blue-50/30">
+    <div className="min-h-screen bg-white">
       <Header variant="pink" />
 
       <main>
@@ -24,7 +24,7 @@ export default function Home() {
         </section>
 
         {/* Section 2: Why Axolotl? */}
-        <section className="bg-gradient-to-r from-pink-50 to-pink-100/50 py-10">
+        <section className="bg-gradient-to-r from-pink-100 to-pink-200/70 py-10">
           <div className="max-w-5xl mx-auto px-6">
             <div className="bg-white rounded-3xl shadow-md border border-pink-200 p-12">
               <div className="text-center mb-6">
@@ -50,7 +50,7 @@ export default function Home() {
         </section>
 
         {/* Section 4: Family-First Design */}
-        <section className="bg-gradient-to-r from-blue-50 to-blue-100/50 py-10">
+        <section className="bg-gradient-to-r from-blue-100 to-blue-200/70 py-10">
           <div className="max-w-5xl mx-auto px-6">
             <div className="bg-gradient-to-br from-[#FF6B9D] to-[#FF8FB3] rounded-3xl shadow-lg p-12 text-white">
               <div className="text-center">
