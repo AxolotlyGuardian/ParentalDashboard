@@ -68,8 +68,8 @@ export default function ContentReportsPage() {
       await contentTagApi.approveContentReport(reportId);
       alert('Report approved successfully!');
       await loadReports();
-    } catch (error: any) {
-      const message = error.response?.data?.detail || 'Failed to approve report';
+    } catch (error) {
+      const message = (error as { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Failed to approve report';
       alert(message);
     } finally {
       setProcessingId(null);
@@ -86,8 +86,8 @@ export default function ContentReportsPage() {
       await contentTagApi.rejectContentReport(reportId);
       alert('Report rejected successfully.');
       await loadReports();
-    } catch (error: any) {
-      const message = error.response?.data?.detail || 'Failed to reject report';
+    } catch (error) {
+      const message = (error as { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Failed to reject report';
       alert(message);
     } finally {
       setProcessingId(null);

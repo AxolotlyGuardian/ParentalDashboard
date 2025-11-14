@@ -87,8 +87,8 @@ export default function ContentTagsPage() {
       await contentTagApi.deleteTag(tag.id);
       alert('Tag deleted successfully!');
       await loadTags();
-    } catch (error: any) {
-      const message = error.response?.data?.detail || 'Failed to delete tag';
+    } catch (error) {
+      const message = (error as { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Failed to delete tag';
       alert(message);
     }
   };
@@ -116,8 +116,8 @@ export default function ContentTagsPage() {
       }
       setShowAddModal(false);
       await loadTags();
-    } catch (error: any) {
-      const message = error.response?.data?.detail || 'Failed to save tag';
+    } catch (error) {
+      const message = (error as { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Failed to save tag';
       alert(message);
     }
   };

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { contentTagApi } from '@/lib/api';
+import { ApiError } from '@/lib/types';
 
 interface Title {
   id: number;
@@ -97,8 +98,8 @@ export default function ContentReportModal({ isOpen, title, onClose, onSubmitSuc
       setNotes('');
       onSubmitSuccess();
       onClose();
-    } catch (error: any) {
-      setError(error.response?.data?.detail || 'Failed to submit report');
+    } catch (error) {
+      setError((error as ApiError).response?.data?.detail || 'Failed to submit report');
     } finally {
       setIsLoading(false);
     }

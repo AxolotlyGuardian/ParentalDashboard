@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { deviceApi } from '@/lib/api';
+import { Device } from '@/lib/types';
 
 export default function DevicesPage() {
-  const [devices, setDevices] = useState<any[]>([]);
+  const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

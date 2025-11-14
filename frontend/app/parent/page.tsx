@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { authApi, catalogApi, policyApi, deviceApi } from '@/lib/api';
 import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
 import ContentReportModal from '@/components/ContentReportModal';
+import { PairedDevice, ApiError } from '@/lib/types';
 
 interface KidProfile {
   id: number;
@@ -51,7 +52,7 @@ export default function ParentDashboard() {
   const [pairingCode, setPairingCode] = useState('');
   const [selectedKidForDevice, setSelectedKidForDevice] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'search' | 'policies' | 'devices'>('policies');
-  const [devices, setDevices] = useState<any[]>([]);
+  const [devices, setDevices] = useState<PairedDevice[]>([]);
   const [editingDeviceId, setEditingDeviceId] = useState<number | null>(null);
   const [editingDeviceName, setEditingDeviceName] = useState('');
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -100,8 +101,8 @@ export default function ParentDashboard() {
       await new Promise(resolve => setTimeout(resolve, 100));
       loadKidProfiles(response.data.user_id);
       loadDevices();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || 'Authentication failed';
+    } catch (error) {
+      const errorMessage = (error as ApiError).response?.data?.detail || 'Authentication failed';
       alert(errorMessage);
     }
   };
@@ -132,8 +133,8 @@ export default function ParentDashboard() {
       setShowAddDeviceForm(false);
       setSelectedKidForDevice(null);
       loadDevices();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || 'Failed to pair device';
+    } catch (error) {
+      const errorMessage = (error as ApiError).response?.data?.detail || 'Failed to pair device';
       alert(errorMessage);
     }
   };
@@ -151,8 +152,8 @@ export default function ParentDashboard() {
       setEditingDeviceId(null);
       setEditingDeviceName('');
       loadDevices();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || 'Failed to update device name';
+    } catch (error) {
+      const errorMessage = (error as ApiError).response?.data?.detail || 'Failed to update device name';
       alert(errorMessage);
       setEditingDeviceId(null);
       setEditingDeviceName('');
@@ -633,7 +634,7 @@ export default function ParentDashboard() {
                     <div className="text-center py-16">
                       <div className="text-gray-400 text-6xl mb-4">🔍</div>
                       <h3 className="text-lg font-semibold text-gray-600 mb-2">No results found</h3>
-                      <p className="text-sm text-gray-500">Search for movies and TV shows to add to your kid's library</p>
+                      <p className="text-sm text-gray-500">Search for movies and TV shows to add to your kid&apos;s library</p>
                     </div>
                   )}
                 </div>
@@ -802,7 +803,7 @@ export default function ParentDashboard() {
                         <div className="text-center py-16">
                           <div className="text-gray-400 text-6xl mb-4">📱</div>
                           <h3 className="text-lg font-semibold text-gray-600 mb-2">No devices paired</h3>
-                          <p className="text-sm text-gray-500">Add a device using the "Add Device" button above</p>
+                          <p className="text-sm text-gray-500">Add a device using the &quot;Add Device&quot; button above</p>
                         </div>
                       );
                     }

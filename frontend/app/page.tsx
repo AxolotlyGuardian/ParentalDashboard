@@ -31,7 +31,7 @@ export default function Home() {
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Axolotly?</h2>
               </div>
               <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
-                The name comes from my child's favorite animal: the axolotl. Known for its regenerative powers and gentle nature, it became our symbol of resilience, adaptability, and guardianship. It's not just cute — it's powerful. Just like the parents we serve.
+                The name comes from my child&apos;s favorite animal: the axolotl. Known for its regenerative powers and gentle nature, it became our symbol of resilience, adaptability, and guardianship. It&apos;s not just cute — it&apos;s powerful. Just like the parents we serve.
               </p>
             </div>
           </div>
@@ -41,10 +41,10 @@ export default function Home() {
         <section className="max-w-5xl mx-auto px-6 py-10">
           <div className="bg-white rounded-3xl shadow-md border border-blue-100 p-12">
             <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">The Problem We're Solving</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">The Problem We&apos;re Solving</h2>
             </div>
             <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
-              In today's ever-expanding internet environment, kids have access to more content than ever before — much of it unfiltered, overwhelming, or simply not age-appropriate. Axolotly helps parents monitor, guide, and protect their children's digital experiences with clarity and confidence.
+              In today&apos;s ever-expanding internet environment, kids have access to more content than ever before — much of it unfiltered, overwhelming, or simply not age-appropriate. Axolotly helps parents monitor, guide, and protect their children&apos;s digital experiences with clarity and confidence.
             </p>
           </div>
         </section>
@@ -56,7 +56,7 @@ export default function Home() {
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">Family-First Design</h2>
                 <p className="text-lg text-gray-600 leading-relaxed max-w-3xl mx-auto">
-                  As a family-first creator, I've poured my values into every detail — from the symbolic logo to the enforcement logic, from the community flagging system to the calming color palette. Axolotly isn't just software. It's a promise to help parents feel confident, informed, and supported.
+                  As a family-first creator, I&apos;ve poured my values into every detail — from the symbolic logo to the enforcement logic, from the community flagging system to the calming color palette. Axolotly isn&apos;t just software. It&apos;s a promise to help parents feel confident, informed, and supported.
                 </p>
               </div>
             </div>
@@ -69,7 +69,7 @@ export default function Home() {
             <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Always Within Reach</h2>
               <p className="text-lg text-gray-600 leading-relaxed mb-8 max-w-3xl mx-auto">
-                Whether you're on the road or at home, Axolotly stands watch — quietly, reliably, and with purpose. Because in a world of endless content, protecting what matters shouldn't be an afterthought.
+                Whether you&apos;re on the road or at home, Axolotly stands watch — quietly, reliably, and with purpose. Because in a world of endless content, protecting what matters shouldn&apos;t be an afterthought.
               </p>
             </div>
           </div>

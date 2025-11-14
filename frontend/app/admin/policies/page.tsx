@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
+import { PolicySummary } from '@/lib/types';
 
 export default function PoliciesPage() {
-  const [policies, setPolicies] = useState<any[]>([]);
+  const [policies, setPolicies] = useState<PolicySummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const ITEMS_PER_PAGE = 100;

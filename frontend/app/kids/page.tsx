@@ -104,7 +104,7 @@ export default function KidsLauncher() {
     }
     
     // If only one provider, launch directly
-    if (title.providers.length === 1) {
+    if (title.providers && title.providers.length === 1) {
       await handleLaunchDirect(title, title.providers[0]);
       return;
     }

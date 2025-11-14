@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
+import { ParentSummary } from '@/lib/types';
 
 export default function ParentsPage() {
-  const [parents, setParents] = useState<any[]>([]);
+  const [parents, setParents] = useState<ParentSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

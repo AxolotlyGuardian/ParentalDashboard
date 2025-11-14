@@ -17,7 +17,7 @@ export default function Pricing() {
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-[#566886] mb-4">Protection that grows with your family.</h1>
           <p className="text-xl text-gray-600 mb-4">
-            Choose the plan that fits your needs — whether you're a solo parent, a growing household, or an educator.
+            Choose the plan that fits your needs — whether you&apos;re a solo parent, a growing household, or an educator.
           </p>
           <div className="inline-block bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white px-6 py-3 rounded-lg text-lg font-semibold">
             $39 per Axolotly unit + subscription fee
@@ -207,7 +207,7 @@ export default function Pricing() {
         {/* Call to Action */}
         <section className="text-center bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] text-white rounded-xl p-12">
           <h2 className="text-3xl font-bold mb-4">Start Protecting Today</h2>
-          <p className="text-lg mb-8">No contracts. Cancel anytime. Your family's safety, always within reach.</p>
+          <p className="text-lg mb-8">No contracts. Cancel anytime. Your family&apos;s safety, always within reach.</p>
           <button 
             onClick={() => router.push('/parent')}
             className="bg-white text-[#FF6B9D] hover:bg-gray-100 font-bold py-4 px-8 rounded-full text-xl transition-colors"

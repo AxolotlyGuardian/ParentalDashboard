@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
+import { KidProfileSummary } from '@/lib/types';
 
 export default function KidsPage() {
-  const [kids, setKids] = useState<any[]>([]);
+  const [kids, setKids] = useState<KidProfileSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
