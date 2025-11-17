@@ -57,6 +57,7 @@ export default function ParentDashboard() {
   const [editingDeviceName, setEditingDeviceName] = useState('');
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedTitleForReport, setSelectedTitleForReport] = useState<Title | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const user = getUserFromToken();
@@ -352,8 +353,21 @@ export default function ParentDashboard() {
 
   return (
     <div className="flex h-screen bg-white">
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Left Sidebar */}
-      <div className="w-64 bg-[#f5f5f5] border-r border-gray-200 flex flex-col">
+      <div className={`
+        fixed md:static inset-y-0 left-0 z-50
+        w-64 bg-[#f5f5f5] border-r border-gray-200 flex flex-col
+        transform transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
         {/* Logo */}
         <div className="p-4 border-b border-gray-200 cursor-pointer" onClick={() => router.push('/')}>
           <img 
@@ -423,12 +437,28 @@ export default function ParentDashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-[#f5f5f5] border-b border-gray-200 px-8 py-4">
-          <h1 className="text-2xl font-bold text-gray-800">Axolotly Parent Dashboard</h1>
+        <header className="bg-[#f5f5f5] border-b border-gray-200 px-4 md:px-8 py-4">
+          <div className="flex items-center justify-between">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-2 text-gray-600 hover:text-gray-800"
+              aria-label="Open menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800">Axolotly Parent Dashboard</h1>
+            
+            {/* Spacer for mobile to center title */}
+            <div className="w-10 md:hidden"></div>
+          </div>
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
           {/* Kid Profiles Section */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -445,7 +475,7 @@ export default function ParentDashboard() {
 
             {showNewKidForm && (
               <form onSubmit={handleCreateKidProfile} className="mb-4 p-4 bg-white rounded-xl border border-gray-200">
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="text"
                     placeholder="Name"
@@ -472,7 +502,7 @@ export default function ParentDashboard() {
               </form>
             )}
 
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {kidProfiles.map((profile) => (
                 <button
                   key={profile.id}
@@ -545,7 +575,7 @@ export default function ParentDashboard() {
                     </p>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <button 
                       type="submit" 
                       className="px-6 py-2 bg-[#F77B8A] text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
@@ -576,7 +606,7 @@ export default function ParentDashboard() {
                 <div>
                   <h2 className="text-xl font-bold text-gray-800 mb-4">Search Titles</h2>
                   <form onSubmit={handleSearch} className="mb-6">
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                       <input
                         type="text"
                         value={searchQuery}
@@ -594,7 +624,7 @@ export default function ParentDashboard() {
                   </form>
 
                   {searchResults.length > 0 ? (
-                    <div className="grid grid-cols-6 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                       {searchResults.map((title) => (
                         <div 
                           key={title.id} 
@@ -725,7 +755,7 @@ export default function ParentDashboard() {
                                 <span>{info.name}</span>
                                 <span className="text-sm font-normal text-gray-500">({providerGroups[provider].length})</span>
                               </h3>
-                              <div className="grid grid-cols-6 gap-3">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                 {providerGroups[provider].map((policy) => (
                                   <div key={`${provider}-${policy.policy_id}`} className="group relative">
                                     {policy.poster_path && (
@@ -758,7 +788,7 @@ export default function ParentDashboard() {
                               <span>Other</span>
                               <span className="text-sm font-normal text-gray-500">({unknownProvider.length})</span>
                             </h3>
-                            <div className="grid grid-cols-6 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                               {unknownProvider.map((policy) => (
                                 <div key={policy.policy_id} className="group relative">
                                   {policy.poster_path && (
