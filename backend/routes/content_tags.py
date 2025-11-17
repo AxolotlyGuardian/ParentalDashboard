@@ -320,11 +320,26 @@ def get_title_tags(
     title_id: int,
     db: Session = Depends(get_db)
 ):
-    title_tags = db.query(TitleTag).filter(TitleTag.title_id == title_id).all()
+    from models import Episode, EpisodeTag
     
+    tag_ids = set()
     tags = []
+    
+    title_tags = db.query(TitleTag).filter(TitleTag.title_id == title_id).all()
     for title_tag in title_tags:
-        tag = db.query(ContentTag).filter(ContentTag.id == title_tag.tag_id).first()
+        tag_ids.add(title_tag.tag_id)
+    
+    episode_tags = db.query(EpisodeTag).join(
+        Episode, Episode.id == EpisodeTag.episode_id
+    ).filter(
+        Episode.title_id == title_id
+    ).distinct(EpisodeTag.tag_id).all()
+    
+    for episode_tag in episode_tags:
+        tag_ids.add(episode_tag.tag_id)
+    
+    for tag_id in tag_ids:
+        tag = db.query(ContentTag).filter(ContentTag.id == tag_id).first()
         if tag:
             tags.append(tag)
     
