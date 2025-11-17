@@ -59,6 +59,7 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
   const [tags, setTags] = useState<ContentTag[]>([]);
   const [episodes, setEpisodes] = useState<Record<number, Episode[]>>({});
   const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set());
+  const [showSeasonsList, setShowSeasonsList] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
@@ -70,6 +71,7 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
       setTags([]);
       setEpisodes({});
       setExpandedSeasons(new Set());
+      setShowSeasonsList(false);
       loadTitleData();
     } else {
       setShowingDetail(false);
@@ -78,6 +80,7 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
       setTags([]);
       setEpisodes({});
       setExpandedSeasons(new Set());
+      setShowSeasonsList(false);
     }
   }, [isOpen, titleId]);
 
@@ -297,40 +300,51 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
 
               {Object.keys(episodes).length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Episodes by Season</h3>
-                  <div className="space-y-2">
-                    {Object.keys(episodes).sort((a, b) => Number(a) - Number(b)).map(seasonKey => {
-                      const seasonNumber = Number(seasonKey);
-                      const seasonEpisodes = episodes[seasonNumber];
-                      const isExpanded = expandedSeasons.has(seasonNumber);
-                      
-                      return (
-                        <div key={seasonNumber} className="border border-gray-200 rounded-lg overflow-hidden">
-                          <button
-                            onClick={() => toggleSeason(seasonNumber)}
-                            className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors"
-                          >
-                            <span className="font-semibold text-gray-800">
-                              Season {seasonNumber} ({seasonEpisodes.length} episodes)
-                            </span>
-                            <span className="text-gray-500">{isExpanded ? '▼' : '▶'}</span>
-                          </button>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setShowSeasonsList(!showSeasonsList)}
+                      className="w-full px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 flex items-center justify-between transition-colors"
+                    >
+                      <span className="font-semibold text-gray-800">
+                        {Object.keys(episodes).length} Season{Object.keys(episodes).length !== 1 ? 's' : ''}
+                      </span>
+                      <span className="text-gray-500">{showSeasonsList ? '▼' : '▶'}</span>
+                    </button>
+
+                    {showSeasonsList && (
+                      <div className="divide-y divide-gray-200">
+                        {Object.keys(episodes).sort((a, b) => Number(a) - Number(b)).map(seasonKey => {
+                          const seasonNumber = Number(seasonKey);
+                          const seasonEpisodes = episodes[seasonNumber];
+                          const isExpanded = expandedSeasons.has(seasonNumber);
                           
-                          {isExpanded && (
-                            <div className="divide-y divide-gray-100">
-                              {seasonEpisodes.map(episode => (
-                                <div key={episode.id} className="p-4 hover:bg-gray-50">
-                                  <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-medium text-gray-900">
-                                          S{episode.season_number}E{episode.episode_number}
-                                        </span>
-                                        <span className="text-gray-700">{episode.episode_name}</span>
-                                      </div>
-                                      {episode.overview && (
-                                        <p className="text-sm text-gray-600 mb-2">{episode.overview}</p>
-                                      )}
+                          return (
+                            <div key={seasonNumber}>
+                              <button
+                                onClick={() => toggleSeason(seasonNumber)}
+                                className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors"
+                              >
+                                <span className="font-semibold text-gray-800">
+                                  Season {seasonNumber} ({seasonEpisodes.length} episode{seasonEpisodes.length !== 1 ? 's' : ''})
+                                </span>
+                                <span className="text-gray-500">{isExpanded ? '▼' : '▶'}</span>
+                              </button>
+                              
+                              {isExpanded && (
+                                <div className="bg-white divide-y divide-gray-100">
+                                  {seasonEpisodes.map(episode => (
+                                    <div key={episode.id} className="p-4 hover:bg-gray-50">
+                                      <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2 mb-1">
+                                            <span className="font-medium text-gray-900">
+                                              E{episode.episode_number}
+                                            </span>
+                                            <span className="text-gray-700">{episode.episode_name}</span>
+                                          </div>
+                                          {episode.overview && (
+                                            <p className="text-sm text-gray-600 mb-2">{episode.overview}</p>
+                                          )}
                                       {episode.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-2">
                                           {episode.tags.map(tag => (
@@ -363,6 +377,8 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
                         </div>
                       );
                     })}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
