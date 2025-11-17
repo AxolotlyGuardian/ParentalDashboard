@@ -287,11 +287,20 @@ def get_title_episodes(
         ).all()
         episode_policies_map = {ep.episode_id: ep.is_allowed for ep in episode_policies}
     
+    episode_ids = [ep.id for ep in episodes]
+    episode_tags_raw = db.query(EpisodeTag.episode_id, ContentTag).join(
+        ContentTag, EpisodeTag.tag_id == ContentTag.id
+    ).filter(EpisodeTag.episode_id.in_(episode_ids)).all() if episode_ids else []
+    
+    episode_tags_map = {}
+    for episode_id, tag in episode_tags_raw:
+        if episode_id not in episode_tags_map:
+            episode_tags_map[episode_id] = []
+        episode_tags_map[episode_id].append(tag)
+    
     seasons = {}
     for episode in episodes:
-        episode_tags_query = db.query(ContentTag).join(
-            EpisodeTag, EpisodeTag.tag_id == ContentTag.id
-        ).filter(EpisodeTag.episode_id == episode.id).all()
+        tags = episode_tags_map.get(episode.id, [])
         
         episode_data = {
             "id": episode.id,
@@ -308,7 +317,7 @@ def get_title_episodes(
                 "slug": tag.slug,
                 "display_name": tag.display_name,
                 "description": tag.description
-            } for tag in episode_tags_query]
+            } for tag in tags]
         }
         
         season_key = episode.season_number

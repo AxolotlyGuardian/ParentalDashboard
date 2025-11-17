@@ -28,7 +28,7 @@ interface TitleDetails {
 }
 
 interface Policy {
-  id: number;
+  policy_id: number;
   title_id: number;
   deep_links?: Record<string, string>;
 }
@@ -97,7 +97,7 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
       const [detailsRes, tagsRes, episodesRes] = await Promise.all([
         catalogApi.getTitleDetails(titleId),
         contentTagApi.getTitleTags(titleId),
-        catalogApi.getTitleEpisodes(titleId, policy.id).catch(() => ({ data: { seasons: {} } }))
+        catalogApi.getTitleEpisodes(titleId, policy.policy_id).catch(() => ({ data: { seasons: {} } }))
       ]);
       
       setTitleDetails(detailsRes.data);
@@ -130,7 +130,7 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
   const toggleEpisodeBlock = async (episodeId: number, currentlyBlocked: boolean) => {
     if (!policy) return;
     try {
-      await policyApi.toggleEpisodePolicy(policy.id, episodeId, !currentlyBlocked);
+      await policyApi.toggleEpisodePolicy(policy.policy_id, episodeId, !currentlyBlocked);
       setEpisodes(prev => {
         const updated = { ...prev };
         Object.keys(updated).forEach(seasonKey => {
