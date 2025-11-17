@@ -65,33 +65,6 @@ export default function HowItWorks() {
               <li>Travel mode for on-the-go families</li>
             </ul>
           </section>
-
-          <section className="bg-[#688ac6] text-white p-6 rounded-lg">
-            <h2 className="text-2xl font-bold mb-4">Why the Axolotl?</h2>
-            <p className="leading-relaxed mb-4">
-              The axolotl is more than a mascot—it&apos;s a metaphor. Known for its ability to regenerate and adapt, it represents the kind of protection we believe in: gentle, resilient, and ever-watchful. This platform was built by a parent who understands your concerns, creating tools designed for parents, by parents.
-            </p>
-            <p className="text-xl font-semibold">
-              Axolotly protects what matters—quietly, reliably, and with purpose.
-            </p>
-          </section>
-        </div>
-
-        <div className="text-center mt-12 space-y-4">
-          <button
-            onClick={() => router.push('/parent')}
-            className="bg-[#688ac6] hover:bg-[#5276b3] text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors"
-          >
-            Continue to App
-          </button>
-          <div>
-            <button
-              onClick={() => router.push('/pricing')}
-              className="text-[#566886] hover:text-[#688ac6] font-semibold underline transition-colors"
-            >
-              View Pricing Plans
-            </button>
-          </div>
         </div>
       </main>
 
