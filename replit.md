@@ -137,3 +137,75 @@ The system enables parents to report specific scary or concerning content in mov
 5. Report submitted with status="pending"
 6. Community member reviews and approves → tag automatically applied to title
 7. Future parents see tag warnings when browsing that title
+
+## Fandom Wiki Scraping for Episode-Level Tagging
+
+The system can automatically tag individual episodes by scraping Fandom wiki category pages, enabling precise content warnings at the episode level:
+
+### Features
+- **Automated Episode Tagging**: Scrapes Fandom wiki category pages (e.g., pawpatrol.fandom.com/wiki/Category:Spiders) and applies tags to specific episodes
+- **MediaWiki API Integration**: Uses Fandom's official API for reliable data retrieval (no HTML parsing)
+- **Intelligent Episode Matching**: Matches Fandom page names to database episodes using fuzzy name matching
+- **Multi-Part Episode Support**: Handles episodes with "/" separators (e.g., "Pups Save the Bunnies / Pup-Fu!")
+- **Confidence Scoring**: Each auto-applied tag includes a confidence score (default 0.8)
+- **Source Tracking**: Tags marked with source="fandom_scrape" to distinguish from manual tags
+- **Deduplication**: Prevents duplicate tags on the same episode
+
+### Database Schema
+- **EpisodeTag**: Junction table linking episodes to content tags
+  - `episode_id`: Foreign key to episodes table
+  - `tag_id`: Foreign key to content_tags table
+  - `source`: Origin of tag (fandom_scrape, manual, etc.)
+  - `confidence`: Float 0.0-1.0 indicating tag accuracy
+  - `created_at`: Timestamp of tag application
+
+### Tag Mapping System
+The scraper maps Fandom category names to database tags:
+- "Spiders" → spiders tag
+- "Snakes" → snakes tag
+- "Darkness" → darkness tag
+- "Ghosts" → ghosts tag
+- And 50+ more mappings covering all 72 content tags
+
+### Show Name Mapping
+Maps wiki URLs to show titles in database:
+- pawpatrol → "PAW Patrol"
+- peppa-pig → "Peppa Pig"
+- bluey → "Bluey"
+- daniel-tiger → "Daniel Tiger"
+
+### Admin Interface
+- **Location**: `/admin/fandom-scrape`
+- **Configuration**: Wiki name, category, confidence score
+- **Quick Examples**: Pre-filled examples for common shows/categories
+- **Results Display**: Shows total pages, episodes found/tagged, already tagged, not in DB, failed parses
+
+### API Endpoints
+- `POST /api/admin/fandom/scrape` - Trigger scraping for a wiki category
+- `GET /api/admin/episode-tags` - View all episode-level tags
+
+### Scraping Workflow
+1. Admin enters wiki name (e.g., "pawpatrol") and category (e.g., "Spiders")
+2. System calls Fandom MediaWiki API to get category members
+3. For each page in category:
+   - Extract episode name from page title
+   - Search database for matching episodes using fuzzy name matching
+   - Check if episode already has this tag
+   - Create EpisodeTag record if not already tagged
+4. Return detailed results (episodes found, tagged, duplicates, etc.)
+
+### Implementation Details
+- **Service**: `backend/services/fandom_scraper.py` - FandomScraper class
+- **Episode Matching**: Name-based fuzzy matching handles variations and multi-part titles
+- **Rate Limiting**: 0.1 second delay between processing each category member
+- **Error Handling**: Graceful failures with detailed error messages
+- **Admin Only**: All endpoints protected with `require_admin` dependency
+
+### Example Use Case
+To tag all Paw Patrol episodes containing spiders:
+1. Navigate to `/admin/fandom-scrape`
+2. Enter wiki: "pawpatrol", category: "Spiders"
+3. Click "Start Scrape"
+4. System finds episodes like "Pups Save the Bunnies", "Pups and the Ghost Cabin"
+5. Applies "spiders" tag to matched episodes
+6. Parents can now filter out spider episodes for sensitive kids
