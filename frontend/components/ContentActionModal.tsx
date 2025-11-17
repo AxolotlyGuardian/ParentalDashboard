@@ -62,6 +62,10 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
   const [showSeasonsList, setShowSeasonsList] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<ContentTag | null>(null);
+  const [tagEpisodes, setTagEpisodes] = useState<any[]>([]);
+  const [showTagConfirmDialog, setShowTagConfirmDialog] = useState(false);
+  const [isBlockingEpisodes, setIsBlockingEpisodes] = useState(false);
 
   useEffect(() => {
     if (isOpen && titleId) {
@@ -72,6 +76,9 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
       setEpisodes({});
       setExpandedSeasons(new Set());
       setShowSeasonsList(false);
+      setSelectedTag(null);
+      setTagEpisodes([]);
+      setShowTagConfirmDialog(false);
       loadTitleData();
     } else {
       setShowingDetail(false);
@@ -81,6 +88,9 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
       setEpisodes({});
       setExpandedSeasons(new Set());
       setShowSeasonsList(false);
+      setSelectedTag(null);
+      setTagEpisodes([]);
+      setShowTagConfirmDialog(false);
     }
   }, [isOpen, titleId]);
 
@@ -143,6 +153,43 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
     } catch (error) {
       console.error('Failed to toggle episode', error);
     }
+  };
+
+  const handleTagClick = async (tag: ContentTag) => {
+    if (!policy) return;
+    try {
+      const response = await policyApi.getEpisodesByTag(policy.policy_id, tag.id);
+      setSelectedTag(tag);
+      setTagEpisodes(response.data.episodes || []);
+      setShowTagConfirmDialog(true);
+    } catch (error) {
+      console.error('Failed to fetch episodes by tag', error);
+      alert('Failed to load episodes for this tag');
+    }
+  };
+
+  const handleConfirmBlockByTag = async () => {
+    if (!policy || !selectedTag) return;
+    setIsBlockingEpisodes(true);
+    try {
+      const response = await policyApi.blockEpisodesByTag(policy.policy_id, selectedTag.id);
+      alert(response.data.message);
+      setShowTagConfirmDialog(false);
+      setSelectedTag(null);
+      setTagEpisodes([]);
+      await loadTitleData();
+    } catch (error) {
+      console.error('Failed to block episodes by tag', error);
+      alert('Failed to block episodes');
+    } finally {
+      setIsBlockingEpisodes(false);
+    }
+  };
+
+  const handleCancelTagDialog = () => {
+    setShowTagConfirmDialog(false);
+    setSelectedTag(null);
+    setTagEpisodes([]);
   };
 
   const handlePlayClick = () => {
@@ -276,13 +323,14 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {categoryTags.map((tag) => (
-                            <span
+                            <button
                               key={tag.id}
-                              className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg"
-                              title={tag.description}
+                              onClick={() => handleTagClick(tag)}
+                              className="px-3 py-1 bg-gray-100 hover:bg-[#F77B8A] hover:text-white text-gray-700 text-sm rounded-lg transition-colors cursor-pointer"
+                              title={tag.description || `Click to block episodes with ${tag.display_name}`}
                             >
                               {tag.display_name}
-                            </span>
+                            </button>
                           ))}
                         </div>
                       </div>
@@ -469,6 +517,52 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
           </div>
         ) : null}
       </div>
+
+      {showTagConfirmDialog && selectedTag && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={handleCancelTagDialog}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-3">⚠️</div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Block Episodes with "{selectedTag.display_name}"?</h3>
+              <p className="text-gray-600">
+                This will block <span className="font-semibold text-[#F77B8A]">{tagEpisodes.length} episode{tagEpisodes.length !== 1 ? 's' : ''}</span> that contain {selectedTag.display_name.toLowerCase()}.
+              </p>
+            </div>
+
+            {tagEpisodes.length > 0 && (
+              <div className="max-h-48 overflow-y-auto mb-4 bg-gray-50 rounded-lg p-3">
+                <p className="text-xs font-semibold text-gray-600 mb-2 uppercase">Episodes to be blocked:</p>
+                <div className="space-y-1">
+                  {tagEpisodes.map((ep: any) => (
+                    <div key={ep.id} className="text-sm text-gray-700">
+                      <span className="font-medium">S{ep.season_number}E{ep.episode_number}</span>
+                      {ep.episode_name && <span className="text-gray-600">: {ep.episode_name}</span>}
+                      {ep.is_blocked && <span className="text-red-600 ml-2">(already blocked)</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleCancelTagDialog}
+                className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all"
+                disabled={isBlockingEpisodes}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmBlockByTag}
+                className="flex-1 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isBlockingEpisodes}
+              >
+                {isBlockingEpisodes ? 'Blocking...' : 'Block Episodes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

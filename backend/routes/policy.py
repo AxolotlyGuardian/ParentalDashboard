@@ -247,3 +247,120 @@ def toggle_episode_policy(
     
     db.commit()
     return {"message": "Episode policy updated", "is_blocked": is_blocked}
+
+@router.get("/{policy_id}/episodes/by-tag/{tag_id}")
+def get_episodes_by_tag(
+    policy_id: int,
+    tag_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
+    from models import EpisodeTag, ContentTag
+    
+    policy = db.query(Policy).filter(Policy.id == policy_id).first()
+    if not policy:
+        raise HTTPException(status_code=404, detail="Policy not found")
+    
+    profile = db.query(KidProfile).filter(KidProfile.id == policy.kid_profile_id).first()
+    if not profile or profile.parent_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Can only access your own kid's policies")
+    
+    tag = db.query(ContentTag).filter(ContentTag.id == tag_id).first()
+    if not tag:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    
+    episode_tags = db.query(EpisodeTag).join(
+        Episode, Episode.id == EpisodeTag.episode_id
+    ).filter(
+        Episode.title_id == policy.title_id,
+        EpisodeTag.tag_id == tag_id
+    ).all()
+    
+    episode_ids = [et.episode_id for et in episode_tags]
+    episodes = db.query(Episode).filter(Episode.id.in_(episode_ids)).order_by(
+        Episode.season_number, Episode.episode_number
+    ).all()
+    
+    episode_policies_map = {}
+    episode_policies = db.query(EpisodePolicy).filter(
+        EpisodePolicy.policy_id == policy_id,
+        EpisodePolicy.episode_id.in_(episode_ids)
+    ).all()
+    episode_policies_map = {ep.episode_id: ep.is_allowed for ep in episode_policies}
+    
+    result = []
+    for episode in episodes:
+        result.append({
+            "id": episode.id,
+            "season_number": episode.season_number,
+            "episode_number": episode.episode_number,
+            "episode_name": episode.episode_name,
+            "is_blocked": not episode_policies_map.get(episode.id, True)
+        })
+    
+    return {
+        "tag_id": tag_id,
+        "tag_name": tag.display_name,
+        "episodes": result,
+        "total_episodes": len(result)
+    }
+
+@router.post("/{policy_id}/episodes/block-by-tag/{tag_id}")
+def block_episodes_by_tag(
+    policy_id: int,
+    tag_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
+    from models import EpisodeTag, ContentTag
+    
+    policy = db.query(Policy).filter(Policy.id == policy_id).first()
+    if not policy:
+        raise HTTPException(status_code=404, detail="Policy not found")
+    
+    profile = db.query(KidProfile).filter(KidProfile.id == policy.kid_profile_id).first()
+    if not profile or profile.parent_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Can only manage your own kid's policies")
+    
+    tag = db.query(ContentTag).filter(ContentTag.id == tag_id).first()
+    if not tag:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    
+    episode_tags = db.query(EpisodeTag).join(
+        Episode, Episode.id == EpisodeTag.episode_id
+    ).filter(
+        Episode.title_id == policy.title_id,
+        EpisodeTag.tag_id == tag_id
+    ).all()
+    
+    episode_ids = [et.episode_id for et in episode_tags]
+    
+    if not episode_ids:
+        return {"message": "No episodes found with this tag", "episodes_blocked": 0}
+    
+    episodes_blocked = 0
+    for episode_id in episode_ids:
+        existing_ep_policy = db.query(EpisodePolicy).filter(
+            EpisodePolicy.policy_id == policy_id,
+            EpisodePolicy.episode_id == episode_id
+        ).first()
+        
+        if not existing_ep_policy:
+            new_ep_policy = EpisodePolicy(
+                policy_id=policy_id,
+                episode_id=episode_id,
+                is_allowed=False
+            )
+            db.add(new_ep_policy)
+            episodes_blocked += 1
+        elif existing_ep_policy.is_allowed:
+            existing_ep_policy.is_allowed = False
+            episodes_blocked += 1
+    
+    db.commit()
+    
+    return {
+        "message": f"Blocked {episodes_blocked} episodes with tag '{tag.display_name}'",
+        "episodes_blocked": episodes_blocked,
+        "tag_name": tag.display_name
+    }
