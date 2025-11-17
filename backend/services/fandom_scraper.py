@@ -18,6 +18,8 @@ class FandomScraper:
         'witches': 'witches',
         'skeletons': 'skeletons',
         'aliens': 'aliens',
+        'dream': 'aliens',
+        'space': 'aliens',
         'clowns': 'clowns',
         'bees': 'bees_wasps',
         'wasps': 'bees_wasps',
@@ -61,6 +63,7 @@ class FandomScraper:
         'violence': 'violence',
         'language': 'language',
         'profanity': 'language',
+        'halloween': 'halloween',
     }
     
     def __init__(self, db: Session):
