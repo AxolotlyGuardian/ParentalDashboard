@@ -1,11 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { deviceApi } from '@/lib/api';
-import { Device } from '@/lib/types';
+import { adminApi } from '@/lib/api';
+
+interface AdminDevice {
+  id: number;
+  device_id: string;
+  device_name: string;
+  kid_profile_id?: number;
+  kid_name: string;
+  kid_age?: number;
+  parent_email?: string;
+  parent_id?: number;
+  created_at?: string;
+  last_active?: string;
+}
 
 export default function DevicesPage() {
-  const [devices, setDevices] = useState<Device[]>([]);
+  const [devices, setDevices] = useState<AdminDevice[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,7 +27,7 @@ export default function DevicesPage() {
   const loadDevices = async () => {
     try {
       setLoading(true);
-      const response = await deviceApi.getDevices();
+      const response = await adminApi.getAllDevices();
       setDevices(response.data);
     } catch (error) {
       console.error('Failed to load devices', error);
@@ -39,6 +51,8 @@ export default function DevicesPage() {
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Device Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kid Profile</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Parent</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Device ID</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paired</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Active</th>
@@ -48,6 +62,11 @@ export default function DevicesPage() {
             {devices.map((device) => (
               <tr key={device.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">{device.device_name}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  <div>{device.kid_name}</div>
+                  {device.kid_age && <div className="text-xs text-gray-500">Age {device.kid_age}</div>}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">{device.parent_email || 'N/A'}</td>
                 <td className="px-6 py-4 text-xs text-gray-500 font-mono">{device.device_id}</td>
                 <td className="px-6 py-4 text-xs text-gray-500">
                   {device.created_at ? new Date(device.created_at).toLocaleDateString() : 'N/A'}

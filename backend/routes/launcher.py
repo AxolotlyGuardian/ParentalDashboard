@@ -544,6 +544,39 @@ async def get_devices(
     
     return result
 
+@router.get("/admin/devices")
+async def get_all_devices_admin(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Admin endpoint: Get all devices with kid profile and parent information"""
+    devices = db.query(Device).all()
+    
+    result = []
+    for device in devices:
+        kid_profile = None
+        parent = None
+        
+        if device.kid_profile_id:
+            kid_profile = db.query(KidProfile).filter(KidProfile.id == device.kid_profile_id).first()
+            if kid_profile:
+                parent = db.query(User).filter(User.id == kid_profile.parent_id).first()
+        
+        result.append({
+            "id": device.id,
+            "device_id": device.device_id,
+            "device_name": device.device_name or f"Device {device.device_id[:8]}",
+            "kid_profile_id": device.kid_profile_id,
+            "kid_name": kid_profile.name if kid_profile else "Unassigned",
+            "kid_age": kid_profile.age if kid_profile else None,
+            "parent_email": parent.email if parent else None,
+            "parent_id": kid_profile.parent_id if kid_profile else None,
+            "created_at": device.created_at.isoformat() if device.created_at else None,
+            "last_active": device.last_active.isoformat() if device.last_active else None
+        })
+    
+    return result
+
 @router.put("/launcher/device/{device_id}/name")
 async def update_device_name(
     device_id: int,
