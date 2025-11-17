@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
 from db import get_db
-from models import Device, KidProfile, User, ContentReport, ContentTag, Title, Episode, EpisodeTag
+from models import Device, KidProfile, User, ContentReport, ContentTag, Title, Episode, EpisodeTag, FandomScrapeJob, FandomScrapeRun
 from auth_utils import require_admin
 from services.fandom_scraper import FandomScraper
+from services.fandom_coordinator import FandomScrapeCoordinator
+import asyncio
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -126,3 +128,112 @@ def get_all_episode_tags(
             ))
     
     return result
+
+class CreateScrapeJobRequest(BaseModel):
+    title_ids: Optional[List[int]] = None
+    tag_ids: Optional[List[int]] = None
+    force_rescrape: bool = False
+
+class ScrapeJobResponse(BaseModel):
+    id: int
+    status: str
+    total_titles: int
+    total_tags: int
+    processed_count: int
+    success_count: int
+    failed_count: int
+    episodes_tagged: int
+    error_message: Optional[str] = None
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    created_at: str
+
+async def run_scrape_job_async(job_id: int):
+    from db import SessionLocal
+    db = SessionLocal()
+    try:
+        coordinator = FandomScrapeCoordinator(db)
+        await coordinator.execute_job(job_id)
+    finally:
+        db.close()
+
+@router.post("/fandom-scrape/jobs", response_model=ScrapeJobResponse)
+async def create_scrape_job(
+    request: CreateScrapeJobRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    coordinator = FandomScrapeCoordinator(db)
+    job = await coordinator.create_scrape_job(
+        user_id=current_user.id,
+        title_ids=request.title_ids,
+        tag_ids=request.tag_ids,
+        force_rescrape=request.force_rescrape
+    )
+    
+    background_tasks.add_task(run_scrape_job_async, job.id)
+    
+    return ScrapeJobResponse(
+        id=job.id,
+        status=job.status,
+        total_titles=job.total_titles,
+        total_tags=job.total_tags,
+        processed_count=job.processed_count,
+        success_count=job.success_count,
+        failed_count=job.failed_count,
+        episodes_tagged=job.episodes_tagged,
+        error_message=job.error_message,
+        started_at=job.started_at.isoformat() if job.started_at else None,
+        completed_at=job.completed_at.isoformat() if job.completed_at else None,
+        created_at=job.created_at.isoformat()
+    )
+
+@router.get("/fandom-scrape/jobs/{job_id}", response_model=ScrapeJobResponse)
+def get_scrape_job(
+    job_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    job = db.query(FandomScrapeJob).filter(FandomScrapeJob.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    return ScrapeJobResponse(
+        id=job.id,
+        status=job.status,
+        total_titles=job.total_titles,
+        total_tags=job.total_tags,
+        processed_count=job.processed_count,
+        success_count=job.success_count,
+        failed_count=job.failed_count,
+        episodes_tagged=job.episodes_tagged,
+        error_message=job.error_message,
+        started_at=job.started_at.isoformat() if job.started_at else None,
+        completed_at=job.completed_at.isoformat() if job.completed_at else None,
+        created_at=job.created_at.isoformat()
+    )
+
+@router.get("/fandom-scrape/jobs", response_model=List[ScrapeJobResponse])
+def list_scrape_jobs(
+    skip: int = 0,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    jobs = db.query(FandomScrapeJob).order_by(FandomScrapeJob.created_at.desc()).offset(skip).limit(limit).all()
+    
+    return [ScrapeJobResponse(
+        id=job.id,
+        status=job.status,
+        total_titles=job.total_titles,
+        total_tags=job.total_tags,
+        processed_count=job.processed_count,
+        success_count=job.success_count,
+        failed_count=job.failed_count,
+        episodes_tagged=job.episodes_tagged,
+        error_message=job.error_message,
+        started_at=job.started_at.isoformat() if job.started_at else None,
+        completed_at=job.completed_at.isoformat() if job.completed_at else None,
+        created_at=job.created_at.isoformat()
+    ) for job in jobs]
