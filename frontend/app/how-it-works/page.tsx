@@ -69,7 +69,7 @@ export default function HowItWorks() {
           <section className="bg-[#688ac6] text-white p-6 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Why the Axolotl?</h2>
             <p className="leading-relaxed mb-4">
-              The axolotl is more than a mascot—it&apos;s a metaphor. Known for its ability to regenerate and adapt, it represents the kind of protection we believe in: gentle, resilient, and ever-watchful. It&apos;s also my child&apos;s favorite animal—a personal reminder that this platform is built by a parent, for parents.
+              The axolotl is more than a mascot—it&apos;s a metaphor. Known for its ability to regenerate and adapt, it represents the kind of protection we believe in: gentle, resilient, and ever-watchful. This platform was built by a parent who understands your concerns, creating tools designed for parents, by parents.
             </p>
             <p className="text-xl font-semibold">
               Axolotly protects what matters—quietly, reliably, and with purpose.

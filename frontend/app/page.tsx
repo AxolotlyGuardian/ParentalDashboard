@@ -31,7 +31,7 @@ export default function Home() {
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Axolotly?</h2>
               </div>
               <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
-                The name comes from my child&apos;s favorite animal: the axolotl. Known for its regenerative powers and gentle nature, it became our symbol of resilience, adaptability, and guardianship. It&apos;s not just cute—it&apos;s mighty. Just like the parents we serve.
+                The axolotl is known for its regenerative powers and gentle nature, making it the perfect symbol of resilience, adaptability, and guardianship. It&apos;s not just cute—it&apos;s mighty. Just like the parents we serve.
               </p>
             </div>
           </div>
@@ -56,7 +56,7 @@ export default function Home() {
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">Family-First Design</h2>
                 <p className="text-lg text-gray-600 leading-relaxed max-w-3xl mx-auto">
-                  As a family-first creator, I&apos;ve poured my values into every detail—from the symbolic logo to the enforcement logic, from the community tagging system to the calming color palette. Axolotly isn&apos;t just software. It&apos;s a promise to help parents feel confident, informed, and supported.
+                  Created by a parent who understands your challenges, every detail has been thoughtfully designed—from the symbolic logo to the enforcement logic, from the community tagging system to the calming color palette. Axolotly isn&apos;t just software. It&apos;s a promise to help parents feel confident, informed, and supported.
                 </p>
               </div>
             </div>
