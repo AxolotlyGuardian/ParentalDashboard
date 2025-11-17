@@ -384,7 +384,10 @@ export default function ParentDashboard() {
               My Dashboard
             </h3>
             <button
-              onClick={() => setActiveTab('search')}
+              onClick={() => {
+                setActiveTab('search');
+                setIsMobileMenuOpen(false);
+              }}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all ${
                 activeTab === 'search'
                   ? 'bg-[#F77B8A] text-white shadow-md'
@@ -395,7 +398,10 @@ export default function ParentDashboard() {
               <span className="text-sm">{searchResults.length}</span>
             </button>
             <button
-              onClick={() => setActiveTab('policies')}
+              onClick={() => {
+                setActiveTab('policies');
+                setIsMobileMenuOpen(false);
+              }}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all ${
                 activeTab === 'policies'
                   ? 'bg-[#F77B8A] text-white shadow-md'
@@ -406,7 +412,10 @@ export default function ParentDashboard() {
               <span className="text-sm">{allowedPoliciesCount}</span>
             </button>
             <button
-              onClick={() => setActiveTab('devices')}
+              onClick={() => {
+                setActiveTab('devices');
+                setIsMobileMenuOpen(false);
+              }}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-full transition-all ${
                 activeTab === 'devices'
                   ? 'bg-[#F77B8A] text-white shadow-md'
