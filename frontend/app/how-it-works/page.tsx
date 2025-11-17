@@ -19,50 +19,50 @@ export default function HowItWorks() {
 
         <div className="space-y-8">
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#688ac6]">
-            <h2 className="text-2xl font-bold text-[#566886] mb-4">1. Plug In Protection</h2>
+            <h2 className="text-2xl font-bold text-[#566886] mb-4">1. Create Kid Profiles</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
-              Connect your child&apos;s device and Axolotly activates instantly. It monitors content, applies your rules, and enforces boundaries—all without complex setup.
+              Set up profiles for each child with their name, age, and a secure PIN. Each profile gets personalized content rules tailored to your family&apos;s values.
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>No app installation required</li>
-              <li>Compatible with most HDMI-enabled devices</li>
-              <li>Portable and travel-ready</li>
+              <li>Individual profiles for each child</li>
+              <li>Age-appropriate content management</li>
+              <li>PIN-protected access for kids</li>
             </ul>
           </section>
 
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#566886]">
-            <h2 className="text-2xl font-bold text-[#566886] mb-4">2. Real-Time Visibility</h2>
+            <h2 className="text-2xl font-bold text-[#566886] mb-4">2. Curate Content Libraries</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
-              Get real-time insights into what your child is watching, playing, or browsing. Axolotly doesn&apos;t spy—it informs.
+              Search thousands of movies and TV shows from The Movie Database. Simply allow or block content for each child&apos;s profile with a single tap.
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Live content summaries</li>
-              <li>Flagged content alerts</li>
-              <li>Symbolic dashboard with color-coded trust signals</li>
+              <li>Browse movies and TV shows</li>
+              <li>Allow or block specific titles</li>
+              <li>Community-driven content warnings and tags</li>
             </ul>
           </section>
 
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#C2B7EE]">
-            <h2 className="text-2xl font-bold text-[#566886] mb-4">3. Enforcement That Feels Natural</h2>
+            <h2 className="text-2xl font-bold text-[#566886] mb-4">3. Pair Android Devices</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
-              Gentle enforcement inspired by the axolotl&apos;s regenerative nature. Axolotly doesn&apos;t punish—it redirects.
+              Install the Axolotly launcher on your child&apos;s Android device and pair it with a simple 6-digit code. The launcher enforces your rules automatically.
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Time limits and screen nudges</li>
-              <li>Content filters based on age and values</li>
-              <li>Community-flagged content moderation</li>
+              <li>Quick 6-digit code pairing</li>
+              <li>Kid-friendly launcher interface</li>
+              <li>Only approved content appears</li>
             </ul>
           </section>
 
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#B2D8BF]">
-            <h2 className="text-2xl font-bold text-[#566886] mb-4">4. Parent-Centric Design</h2>
+            <h2 className="text-2xl font-bold text-[#566886] mb-4">4. Monitor and Adjust</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
-              Every feature is built with your peace of mind in focus. You don&apos;t need to be tech-savvy—just family-focused.
+              Track device activity, set daily screen time limits, and see what your kids are watching. Adjust permissions anytime from your parent dashboard.
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Simple interface with symbolic icons</li>
-              <li>Customizable protection levels</li>
-              <li>Travel mode for on-the-go families</li>
+              <li>Daily screen time limits and bedtime schedules</li>
+              <li>View device activity and usage statistics</li>
+              <li>Update content permissions on the go</li>
             </ul>
           </section>
         </div>
