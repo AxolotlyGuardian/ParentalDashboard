@@ -234,3 +234,26 @@ class FandomScraper:
             }
         
         return results
+
+def trigger_show_scrape(title_id: int, title_name: str):
+    from db import SessionLocal
+    db = SessionLocal()
+    try:
+        scraper = FandomScraper(db)
+        wiki_name = title_name.lower().replace(" ", "").replace("'", "")
+        
+        common_categories = [
+            "Spiders", "Snakes", "Sharks", "Monsters", "Ghosts", 
+            "Darkness", "Heights", "Fire", "Death", "Kidnapping"
+        ]
+        
+        for category in common_categories:
+            try:
+                result = scraper.scrape_and_tag_episodes(wiki_name, category, confidence=0.7)
+                if result.get('success'):
+                    print(f"Scraped {title_name} - {category}: {result.get('episodes_tagged', 0)} episodes tagged")
+            except Exception as e:
+                print(f"Error scraping {title_name} - {category}: {str(e)}")
+                continue
+    finally:
+        db.close()

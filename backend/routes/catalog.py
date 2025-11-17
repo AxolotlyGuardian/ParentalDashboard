@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 import httpx
 from db import get_db
-from models import Title, User
+from models import Title, User, Episode, EpisodeTag, ContentTag, EpisodePolicy, Policy
 from config import settings
 from datetime import datetime
 from auth_utils import require_parent
@@ -241,6 +241,13 @@ def get_title_details(
     if not title:
         raise HTTPException(status_code=404, detail="Title not found")
     
+    genre_names = []
+    if title.genres:
+        if isinstance(title.genres, list):
+            genre_names = [g.get("name", str(g)) if isinstance(g, dict) else str(g) for g in title.genres]
+        else:
+            genre_names = title.genres
+    
     return {
         "id": title.id,
         "tmdb_id": title.tmdb_id,
@@ -250,8 +257,68 @@ def get_title_details(
         "poster_path": f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else None,
         "backdrop_path": f"https://image.tmdb.org/t/p/original{title.backdrop_path}" if title.backdrop_path else None,
         "release_date": title.release_date,
-        "rating": title.rating,
-        "genres": title.genres
+        "content_rating": title.rating,
+        "vote_average": title.vote_average,
+        "genres": genre_names,
+        "number_of_seasons": title.number_of_seasons,
+        "number_of_episodes": title.number_of_episodes,
+        "fandom_scraped": title.fandom_scraped
+    }
+
+@router.get("/titles/{title_id}/episodes")
+def get_title_episodes(
+    title_id: int,
+    policy_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
+    title = db.query(Title).filter(Title.id == title_id).first()
+    if not title:
+        raise HTTPException(status_code=404, detail="Title not found")
+    
+    episodes = db.query(Episode).filter(Episode.title_id == title_id).order_by(
+        Episode.season_number, Episode.episode_number
+    ).all()
+    
+    episode_policies_map = {}
+    if policy_id:
+        episode_policies = db.query(EpisodePolicy).filter(
+            EpisodePolicy.policy_id == policy_id
+        ).all()
+        episode_policies_map = {ep.episode_id: ep.is_allowed for ep in episode_policies}
+    
+    seasons = {}
+    for episode in episodes:
+        episode_tags_query = db.query(ContentTag).join(
+            EpisodeTag, EpisodeTag.tag_id == ContentTag.id
+        ).filter(EpisodeTag.episode_id == episode.id).all()
+        
+        episode_data = {
+            "id": episode.id,
+            "season_number": episode.season_number,
+            "episode_number": episode.episode_number,
+            "episode_name": episode.episode_name,
+            "overview": episode.overview,
+            "thumbnail_path": f"https://image.tmdb.org/t/p/w300{episode.thumbnail_path}" if episode.thumbnail_path else None,
+            "air_date": episode.air_date,
+            "is_blocked": not episode_policies_map.get(episode.id, True),
+            "tags": [{
+                "id": tag.id,
+                "category": tag.category,
+                "slug": tag.slug,
+                "display_name": tag.display_name,
+                "description": tag.description
+            } for tag in episode_tags_query]
+        }
+        
+        season_key = episode.season_number
+        if season_key not in seasons:
+            seasons[season_key] = []
+        seasons[season_key].append(episode_data)
+    
+    return {
+        "title_id": title_id,
+        "seasons": seasons
     }
 
 @router.get("/titles")

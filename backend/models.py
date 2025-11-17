@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime, JSON, Float
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime, JSON, Float, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from db import Base
@@ -44,6 +44,11 @@ class Title(Base):
     genres = Column(JSON, nullable=True)
     providers = Column(JSON, nullable=True)
     deep_links = Column(JSON, nullable=True)
+    number_of_seasons = Column(Integer, nullable=True)
+    number_of_episodes = Column(Integer, nullable=True)
+    vote_average = Column(Float, nullable=True)
+    fandom_scraped = Column(Boolean, default=False)
+    fandom_scrape_date = Column(DateTime, nullable=True)
     last_synced = Column(DateTime, default=datetime.utcnow)
     
     policies = relationship("Policy", back_populates="title")
@@ -59,6 +64,21 @@ class Policy(Base):
     
     kid_profile = relationship("KidProfile", back_populates="policies")
     title = relationship("Title", back_populates="policies")
+
+class EpisodePolicy(Base):
+    __tablename__ = "episode_policies"
+    __table_args__ = (
+        UniqueConstraint('policy_id', 'episode_id', name='_policy_episode_uc'),
+    )
+    
+    id = Column(Integer, primary_key=True, index=True)
+    policy_id = Column(Integer, ForeignKey("policies.id", ondelete="CASCADE"), nullable=False, index=True)
+    episode_id = Column(Integer, ForeignKey("episodes.id", ondelete="CASCADE"), nullable=False, index=True)
+    is_allowed = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    policy = relationship("Policy")
+    episode = relationship("Episode")
 
 # Launcher System Models
 

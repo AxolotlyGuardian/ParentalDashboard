@@ -19,8 +19,12 @@ interface TitleDetails {
   poster_path?: string;
   backdrop_path?: string;
   release_date?: string;
-  rating?: string;
+  content_rating?: string;
+  vote_average?: number;
   genres?: string[];
+  number_of_seasons?: number;
+  number_of_episodes?: number;
+  fandom_scraped?: boolean;
 }
 
 interface Policy {
@@ -158,13 +162,36 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
                 />
               )}
 
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">{titleDetails.title}</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-3">{titleDetails.title}</h2>
               
-              {titleDetails.rating && (
-                <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full mb-3">
-                  {titleDetails.rating}
-                </span>
-              )}
+              <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl p-4 mb-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {titleDetails.vote_average && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-[#F77B8A]">{titleDetails.vote_average.toFixed(1)}/10</div>
+                      <div className="text-xs text-gray-600 mt-1">TMDB Rating</div>
+                    </div>
+                  )}
+                  {titleDetails.content_rating && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-700">{titleDetails.content_rating}</div>
+                      <div className="text-xs text-gray-600 mt-1">Content Rating</div>
+                    </div>
+                  )}
+                  {titleDetails.number_of_seasons && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{titleDetails.number_of_seasons}</div>
+                      <div className="text-xs text-gray-600 mt-1">Seasons</div>
+                    </div>
+                  )}
+                  {titleDetails.number_of_episodes && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{titleDetails.number_of_episodes}</div>
+                      <div className="text-xs text-gray-600 mt-1">Episodes</div>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {titleDetails.genres && titleDetails.genres.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">

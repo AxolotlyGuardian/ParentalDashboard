@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List
 from db import get_db
-from models import Policy, Title, KidProfile, User
+from models import Policy, Title, KidProfile, User, Episode, EpisodePolicy
 from auth_utils import require_parent, require_admin
+from services.fandom_scraper import trigger_show_scrape
+from datetime import datetime
 import sys
 import os
 sys.path.append(os.path.dirname(__file__))
@@ -27,6 +29,7 @@ class PolicyUpdateRequest(BaseModel):
 @router.post("")
 def create_policy(
     request: PolicyCreateRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_parent)
 ):
@@ -47,6 +50,15 @@ def create_policy(
         )
         db.add(new_title)
         db.commit()
+        title = new_title
+    
+    if title and title.media_type == "tv" and not title.fandom_scraped:
+        episode_count = db.query(Episode).filter(Episode.title_id == title.id).count()
+        if episode_count == 0:
+            title.fandom_scraped = True
+            title.fandom_scrape_date = datetime.utcnow()
+            db.commit()
+            background_tasks.add_task(trigger_show_scrape, title.id, title.title)
     
     existing_policy = db.query(Policy).filter(
         Policy.kid_profile_id == request.kid_profile_id,
@@ -200,3 +212,41 @@ def get_all_policies_admin(
         })
     
     return result
+
+@router.post("/{policy_id}/episodes/{episode_id}/toggle")
+def toggle_episode_policy(
+    policy_id: int,
+    episode_id: int,
+    is_blocked: bool,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
+    policy = db.query(Policy).filter(Policy.id == policy_id).first()
+    if not policy:
+        raise HTTPException(status_code=404, detail="Policy not found")
+    
+    profile = db.query(KidProfile).filter(KidProfile.id == policy.kid_profile_id).first()
+    if not profile or profile.parent_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Can only manage your own kid's policies")
+    
+    existing_ep_policy = db.query(EpisodePolicy).filter(
+        EpisodePolicy.policy_id == policy_id,
+        EpisodePolicy.episode_id == episode_id
+    ).first()
+    
+    if is_blocked:
+        if not existing_ep_policy:
+            new_ep_policy = EpisodePolicy(
+                policy_id=policy_id,
+                episode_id=episode_id,
+                is_allowed=False
+            )
+            db.add(new_ep_policy)
+        else:
+            existing_ep_policy.is_allowed = False
+    else:
+        if existing_ep_policy:
+            db.delete(existing_ep_policy)
+    
+    db.commit()
+    return {"message": "Episode policy updated", "is_blocked": is_blocked}
