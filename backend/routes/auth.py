@@ -6,7 +6,7 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional
 from db import get_db
-from models import User, KidProfile, PairingCode, Device
+from models import User, KidProfile, PairingCode, Device, Policy
 import secrets
 from config import settings
 from auth_utils import require_parent, require_admin
@@ -174,7 +174,7 @@ def get_all_parents(
     db: Session = Depends(get_db)
 ):
     """Admin endpoint to view all parent accounts"""
-    parents = db.query(User).filter(User.role == "parent").all()
+    parents = db.query(User).all()
     
     result = []
     for parent in parents:
