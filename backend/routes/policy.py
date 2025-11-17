@@ -55,9 +55,6 @@ def create_policy(
     if title and title.media_type == "tv" and not title.fandom_scraped:
         episode_count = db.query(Episode).filter(Episode.title_id == title.id).count()
         if episode_count == 0:
-            title.fandom_scraped = True
-            title.fandom_scrape_date = datetime.utcnow()
-            db.commit()
             background_tasks.add_task(trigger_show_scrape, title.id, title.title)
     
     existing_policy = db.query(Policy).filter(

@@ -237,6 +237,9 @@ class FandomScraper:
 
 def trigger_show_scrape(title_id: int, title_name: str):
     from db import SessionLocal
+    from models import Title
+    from datetime import datetime
+    
     db = SessionLocal()
     try:
         scraper = FandomScraper(db)
@@ -247,13 +250,31 @@ def trigger_show_scrape(title_id: int, title_name: str):
             "Darkness", "Heights", "Fire", "Death", "Kidnapping"
         ]
         
+        any_success = False
         for category in common_categories:
             try:
                 result = scraper.scrape_and_tag_episodes(wiki_name, category, confidence=0.7)
-                if result.get('success'):
+                if result.get('success') and result.get('episodes_found', 0) > 0:
+                    any_success = True
                     print(f"Scraped {title_name} - {category}: {result.get('episodes_tagged', 0)} episodes tagged")
             except Exception as e:
                 print(f"Error scraping {title_name} - {category}: {str(e)}")
                 continue
+        
+        if any_success:
+            title = db.query(Title).filter(Title.id == title_id).first()
+            if title:
+                try:
+                    title.fandom_scraped = True
+                    title.fandom_scrape_date = datetime.utcnow()
+                    db.commit()
+                    print(f"Successfully marked {title_name} as scraped")
+                except Exception as commit_error:
+                    db.rollback()
+                    print(f"Failed to mark {title_name} as scraped: {str(commit_error)}")
+        else:
+            print(f"No episodes found for {title_name}, will retry on next policy creation")
+    except Exception as e:
+        print(f"Critical error in trigger_show_scrape for {title_name}: {str(e)}")
     finally:
         db.close()
