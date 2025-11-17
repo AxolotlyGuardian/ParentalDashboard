@@ -6,7 +6,7 @@ from datetime import datetime
 
 from db import get_db
 from models import ContentTag, TitleTag, ContentReport, Title, User
-from auth_utils import get_current_user
+from auth_utils import get_current_user, require_admin, require_parent
 
 router = APIRouter()
 
@@ -77,7 +77,7 @@ def get_tag_categories(db: Session = Depends(get_db)):
 @router.post("/tags", response_model=TagResponse)
 def create_tag(
     tag: TagCreateRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     existing_tag = db.query(ContentTag).filter(ContentTag.slug == tag.slug).first()
@@ -101,7 +101,7 @@ def create_tag(
 def update_tag(
     tag_id: int,
     tag: TagUpdateRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     existing_tag = db.query(ContentTag).filter(ContentTag.id == tag_id).first()
@@ -131,7 +131,7 @@ def update_tag(
 @router.delete("/tags/{tag_id}")
 def delete_tag(
     tag_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     tag = db.query(ContentTag).filter(ContentTag.id == tag_id).first()
@@ -153,7 +153,7 @@ def delete_tag(
 @router.post("/content-reports", response_model=ContentReportResponse)
 def create_content_report(
     report: ContentReportRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_parent),
     db: Session = Depends(get_db)
 ):
     title = db.query(Title).filter(Title.id == report.title_id).first()
@@ -196,10 +196,14 @@ def create_content_report(
 @router.get("/content-reports", response_model=List[ContentReportResponse])
 def get_content_reports(
     status: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_parent),
     db: Session = Depends(get_db)
 ):
     query = db.query(ContentReport)
+    
+    # Non-admin parents can only see their own reports
+    if not current_user.is_admin:
+        query = query.filter(ContentReport.reported_by == current_user.id)
     
     if status:
         query = query.filter(ContentReport.status == status)
@@ -232,7 +236,7 @@ def get_content_reports(
 @router.get("/content-reports/admin", response_model=List[ContentReportResponse])
 def get_content_reports_admin(
     status: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     return get_content_reports(status, current_user, db)
@@ -240,13 +244,11 @@ def get_content_reports_admin(
 @router.patch("/content-reports/{report_id}/approve")
 def approve_content_report(
     report_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """
     Admin-only endpoint: Approve content report and apply tag to title.
-    TODO: Add admin role check when role system is implemented.
-    For now, parents should not self-approve reports - honor system.
     """
     report = db.query(ContentReport).filter(ContentReport.id == report_id).first()
     if not report:
@@ -286,13 +288,11 @@ def approve_content_report(
 @router.patch("/content-reports/{report_id}/reject")
 def reject_content_report(
     report_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """
     Admin-only endpoint: Reject content report without applying tag.
-    TODO: Add admin role check when role system is implemented.
-    For now, parents should not self-reject reports - honor system.
     """
     report = db.query(ContentReport).filter(ContentReport.id == report_id).first()
     if not report:

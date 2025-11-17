@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List
 from db import get_db
 from models import Policy, Title, KidProfile, User
-from auth_utils import require_parent
+from auth_utils import require_parent, require_admin
 import sys
 import os
 sys.path.append(os.path.dirname(__file__))
@@ -175,7 +175,7 @@ def get_allowed_titles(
 def get_all_policies_admin(
     skip: int = 0,
     limit: int = 100,
-    current_user: User = Depends(require_parent),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Admin endpoint to view all policies across all families"""

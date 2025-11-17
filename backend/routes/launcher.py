@@ -6,7 +6,7 @@ import secrets
 import random
 from db import get_db
 from models import Device, PairingCode, PendingDevice, App, FamilyApp, TimeLimit, UsageLog, User, KidProfile, Policy, Title, DeviceEpisodeReport, Episode, EpisodeLink
-from auth_utils import require_parent
+from auth_utils import require_parent, require_admin
 from services.movie_api import movie_api_client
 import json
 
@@ -732,7 +732,7 @@ def get_all_episode_reports(
     skip: int = 0,
     limit: int = 100,
     status: Optional[str] = None,
-    current_user: User = Depends(require_parent),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Get all device episode reports for admin review"""
@@ -772,7 +772,7 @@ def get_all_episode_links(
     limit: int = 100,
     provider: Optional[str] = None,
     verified_only: bool = False,
-    current_user: User = Depends(require_parent),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Get all episode deep links for admin review"""

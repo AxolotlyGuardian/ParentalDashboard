@@ -9,7 +9,7 @@ from db import get_db
 from models import User, KidProfile, PairingCode, Device
 import secrets
 from config import settings
-from auth_utils import require_parent
+from auth_utils import require_parent, require_admin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -86,7 +86,7 @@ def parent_signup(request: ParentSignupRequest, db: Session = Depends(get_db)):
     db.add(device)
     db.commit()
     
-    access_token = create_access_token({"sub": str(new_user.id), "role": "parent"})
+    access_token = create_access_token({"sub": str(new_user.id), "role": "parent", "is_admin": new_user.is_admin})
     return TokenResponse(
         access_token=access_token,
         token_type="bearer",
@@ -108,7 +108,7 @@ def parent_login(request: ParentLoginRequest, db: Session = Depends(get_db)):
     if not password_valid:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    access_token = create_access_token({"sub": str(user.id), "role": "parent"})
+    access_token = create_access_token({"sub": str(user.id), "role": "parent", "is_admin": user.is_admin})
     return TokenResponse(
         access_token=access_token,
         token_type="bearer",
@@ -170,7 +170,7 @@ def get_all_kid_profiles(db: Session = Depends(get_db)):
 
 @router.get("/admin/parents")
 def get_all_parents(
-    current_user: User = Depends(require_parent),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Admin endpoint to view all parent accounts"""
@@ -194,7 +194,7 @@ def get_all_parents(
 
 @router.get("/admin/kid-profiles")
 def get_all_kid_profiles_admin(
-    current_user: User = Depends(require_parent),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Admin endpoint to view all kid profiles with parent info"""
