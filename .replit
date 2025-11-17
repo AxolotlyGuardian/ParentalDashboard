@@ -72,7 +72,7 @@ externalPort = 4200
 
 [nix]
 channel = "stable-25_05"
-packages = ["redis"]
+packages = ["redis", "xcodebuild", "zlib"]
 
 [deployment]
 deploymentTarget = "autoscale"

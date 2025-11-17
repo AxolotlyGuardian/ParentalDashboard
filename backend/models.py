@@ -253,6 +253,19 @@ class TitleTag(Base):
     title = relationship("Title")
     tag = relationship("ContentTag", back_populates="title_tags")
 
+class EpisodeTag(Base):
+    __tablename__ = "episode_tags"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=False)
+    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False)
+    source = Column(String, default="fandom_scrape")
+    confidence = Column(Float, default=1.0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    episode = relationship("Episode")
+    tag = relationship("ContentTag")
+
 class ContentReport(Base):
     __tablename__ = "content_reports"
     
