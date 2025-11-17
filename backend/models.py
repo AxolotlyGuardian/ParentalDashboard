@@ -47,6 +47,7 @@ class Title(Base):
     number_of_seasons = Column(Integer, nullable=True)
     number_of_episodes = Column(Integer, nullable=True)
     vote_average = Column(Float, nullable=True)
+    wiki_slug = Column(String, nullable=True, index=True)
     fandom_scraped = Column(Boolean, default=False)
     fandom_scrape_date = Column(DateTime, nullable=True)
     last_synced = Column(DateTime, default=datetime.utcnow)
@@ -304,3 +305,76 @@ class ContentReport(Base):
     title = relationship("Title")
     reporter = relationship("User", foreign_keys=[reported_by])
     reviewer = relationship("User", foreign_keys=[reviewed_by])
+
+class FandomTagSource(Base):
+    __tablename__ = "fandom_tag_sources"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False, index=True)
+    wiki_name = Column(String, nullable=False)
+    category_name = Column(String, nullable=False)
+    priority = Column(Integer, default=1)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    tag = relationship("ContentTag")
+
+class FandomScrapeJob(Base):
+    __tablename__ = "fandom_scrape_jobs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    status = Column(String, default="pending", index=True)
+    title_filter = Column(JSON, nullable=True)
+    tag_filter = Column(JSON, nullable=True)
+    force_rescrape = Column(Boolean, default=False)
+    total_titles = Column(Integer, default=0)
+    total_tags = Column(Integer, default=0)
+    processed_count = Column(Integer, default=0)
+    success_count = Column(Integer, default=0)
+    failed_count = Column(Integer, default=0)
+    episodes_tagged = Column(Integer, default=0)
+    error_message = Column(Text, nullable=True)
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    creator = relationship("User")
+    scrape_runs = relationship("FandomScrapeRun", back_populates="job")
+
+class FandomScrapeRun(Base):
+    __tablename__ = "fandom_scrape_runs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(Integer, ForeignKey("fandom_scrape_jobs.id"), nullable=False, index=True)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False, index=True)
+    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False, index=True)
+    status = Column(String, default="pending", index=True)
+    episodes_found = Column(Integer, default=0)
+    episodes_tagged = Column(Integer, default=0)
+    error_message = Column(Text, nullable=True)
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    job = relationship("FandomScrapeJob", back_populates="scrape_runs")
+    title = relationship("Title")
+    tag = relationship("ContentTag")
+
+class TitleTagScrapeState(Base):
+    __tablename__ = "title_tag_scrape_state"
+    __table_args__ = (
+        UniqueConstraint('title_id', 'tag_id', name='_title_tag_uc'),
+    )
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False, index=True)
+    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False, index=True)
+    last_scraped_at = Column(DateTime, nullable=True)
+    last_status = Column(String, nullable=True)
+    episodes_found = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    title = relationship("Title")
+    tag = relationship("ContentTag")
