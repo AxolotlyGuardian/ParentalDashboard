@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { authApi, catalogApi, policyApi, deviceApi } from '@/lib/api';
 import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
 import ContentReportModal from '@/components/ContentReportModal';
+import ContentActionModal from '@/components/ContentActionModal';
 import { PairedDevice, ApiError } from '@/lib/types';
 
 interface KidProfile {
@@ -58,6 +59,8 @@ export default function ParentDashboard() {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedTitleForReport, setSelectedTitleForReport] = useState<Title | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [selectedContentForAction, setSelectedContentForAction] = useState<Policy | null>(null);
 
   useEffect(() => {
     const user = getUserFromToken();
@@ -197,7 +200,12 @@ export default function ParentDashboard() {
     }
   };
 
-  const handleLaunchContent = (policy: Policy) => {
+  const handleContentClick = (policy: Policy) => {
+    setSelectedContentForAction(policy);
+    setIsActionModalOpen(true);
+  };
+
+  const launchPolicy = (policy: Policy) => {
     if (!policy.deep_links || Object.keys(policy.deep_links).length === 0) {
       alert('No streaming link available for this content');
       return;
@@ -205,6 +213,15 @@ export default function ParentDashboard() {
     
     const firstLink = Object.values(policy.deep_links)[0];
     window.open(firstLink, '_blank');
+  };
+
+  const handleLaunchContent = (policy: Policy) => {
+    launchPolicy(policy);
+  };
+
+  const handleCloseActionModal = () => {
+    setIsActionModalOpen(false);
+    setSelectedContentForAction(null);
   };
 
   const loadPolicies = async () => {
@@ -771,7 +788,7 @@ export default function ParentDashboard() {
                                       <img
                                         src={policy.poster_path}
                                         alt={policy.title}
-                                        onClick={() => handleLaunchContent(policy)}
+                                        onClick={() => handleContentClick(policy)}
                                         className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer hover:scale-105"
                                       />
                                     )}
@@ -804,7 +821,7 @@ export default function ParentDashboard() {
                                     <img
                                       src={policy.poster_path}
                                       alt={policy.title}
-                                      onClick={() => handleLaunchContent(policy)}
+                                      onClick={() => handleContentClick(policy)}
                                       className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer hover:scale-105"
                                     />
                                   )}
@@ -930,6 +947,13 @@ export default function ParentDashboard() {
         title={selectedTitleForReport}
         onClose={handleCloseReportModal}
         onSubmitSuccess={handleReportSuccess}
+      />
+
+      <ContentActionModal
+        isOpen={isActionModalOpen}
+        policy={selectedContentForAction}
+        onClose={handleCloseActionModal}
+        onPlay={handleLaunchContent}
       />
     </div>
   );
