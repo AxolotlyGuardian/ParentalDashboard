@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { catalogApi, contentTagApi } from '@/lib/api';
+import { catalogApi, contentTagApi, policyApi } from '@/lib/api';
 
 interface ContentTag {
   id: number;
@@ -40,11 +40,25 @@ interface ContentActionModalProps {
   onPlay: (policy: Policy) => void;
 }
 
+interface Episode {
+  id: number;
+  season_number: number;
+  episode_number: number;
+  episode_name: string;
+  overview?: string;
+  thumbnail_path?: string;
+  air_date?: string;
+  is_blocked: boolean;
+  tags: ContentTag[];
+}
+
 export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: ContentActionModalProps) {
   const titleId = policy?.title_id || null;
   const [showingDetail, setShowingDetail] = useState(false);
   const [titleDetails, setTitleDetails] = useState<TitleDetails | null>(null);
   const [tags, setTags] = useState<ContentTag[]>([]);
+  const [episodes, setEpisodes] = useState<Record<number, Episode[]>>({});
+  const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
@@ -54,39 +68,77 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
       setShowingDetail(false);
       setTitleDetails(null);
       setTags([]);
+      setEpisodes({});
+      setExpandedSeasons(new Set());
       loadTitleData();
     } else {
       setShowingDetail(false);
       setLoadError(false);
       setTitleDetails(null);
       setTags([]);
+      setEpisodes({});
+      setExpandedSeasons(new Set());
     }
   }, [isOpen, titleId]);
 
   const loadTitleData = async () => {
-    if (!titleId) return;
+    if (!titleId || !policy) return;
     
     setIsLoading(true);
     setLoadError(false);
     setShowingDetail(false);
     setTitleDetails(null);
     setTags([]);
+    setEpisodes({});
     try {
-      const [detailsRes, tagsRes] = await Promise.all([
+      const [detailsRes, tagsRes, episodesRes] = await Promise.all([
         catalogApi.getTitleDetails(titleId),
-        contentTagApi.getTitleTags(titleId)
+        contentTagApi.getTitleTags(titleId),
+        catalogApi.getTitleEpisodes(titleId, policy.id).catch(() => ({ data: { seasons: {} } }))
       ]);
       
       setTitleDetails(detailsRes.data);
       setTags(tagsRes.data || []);
+      setEpisodes(episodesRes.data?.seasons || {});
     } catch (error) {
       console.error('Failed to load title data', error);
       setLoadError(true);
       setShowingDetail(false);
       setTitleDetails(null);
       setTags([]);
+      setEpisodes({});
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const toggleSeason = (seasonNumber: number) => {
+    setExpandedSeasons(prev => {
+      const next = new Set(prev);
+      if (next.has(seasonNumber)) {
+        next.delete(seasonNumber);
+      } else {
+        next.add(seasonNumber);
+      }
+      return next;
+    });
+  };
+
+  const toggleEpisodeBlock = async (episodeId: number, currentlyBlocked: boolean) => {
+    if (!policy) return;
+    try {
+      await policyApi.toggleEpisodePolicy(policy.id, episodeId, !currentlyBlocked);
+      setEpisodes(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(seasonKey => {
+          updated[Number(seasonKey)] = updated[Number(seasonKey)].map(ep =>
+            ep.id === episodeId ? { ...ep, is_blocked: !currentlyBlocked } : ep
+          );
+        });
+        return updated;
+      });
+    } catch (error) {
+      console.error('Failed to toggle episode', error);
     }
   };
 
@@ -240,6 +292,78 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
                 <div className="text-center py-8">
                   <div className="text-gray-400 text-4xl mb-2">✅</div>
                   <p className="text-gray-600">No content warnings reported for this title</p>
+                </div>
+              )}
+
+              {Object.keys(episodes).length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Episodes by Season</h3>
+                  <div className="space-y-2">
+                    {Object.keys(episodes).sort((a, b) => Number(a) - Number(b)).map(seasonKey => {
+                      const seasonNumber = Number(seasonKey);
+                      const seasonEpisodes = episodes[seasonNumber];
+                      const isExpanded = expandedSeasons.has(seasonNumber);
+                      
+                      return (
+                        <div key={seasonNumber} className="border border-gray-200 rounded-lg overflow-hidden">
+                          <button
+                            onClick={() => toggleSeason(seasonNumber)}
+                            className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors"
+                          >
+                            <span className="font-semibold text-gray-800">
+                              Season {seasonNumber} ({seasonEpisodes.length} episodes)
+                            </span>
+                            <span className="text-gray-500">{isExpanded ? '▼' : '▶'}</span>
+                          </button>
+                          
+                          {isExpanded && (
+                            <div className="divide-y divide-gray-100">
+                              {seasonEpisodes.map(episode => (
+                                <div key={episode.id} className="p-4 hover:bg-gray-50">
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="font-medium text-gray-900">
+                                          S{episode.season_number}E{episode.episode_number}
+                                        </span>
+                                        <span className="text-gray-700">{episode.episode_name}</span>
+                                      </div>
+                                      {episode.overview && (
+                                        <p className="text-sm text-gray-600 mb-2">{episode.overview}</p>
+                                      )}
+                                      {episode.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                          {episode.tags.map(tag => (
+                                            <span
+                                              key={tag.id}
+                                              className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded"
+                                              title={tag.description}
+                                            >
+                                              {tag.display_name}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <button
+                                      onClick={() => toggleEpisodeBlock(episode.id, episode.is_blocked)}
+                                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                                        episode.is_blocked
+                                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                      }`}
+                                    >
+                                      {episode.is_blocked ? '🚫 Blocked' : '✅ Allowed'}
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
