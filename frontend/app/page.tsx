@@ -18,7 +18,7 @@ export default function Home() {
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Mission</h2>
             </div>
             <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
-              Every parent deserves tools that protect their children without compromising trust, freedom, or joy. Axolotly is built to make protection intuitive, symbolic, and strong — not restrictive or complicated.
+              Every parent deserves tools that protect their children without compromising trust, freedom, or joy. Axolotly makes protection intuitive, meaningful, and strong—not restrictive or complicated.
             </p>
           </div>
         </section>
@@ -31,7 +31,7 @@ export default function Home() {
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Axolotly?</h2>
               </div>
               <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
-                The name comes from my child&apos;s favorite animal: the axolotl. Known for its regenerative powers and gentle nature, it became our symbol of resilience, adaptability, and guardianship. It&apos;s not just cute — it&apos;s powerful. Just like the parents we serve.
+                The name comes from my child&apos;s favorite animal: the axolotl. Known for its regenerative powers and gentle nature, it became our symbol of resilience, adaptability, and guardianship. It&apos;s not just cute—it&apos;s mighty. Just like the parents we serve.
               </p>
             </div>
           </div>
@@ -44,7 +44,7 @@ export default function Home() {
               <h2 className="text-3xl font-bold text-gray-800 mb-4">The Problem We&apos;re Solving</h2>
             </div>
             <p className="text-lg text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
-              In today&apos;s ever-expanding internet environment, kids have access to more content than ever before — much of it unfiltered, overwhelming, or simply not age-appropriate. Axolotly helps parents monitor, guide, and protect their children&apos;s digital experiences with clarity and confidence.
+              In today&apos;s digital world, children have unprecedented access to content—much of it unfiltered, overwhelming, or age-inappropriate. Axolotly helps parents monitor, guide, and protect their children&apos;s digital experiences with clarity and confidence.
             </p>
           </div>
         </section>
@@ -56,7 +56,7 @@ export default function Home() {
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">Family-First Design</h2>
                 <p className="text-lg text-gray-600 leading-relaxed max-w-3xl mx-auto">
-                  As a family-first creator, I&apos;ve poured my values into every detail — from the symbolic logo to the enforcement logic, from the community flagging system to the calming color palette. Axolotly isn&apos;t just software. It&apos;s a promise to help parents feel confident, informed, and supported.
+                  As a family-first creator, I&apos;ve poured my values into every detail—from the symbolic logo to the enforcement logic, from the community tagging system to the calming color palette. Axolotly isn&apos;t just software. It&apos;s a promise to help parents feel confident, informed, and supported.
                 </p>
               </div>
             </div>
@@ -69,7 +69,7 @@ export default function Home() {
             <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Always Within Reach</h2>
               <p className="text-lg text-gray-600 leading-relaxed mb-8 max-w-3xl mx-auto">
-                Whether you&apos;re on the road or at home, Axolotly stands watch — quietly, reliably, and with purpose. Because in a world of endless content, protecting what matters shouldn&apos;t be an afterthought.
+                Whether you&apos;re on the road or at home, Axolotly stands watch—quietly, reliably, and with purpose. Because in a world of endless content, protecting what matters shouldn&apos;t be an afterthought.
               </p>
             </div>
           </div>

@@ -319,7 +319,7 @@ export default function ParentDashboard() {
                   required={isSignup}
                 />
                 <p className="mt-2 text-xs text-gray-500">
-                  Find the 6-character code on the sticker at the bottom of your Axolotly device
+                  Find this 6-character code on the sticker at the bottom of your Axolotly device
                 </p>
               </div>
             )}
@@ -557,7 +557,7 @@ export default function ParentDashboard() {
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg text-gray-800"
                       required
                     >
-                      <option value="">Choose a kid...</option>
+                      <option value="">Select a profile...</option>
                       {kidProfiles.map((profile) => (
                         <option key={profile.id} value={profile.id}>
                           {profile.name} (Age {profile.age})
@@ -580,7 +580,7 @@ export default function ParentDashboard() {
                       required
                     />
                     <p className="mt-2 text-xs text-gray-500">
-                      Enter the 6-digit pairing code shown on your Axolotly launcher device
+                      Enter the 6-digit code displayed on your Axolotly launcher device
                     </p>
                   </div>
 
@@ -919,7 +919,7 @@ export default function ParentDashboard() {
             <div className="text-center py-16">
               <div className="text-gray-400 text-6xl mb-4">👤</div>
               <h3 className="text-lg font-semibold text-gray-600 mb-2">Select a kid profile</h3>
-              <p className="text-sm text-gray-500">Choose a profile above to manage their content and devices</p>
+              <p className="text-sm text-gray-500">Select a profile above to manage their content and devices</p>
             </div>
           )}
         </div>

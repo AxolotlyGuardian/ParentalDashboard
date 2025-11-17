@@ -14,14 +14,14 @@ export default function HowItWorks() {
         <h1 className="text-4xl font-bold text-[#566886] mb-8 text-center">How Axolotly Works for Parents</h1>
         
         <p className="text-lg text-gray-700 mb-12 leading-relaxed">
-          Axolotly is designed to empower parents with intuitive, symbolic tools that protect their children&apos;s digital experiences — without friction, fear, or complexity. Here&apos;s how it works:
+          Axolotly empowers parents with intuitive tools that protect their children&apos;s digital experiences—without friction, fear, or complexity. Here&apos;s how it works:
         </p>
 
         <div className="space-y-8">
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#688ac6]">
             <h2 className="text-2xl font-bold text-[#566886] mb-4">1. Plug In Protection</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
-              Axolotly activates instantly when connected to your child&apos;s device. It begins monitoring screen activity, flagging inappropriate content, and enforcing boundaries — all without requiring complex setup.
+              Connect your child&apos;s device and Axolotly activates instantly. It monitors content, applies your rules, and enforces boundaries—all without complex setup.
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
               <li>No app installation required</li>
@@ -33,7 +33,7 @@ export default function HowItWorks() {
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#566886]">
             <h2 className="text-2xl font-bold text-[#566886] mb-4">2. Real-Time Visibility</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
-              Parents receive real-time insights into what their child is watching, playing, or browsing. Axolotly doesn&apos;t spy — it informs.
+              Get real-time insights into what your child is watching, playing, or browsing. Axolotly doesn&apos;t spy—it informs.
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
               <li>Live content summaries</li>
@@ -45,7 +45,7 @@ export default function HowItWorks() {
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#C2B7EE]">
             <h2 className="text-2xl font-bold text-[#566886] mb-4">3. Enforcement That Feels Natural</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
-              Axolotly uses gentle enforcement logic inspired by the axolotl&apos;s regenerative nature. It doesn&apos;t punish — it redirects.
+              Gentle enforcement inspired by the axolotl&apos;s regenerative nature. Axolotly doesn&apos;t punish—it redirects.
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
               <li>Time limits and screen nudges</li>
@@ -57,7 +57,7 @@ export default function HowItWorks() {
           <section className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#B2D8BF]">
             <h2 className="text-2xl font-bold text-[#566886] mb-4">4. Parent-Centric Design</h2>
             <p className="text-gray-700 mb-4 leading-relaxed">
-              Every feature is built with your emotional clarity in mind. You don&apos;t need to be tech-savvy — just family-savvy.
+              Every feature is built with your peace of mind in focus. You don&apos;t need to be tech-savvy—just family-focused.
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
               <li>Simple interface with symbolic icons</li>
@@ -69,10 +69,10 @@ export default function HowItWorks() {
           <section className="bg-[#688ac6] text-white p-6 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Why the Axolotl?</h2>
             <p className="leading-relaxed mb-4">
-              The axolotl is more than a mascot — it&apos;s a metaphor. Known for its ability to regenerate and adapt, it represents the kind of protection we believe in: gentle, resilient, and ever-watchful. It&apos;s also my child&apos;s favorite animal — a personal reminder that this brand is built by a parent, for parents.
+              The axolotl is more than a mascot—it&apos;s a metaphor. Known for its ability to regenerate and adapt, it represents the kind of protection we believe in: gentle, resilient, and ever-watchful. It&apos;s also my child&apos;s favorite animal—a personal reminder that this platform is built by a parent, for parents.
             </p>
             <p className="text-xl font-semibold">
-              Axolotly protects what matters — quietly, reliably, and with purpose.
+              Axolotly protects what matters—quietly, reliably, and with purpose.
             </p>
           </section>
         </div>
