@@ -18,7 +18,6 @@ class FandomScraper:
         'witches': 'witches',
         'skeletons': 'skeletons',
         'aliens': 'aliens',
-        'dream': 'aliens',
         'space': 'aliens',
         'clowns': 'clowns',
         'bees': 'bees_wasps',
