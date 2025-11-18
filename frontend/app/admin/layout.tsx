@@ -44,10 +44,14 @@ export default function AdminLayout({
       { href: '/admin/kids', label: 'Kid Profiles' },
       { href: '/admin/devices', label: 'Devices' },
     ],
+    automation: [
+      { href: '/admin/enhanced-scraper', label: 'Enhanced Scraper' },
+      { href: '/admin/fandom-scrape', label: 'Category Scraper' },
+      { href: '/admin/tmdb-sync', label: 'TMDB Sync' },
+    ],
     system: [
       { href: '/admin/policies', label: 'Policies' },
       { href: '/admin/stats', label: 'Usage Stats' },
-      { href: '/admin/tmdb-sync', label: 'TMDB Sync' },
       { href: '/admin/settings', label: 'Settings' },
     ]
   };
@@ -69,6 +73,7 @@ export default function AdminLayout({
     ...pageGroups[currentGroup as keyof typeof pageGroups],
     ...(currentGroup !== 'content' ? pageGroups.content : []),
     ...(currentGroup !== 'users' ? pageGroups.users : []),
+    ...(currentGroup !== 'automation' ? pageGroups.automation : []),
     ...(currentGroup !== 'system' ? pageGroups.system : []),
   ];
 
@@ -94,6 +99,7 @@ export default function AdminLayout({
               <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                 {currentGroup === 'content' && 'Content Management'}
                 {currentGroup === 'users' && 'User Management'}
+                {currentGroup === 'automation' && 'Automation'}
                 {currentGroup === 'system' && 'System'}
               </h3>
               <div className="space-y-1">
@@ -140,6 +146,25 @@ export default function AdminLayout({
                 </h3>
                 <div className="space-y-1">
                   {pageGroups.users.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {currentGroup !== 'automation' && (
+              <div className="mb-4">
+                <h3 className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                  Automation
+                </h3>
+                <div className="space-y-1">
+                  {pageGroups.automation.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
