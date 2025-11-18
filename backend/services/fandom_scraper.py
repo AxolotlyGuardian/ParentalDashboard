@@ -238,45 +238,63 @@ class FandomScraper:
         return results
 
 def trigger_show_scrape(title_id: int, title_name: str):
+    """
+    Automatic background task to scrape episode-level content tags
+    when a parent adds a new TV show to their dashboard.
+    Uses the enhanced Fandom scraper for comprehensive multi-strategy scraping.
+    """
     from db import SessionLocal
     from models import Title
     from datetime import datetime
+    from services.enhanced_fandom_scraper import EnhancedFandomScraper
     
     db = SessionLocal()
     try:
-        scraper = FandomScraper(db)
-        wiki_name = title_name.lower().replace(" ", "").replace("'", "")
+        title = db.query(Title).filter(Title.id == title_id).first()
+        if not title or title.media_type != 'tv':
+            print(f"Skipping scrape for {title_name}: not a TV show or not found")
+            return
         
-        common_categories = [
-            "Spiders", "Snakes", "Sharks", "Monsters", "Ghosts", 
-            "Darkness", "Heights", "Fire", "Death", "Kidnapping"
-        ]
+        print(f"Starting enhanced Fandom scrape for: {title_name}")
         
-        any_success = False
-        for category in common_categories:
+        # Use enhanced scraper with all tags (no filter = searches all 72+ tags)
+        scraper = EnhancedFandomScraper(db, rate_limit_delay=1.0)
+        result = scraper.scrape_show_episodes(
+            title_id=title_id,
+            tag_filter=None  # Search for all content tags
+        )
+        
+        if result.get('success'):
+            episodes_found = result.get('episodes_found', 0)
+            episodes_matched = result.get('episodes_matched', 0)
+            episodes_tagged = result.get('episodes_tagged', 0)
+            tags_added = result.get('tags_added', 0)
+            
+            print(f"✅ Enhanced scrape complete for {title_name}:")
+            print(f"   - Episodes found: {episodes_found}")
+            print(f"   - Episodes matched: {episodes_matched}")
+            print(f"   - Episodes tagged: {episodes_tagged}")
+            print(f"   - Unique tags added: {tags_added}")
+            
+            # Mark as scraped
             try:
-                result = scraper.scrape_and_tag_episodes(wiki_name, category, confidence=0.7)
-                if result.get('success') and result.get('episodes_found', 0) > 0:
-                    any_success = True
-                    print(f"Scraped {title_name} - {category}: {result.get('episodes_tagged', 0)} episodes tagged")
-            except Exception as e:
-                print(f"Error scraping {title_name} - {category}: {str(e)}")
-                continue
-        
-        if any_success:
-            title = db.query(Title).filter(Title.id == title_id).first()
-            if title:
-                try:
-                    title.fandom_scraped = True
-                    title.fandom_scrape_date = datetime.utcnow()
-                    db.commit()
-                    print(f"Successfully marked {title_name} as scraped")
-                except Exception as commit_error:
-                    db.rollback()
-                    print(f"Failed to mark {title_name} as scraped: {str(commit_error)}")
+                title.fandom_scraped = True
+                title.fandom_scrape_date = datetime.utcnow()
+                if result.get('wiki_slug'):
+                    title.wiki_slug = result['wiki_slug']
+                db.commit()
+                print(f"   - Marked {title_name} as scraped")
+            except Exception as commit_error:
+                db.rollback()
+                print(f"   - Failed to mark {title_name} as scraped: {str(commit_error)}")
         else:
-            print(f"No episodes found for {title_name}, will retry on next policy creation")
+            error_msg = result.get('error', 'Unknown error')
+            print(f"❌ Enhanced scrape failed for {title_name}: {error_msg}")
+            print(f"   Will retry on next policy creation or manual scrape")
+            
     except Exception as e:
-        print(f"Critical error in trigger_show_scrape for {title_name}: {str(e)}")
+        print(f"❌ Critical error in automatic scrape for {title_name}: {str(e)}")
+        import traceback
+        traceback.print_exc()
     finally:
         db.close()
