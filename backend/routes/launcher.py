@@ -329,11 +329,11 @@ async def get_apps(
                         # Check for episode-specific deep link
                         episode_link = db.query(EpisodeLink).filter(
                             EpisodeLink.episode_id == episode_1.id,
-                            EpisodeLink.streaming_url.isnot(None)
+                            EpisodeLink.deep_link_url.isnot(None)
                         ).first()
                         
-                        if episode_link and episode_link.streaming_url:
-                            primary_link = episode_link.streaming_url
+                        if episode_link and episode_link.deep_link_url:
+                            primary_link = episode_link.deep_link_url
                 
                 # If no episode link found, fall back to series deep link
                 if not primary_link and title.deep_links and isinstance(title.deep_links, dict):
