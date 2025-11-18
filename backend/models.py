@@ -282,6 +282,10 @@ class EpisodeTag(Base):
     tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False)
     source = Column(String, default="fandom_scrape")
     confidence = Column(Float, default=1.0)
+    source_url = Column(String, nullable=True)
+    source_excerpt = Column(Text, nullable=True)
+    extraction_method = Column(String, nullable=True)
+    extra_data = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     episode = relationship("Episode")
@@ -378,3 +382,43 @@ class TitleTagScrapeState(Base):
     
     title = relationship("Title")
     tag = relationship("ContentTag")
+
+class FandomShowConfig(Base):
+    __tablename__ = "fandom_show_configs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title_id = Column(Integer, ForeignKey("titles.id"), unique=True, nullable=False, index=True)
+    wiki_slug = Column(String, nullable=False)
+    wiki_base_url = Column(String, nullable=True)
+    episode_list_page = Column(String, nullable=True)
+    episode_list_selectors = Column(JSON, nullable=True)
+    season_page_pattern = Column(String, nullable=True)
+    tag_overrides = Column(JSON, nullable=True)
+    search_config = Column(JSON, nullable=True)
+    is_active = Column(Boolean, default=True)
+    last_updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    title = relationship("Title")
+
+class FandomEpisodeLink(Base):
+    __tablename__ = "fandom_episode_links"
+    __table_args__ = (
+        UniqueConstraint('title_id', 'season_number', 'episode_number', name='_fandom_episode_uc'),
+    )
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False, index=True)
+    episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=True, index=True)
+    season_number = Column(Integer, nullable=False)
+    episode_number = Column(Integer, nullable=False)
+    fandom_page_id = Column(Integer, nullable=True)
+    fandom_page_title = Column(String, nullable=False)
+    fandom_url = Column(String, nullable=True)
+    confidence = Column(Float, default=0.0)
+    matching_method = Column(String, nullable=True)
+    last_checked_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    title = relationship("Title")
+    episode = relationship("Episode")
