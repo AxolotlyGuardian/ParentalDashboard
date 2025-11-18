@@ -55,10 +55,6 @@ localPort = 8000
 externalPort = 8000
 
 [[ports]]
-localPort = 35037
-externalPort = 5000
-
-[[ports]]
 localPort = 35877
 externalPort = 3002
 
@@ -74,6 +70,10 @@ externalPort = 3001
 localPort = 42005
 externalPort = 4200
 
+[[ports]]
+localPort = 44129
+externalPort = 5173
+
 [nix]
 channel = "stable-25_05"
 packages = ["redis", "xcodebuild", "zlib"]
@@ -81,4 +81,4 @@ packages = ["redis", "xcodebuild", "zlib"]
 [deployment]
 deploymentTarget = "autoscale"
 build = ["sh", "-c", "cd frontend && npm run build"]
-run = ["sh", "-c", "cd backend && uvicorn app:app --host 0.0.0.0 --port 8000 & cd frontend && npm start -- -H 0.0.0.0 -p 5000"]
+run = ["sh", "-c", "./start.sh"]
