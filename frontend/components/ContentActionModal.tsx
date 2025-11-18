@@ -209,6 +209,18 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
     return acc;
   }, {} as Record<string, ContentTag[]>);
 
+  // Determine which tags have been used to block episodes
+  const tagsWithBlockedContent = new Set<number>();
+  Object.values(episodes).forEach(seasonEpisodes => {
+    seasonEpisodes.forEach(episode => {
+      if (episode.is_blocked) {
+        episode.tags.forEach(tag => {
+          tagsWithBlockedContent.add(tag.id);
+        });
+      }
+    });
+  });
+
   const categoryLabels: Record<string, string> = {
     creatures: '🦕 Creatures & Characters',
     situations: '⚠️ Situations & Themes',
@@ -317,16 +329,27 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
                           {categoryLabels[category] || category}
                         </h4>
                         <div className="flex flex-wrap gap-2">
-                          {categoryTags.map((tag) => (
-                            <button
-                              key={tag.id}
-                              onClick={() => handleTagClick(tag)}
-                              className="px-3 py-1 bg-gray-100 hover:bg-[#F77B8A] hover:text-white text-gray-700 text-sm rounded-lg transition-colors cursor-pointer"
-                              title={tag.description || `Click to block episodes with ${tag.display_name}`}
-                            >
-                              {tag.display_name}
-                            </button>
-                          ))}
+                          {categoryTags.map((tag) => {
+                            const hasBlockedContent = tagsWithBlockedContent.has(tag.id);
+                            return (
+                              <button
+                                key={tag.id}
+                                onClick={() => handleTagClick(tag)}
+                                className={`px-3 py-1 text-sm rounded-lg transition-colors cursor-pointer ${
+                                  hasBlockedContent
+                                    ? 'bg-[#F77B8A] text-white hover:bg-[#F77B8A]/90'
+                                    : 'bg-gray-100 hover:bg-[#F77B8A] hover:text-white text-gray-700'
+                                }`}
+                                title={
+                                  hasBlockedContent
+                                    ? `✓ Active: ${tag.display_name} has blocked episodes. Click to block more.`
+                                    : tag.description || `Click to block episodes with ${tag.display_name}`
+                                }
+                              >
+                                {tag.display_name}
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     ))}
