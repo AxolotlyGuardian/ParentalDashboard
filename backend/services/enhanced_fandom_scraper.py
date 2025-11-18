@@ -27,13 +27,15 @@ class EnhancedFandomScraper:
     5. Tag extraction - Extract tags from episode page content
     """
     
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, rate_limit_delay: float = 0.5):
         self.db = db
         self.matcher = EpisodeMatcher(db)
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Axolotly/1.0 (Parental Control App; Educational Use)'
         })
+        self.rate_limit_delay = rate_limit_delay
+        self.page_cache = {}  # Cache for episode page content
     
     def get_wiki_url(self, wiki_slug: str) -> str:
         """Get the base API URL for a Fandom wiki"""
@@ -272,8 +274,8 @@ class EnhancedFandomScraper:
         print(f"  ✅ Found {len(all_episodes)} unique episodes")
         return list(all_episodes.values())
     
-    # Tag Extraction from Episode Pages
-    def extract_tags_from_episode(self, wiki_slug: str, page_title: str, tag_keywords: Dict[str, int]) -> Set[int]:
+    # Tag Extraction from Episode Pages (with caching)
+    def extract_tags_from_episode(self, wiki_slug: str, page_title: str, tag_keywords: Dict[str, int], use_cache: bool = True) -> Set[int]:
         """
         Extract tags from an episode page by searching for tag keywords
         
@@ -281,50 +283,60 @@ class EnhancedFandomScraper:
             wiki_slug: Wiki slug
             page_title: Episode page title
             tag_keywords: Dict mapping tag keyword to tag_id
+            use_cache: Whether to use cached page content
         
         Returns:
             Set of tag IDs found in the episode
         """
-        api_url = self.get_wiki_url(wiki_slug)
+        cache_key = f"{wiki_slug}:{page_title}"
         
-        # Get page content
-        params = {
-            'action': 'parse',
-            'page': page_title,
-            'prop': 'text|sections|categories',
-            'format': 'json'
-        }
-        
-        try:
-            response = self.session.get(api_url, params=params, timeout=15)
-            response.raise_for_status()
-            data = response.json()
+        # Check cache first
+        if use_cache and cache_key in self.page_cache:
+            combined_text = self.page_cache[cache_key]
+        else:
+            api_url = self.get_wiki_url(wiki_slug)
             
-            if 'parse' not in data:
+            # Get page content
+            params = {
+                'action': 'parse',
+                'page': page_title,
+                'prop': 'text|sections|categories',
+                'format': 'json'
+            }
+            
+            try:
+                response = self.session.get(api_url, params=params, timeout=15)
+                response.raise_for_status()
+                data = response.json()
+                
+                if 'parse' not in data:
+                    return set()
+                
+                # Get HTML content
+                html_content = data['parse'].get('text', {}).get('*', '')
+                
+                # Get categories
+                categories = data['parse'].get('categories', [])
+                category_text = ' '.join([cat.get('*', '') for cat in categories])
+                
+                # Combine content
+                combined_text = (html_content + ' ' + category_text).lower()
+                
+                # Cache it
+                if use_cache:
+                    self.page_cache[cache_key] = combined_text
+                
+            except Exception as e:
+                print(f"Error extracting tags from {page_title}: {e}")
                 return set()
-            
-            found_tags = set()
-            
-            # Get HTML content
-            html_content = data['parse'].get('text', {}).get('*', '')
-            
-            # Get categories
-            categories = data['parse'].get('categories', [])
-            category_text = ' '.join([cat.get('*', '') for cat in categories])
-            
-            # Combine content
-            combined_text = (html_content + ' ' + category_text).lower()
-            
-            # Search for tag keywords
-            for keyword, tag_id in tag_keywords.items():
-                if keyword.lower() in combined_text:
-                    found_tags.add(tag_id)
-            
-            return found_tags
-            
-        except Exception as e:
-            print(f"Error extracting tags from {page_title}: {e}")
-            return set()
+        
+        # Search for tag keywords
+        found_tags = set()
+        for keyword, tag_id in tag_keywords.items():
+            if keyword.lower() in combined_text:
+                found_tags.add(tag_id)
+        
+        return found_tags
     
     # Main Scraping Orchestration
     def scrape_show_episodes(self, title_id: int, tag_filter: Optional[List[int]] = None) -> Dict:
@@ -398,46 +410,60 @@ class EnhancedFandomScraper:
                     for variant in variants:
                         tag_keywords[variant] = tag.id
         
-        # Step 4: Extract tags from matched episodes
+        # Step 4: Extract tags from matched episodes (batch processing)
         print(f"\n🏷️  Extracting tags from episodes...")
         tags_added = 0
         episodes_tagged = 0
         
-        for match_result in match_results:
-            if not match_result.episode_id or match_result.confidence < 0.6:
-                continue
+        # Process in batches to avoid timeouts
+        batch_size = 20
+        matched_episodes = [r for r in match_results if r.episode_id and r.confidence >= 0.6]
+        
+        for i in range(0, len(matched_episodes), batch_size):
+            batch = matched_episodes[i:i + batch_size]
+            print(f"   Processing batch {i//batch_size + 1}/{(len(matched_episodes) + batch_size - 1)//batch_size} ({len(batch)} episodes)...")
             
-            # Extract tags from this episode page
-            found_tag_ids = self.extract_tags_from_episode(
-                wiki_slug,
-                match_result.fandom_page_title,
-                tag_keywords
-            )
-            
-            if found_tag_ids:
-                episodes_tagged += 1
+            for match_result in batch:
+                # Extract tags from this episode page
+                found_tag_ids = self.extract_tags_from_episode(
+                    wiki_slug,
+                    match_result.fandom_page_title,
+                    tag_keywords,
+                    use_cache=True
+                )
                 
-                # Add tags to episode
-                for tag_id in found_tag_ids:
-                    # Check if tag already exists
-                    existing = self.db.query(EpisodeTag).filter(
-                        EpisodeTag.episode_id == match_result.episode_id,
-                        EpisodeTag.tag_id == tag_id
-                    ).first()
+                if found_tag_ids:
+                    episodes_tagged += 1
                     
-                    if not existing:
-                        episode_tag = EpisodeTag(
-                            episode_id=match_result.episode_id,
-                            tag_id=tag_id,
-                            source='fandom_enhanced_scrape',
-                            confidence=match_result.confidence * 0.9,  # Slight confidence reduction
-                            source_url=f"https://{wiki_slug}.fandom.com/wiki/{match_result.fandom_page_title.replace(' ', '_')}",
-                            extraction_method='keyword_match'
-                        )
-                        self.db.add(episode_tag)
-                        tags_added += 1
+                    # Add tags to episode
+                    for tag_id in found_tag_ids:
+                        # Check if tag already exists
+                        existing = self.db.query(EpisodeTag).filter(
+                            EpisodeTag.episode_id == match_result.episode_id,
+                            EpisodeTag.tag_id == tag_id
+                        ).first()
+                        
+                        if not existing:
+                            episode_tag = EpisodeTag(
+                                episode_id=match_result.episode_id,
+                                tag_id=tag_id,
+                                source='fandom_enhanced_scrape',
+                                confidence=match_result.confidence * 0.9,
+                                source_url=f"https://{wiki_slug}.fandom.com/wiki/{match_result.fandom_page_title.replace(' ', '_')}",
+                                extraction_method='keyword_match'
+                            )
+                            self.db.add(episode_tag)
+                            tags_added += 1
+                
+                time.sleep(self.rate_limit_delay)  # Configurable rate limiting
             
-            time.sleep(0.3)  # Respect rate limits
+            # Commit batch to avoid transaction timeout
+            try:
+                self.db.commit()
+                print(f"   ✅ Batch {i//batch_size + 1} saved ({episodes_tagged} episodes tagged so far)")
+            except Exception as e:
+                self.db.rollback()
+                print(f"   ⚠️  Error saving batch: {e}")
         
         try:
             self.db.commit()

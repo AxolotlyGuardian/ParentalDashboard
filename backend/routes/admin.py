@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
 from db import get_db
-from models import Device, KidProfile, User, ContentReport, ContentTag, Title, Episode, EpisodeTag, FandomScrapeJob, FandomScrapeRun
+from models import Device, KidProfile, User, ContentReport, ContentTag, Title, Episode, EpisodeTag, FandomScrapeJob, FandomScrapeRun, FandomEpisodeLink
 from auth_utils import require_admin
 from services.fandom_scraper import FandomScraper
 from services.fandom_coordinator import FandomScrapeCoordinator
+from services.enhanced_fandom_scraper import EnhancedFandomScraper
 import asyncio
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -455,3 +456,197 @@ def load_title_episodes(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to load episodes: {str(e)}")
+
+# Enhanced Fandom Scraping Endpoints
+
+class EnhancedScrapeRequest(BaseModel):
+    title_id: int
+    tag_filter: Optional[List[int]] = None
+    rate_limit_delay: Optional[float] = 0.5
+
+class EnhancedScrapeResponse(BaseModel):
+    success: bool
+    error: Optional[str] = None
+    wiki_slug: Optional[str] = None
+    episodes_found: Optional[int] = None
+    episodes_matched: Optional[int] = None
+    episodes_tagged: Optional[int] = None
+    tags_added: Optional[int] = None
+
+@router.post("/fandom/enhanced-scrape", response_model=EnhancedScrapeResponse)
+def run_enhanced_scrape(
+    request: EnhancedScrapeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Run enhanced Fandom scraping for a specific title
+    Uses multiple search strategies to find and tag episodes
+    """
+    try:
+        scraper = EnhancedFandomScraper(db, rate_limit_delay=request.rate_limit_delay)
+        result = scraper.scrape_show_episodes(
+            title_id=request.title_id,
+            tag_filter=request.tag_filter
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Enhanced scraping failed: {str(e)}")
+
+class EpisodeLinkResponse(BaseModel):
+    id: int
+    title_name: str
+    season_number: int
+    episode_number: int
+    episode_name: Optional[str]
+    fandom_page_title: str
+    fandom_url: Optional[str]
+    confidence: float
+    matching_method: Optional[str]
+    created_at: str
+
+@router.get("/fandom/episode-links/{title_id}", response_model=List[EpisodeLinkResponse])
+def get_episode_links(
+    title_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Get all Fandom episode links for a title
+    Shows how Fandom episodes were matched to TMDB episodes
+    """
+    links = db.query(FandomEpisodeLink).filter(
+        FandomEpisodeLink.title_id == title_id
+    ).all()
+    
+    result = []
+    for link in links:
+        title = db.query(Title).filter(Title.id == link.title_id).first()
+        episode = db.query(Episode).filter(Episode.id == link.episode_id).first() if link.episode_id else None
+        
+        result.append(EpisodeLinkResponse(
+            id=link.id,
+            title_name=title.title if title else "Unknown",
+            season_number=link.season_number,
+            episode_number=link.episode_number,
+            episode_name=episode.episode_name if episode else None,
+            fandom_page_title=link.fandom_page_title,
+            fandom_url=link.fandom_url,
+            confidence=link.confidence,
+            matching_method=link.matching_method,
+            created_at=link.created_at.isoformat() if link.created_at else ""
+        ))
+    
+    return result
+
+class EpisodeTagWithProvenanceResponse(BaseModel):
+    id: int
+    episode_id: int
+    episode_name: Optional[str]
+    season_number: int
+    episode_number: int
+    tag_name: str
+    tag_slug: str
+    tag_category: str
+    source: str
+    confidence: float
+    source_url: Optional[str]
+    extraction_method: Optional[str]
+    created_at: str
+
+@router.get("/fandom/episode-tags/{title_id}", response_model=List[EpisodeTagWithProvenanceResponse])
+def get_episode_tags_with_provenance(
+    title_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Get all episode tags with provenance information for a title
+    Shows which episodes have which tags and where the tags came from
+    """
+    episode_tags = db.query(EpisodeTag).join(
+        Episode, EpisodeTag.episode_id == Episode.id
+    ).filter(
+        Episode.title_id == title_id
+    ).all()
+    
+    result = []
+    for episode_tag in episode_tags:
+        episode = db.query(Episode).filter(Episode.id == episode_tag.episode_id).first()
+        tag = db.query(ContentTag).filter(ContentTag.id == episode_tag.tag_id).first()
+        
+        if episode and tag:
+            result.append(EpisodeTagWithProvenanceResponse(
+                id=episode_tag.id,
+                episode_id=episode.id,
+                episode_name=episode.episode_name,
+                season_number=episode.season_number,
+                episode_number=episode.episode_number,
+                tag_name=tag.display_name,
+                tag_slug=tag.slug,
+                tag_category=tag.category,
+                source=episode_tag.source,
+                confidence=episode_tag.confidence,
+                source_url=episode_tag.source_url,
+                extraction_method=episode_tag.extraction_method,
+                created_at=episode_tag.created_at.isoformat() if episode_tag.created_at else ""
+            ))
+    
+    return result
+
+class ScrapeStatsResponse(BaseModel):
+    title_name: str
+    total_episodes: int
+    matched_episodes: int
+    tagged_episodes: int
+    total_tags: int
+    match_rate: float
+    tag_rate: float
+
+@router.get("/fandom/scrape-stats/{title_id}", response_model=ScrapeStatsResponse)
+def get_scrape_stats(
+    title_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Get scraping statistics for a title
+    Shows overall progress and success rates
+    """
+    title = db.query(Title).filter(Title.id == title_id).first()
+    if not title:
+        raise HTTPException(status_code=404, detail="Title not found")
+    
+    total_episodes = db.query(Episode).filter(Episode.title_id == title_id).count()
+    
+    matched_episodes = db.query(FandomEpisodeLink).filter(
+        FandomEpisodeLink.title_id == title_id,
+        FandomEpisodeLink.episode_id.isnot(None)
+    ).count()
+    
+    tagged_episode_ids = db.query(EpisodeTag.episode_id).join(
+        Episode, EpisodeTag.episode_id == Episode.id
+    ).filter(
+        Episode.title_id == title_id
+    ).distinct().all()
+    
+    tagged_episodes = len(tagged_episode_ids)
+    
+    total_tags = db.query(EpisodeTag).join(
+        Episode, EpisodeTag.episode_id == Episode.id
+    ).filter(
+        Episode.title_id == title_id
+    ).count()
+    
+    match_rate = (matched_episodes / total_episodes * 100) if total_episodes > 0 else 0
+    tag_rate = (tagged_episodes / total_episodes * 100) if total_episodes > 0 else 0
+    
+    return ScrapeStatsResponse(
+        title_name=title.title,
+        total_episodes=total_episodes,
+        matched_episodes=matched_episodes,
+        tagged_episodes=tagged_episodes,
+        total_tags=total_tags,
+        match_rate=round(match_rate, 2),
+        tag_rate=round(tag_rate, 2)
+    )
