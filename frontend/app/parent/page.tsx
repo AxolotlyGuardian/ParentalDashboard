@@ -7,6 +7,7 @@ import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
 import ContentReportModal from '@/components/ContentReportModal';
 import ContentActionModal from '@/components/ContentActionModal';
 import { PairedDevice, ApiError } from '@/lib/types';
+import { Policy } from '@/types/policy';
 
 interface KidProfile {
   id: number;
@@ -20,16 +21,6 @@ interface Title {
   poster_path?: string;
   media_type: string;
   rating: string;
-}
-
-interface Policy {
-  policy_id: number;
-  title_id: number;
-  title: string;
-  poster_path?: string;
-  is_allowed: boolean;
-  providers?: string[];
-  deep_links?: { [key: string]: string };
 }
 
 export default function ParentDashboard() {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { catalogApi, contentTagApi, policyApi } from '@/lib/api';
+import { Policy } from '@/types/policy';
 
 interface ContentTag {
   id: number;
@@ -25,12 +26,6 @@ interface TitleDetails {
   number_of_seasons?: number;
   number_of_episodes?: number;
   fandom_scraped?: boolean;
-}
-
-interface Policy {
-  policy_id: number;
-  title_id: number;
-  deep_links?: Record<string, string>;
 }
 
 interface ContentActionModalProps {
