@@ -16,6 +16,15 @@ interface ScrapeResults {
   failed_parses?: number;
 }
 
+interface AxiosError {
+  response?: {
+    data?: {
+      detail?: string;
+    };
+  };
+  message?: string;
+}
+
 export default function FandomScrapePage() {
   const [wikiName, setWikiName] = useState('');
   const [category, setCategory] = useState('');
@@ -42,9 +51,15 @@ export default function FandomScrapePage() {
       setResults(response.data);
     } catch (error: unknown) {
       console.error('Scrape failed:', error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as any)?.response?.data?.detail || 'Unknown error';
+      let errorMessage = 'Unknown error';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        const axiosError = error as AxiosError;
+        errorMessage = axiosError.response?.data?.detail || axiosError.message || 'Unknown error';
+      }
+      
       setResults({
         success: false,
         error: errorMessage
