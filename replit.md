@@ -13,15 +13,16 @@ The application features a parent dashboard and a kid's launcher. The parent das
 
 ### Technical Implementations
 -   **Authentication**: JWT-based for parents (email/password) and PIN-based for kids, with bcrypt hashing. Role-based access control is enforced.
--   **Content Management**: Integrates with TMDB for real-time search and metadata. A nightly script syncs popular titles. Content policies are enforced, and deep links are generated for streaming platforms. Content is categorized and grouped by streaming service.
+-   **Content Management**: Integrates with TMDB for real-time search and metadata. A nightly script syncs popular titles. Full episode data (1,880+ episodes) is loaded from TMDB for all TV shows. Content policies are enforced, and deep links are generated for streaming platforms. Content is categorized and grouped by streaming service.
 -   **Device Management**: Implements a 3-step pairing flow for Android launcher devices using 6-digit codes. Devices can be renamed and their activity tracked.
 -   **Deep Linking**: Supports crowdsourced episode-level deep linking where devices report streaming URLs, which are then processed, matched to TMDB episodes, and stored.
+-   **Episode Management**: Admin endpoints to bulk-load episodes from TMDB API for all TV shows. Episodes include metadata (thumbnails, air dates, overviews) and can be individually blocked by parents.
 
 ### Feature Specifications
--   **Parent Dashboard**: Manages kid profiles, TMDB content search, allow/deny policies, paired devices (view/rename/track), and content reporting. A "Content Action Modal" provides play options and detailed title information.
+-   **Parent Dashboard**: Manages kid profiles, TMDB content search, allow/deny policies, paired devices (view/rename/track), and content reporting. A "Content Action Modal" provides play options, detailed title information, episode browsing by season, and clickable content tags with visual indicators showing which tags have blocked episodes.
 -   **Kids Launcher**: PIN-based login, grid view of allowed content, tap-to-launch, blocked content screen, and deep link support for major streaming platforms.
 -   **Launcher Device API**: Endpoints for device pairing, retrieving approved content, screen time limits, app usage logging, and episode deep link reporting.
--   **Admin Dashboard**: Provides comprehensive backend data management (Content Reports, Content Tags, Titles, Episode Links, Parents, Kid Profiles, Devices, Policies) with role-based access control for admin users. Includes a dynamic menu system and a Fandom Wiki scraping interface for automated episode tagging.
+-   **Admin Dashboard**: Provides comprehensive backend data management (Content Reports, Content Tags, Titles, Episode Links, Parents, Kid Profiles, Devices, Policies) with role-based access control for admin users. Includes a dynamic menu system, Fandom Wiki scraping interface for automated episode tagging, and bulk TMDB episode loading.
 
 ### System Design Choices
 -   **Backend**: FastAPI with PostgreSQL, SQLAlchemy ORM, JWT, and APScheduler.
