@@ -410,10 +410,10 @@ export default function EnhancedScraperPage() {
                 <h2 className="text-2xl font-bold text-gray-800">{stats.title_name}</h2>
                 <button
                   onClick={refreshData}
-                  disabled={loading}
+                  disabled={loadingData}
                   className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition disabled:opacity-50"
                 >
-                  {loading ? 'Refreshing...' : 'Refresh'}
+                  {loadingData ? 'Refreshing...' : 'Refresh'}
                 </button>
               </div>
               
