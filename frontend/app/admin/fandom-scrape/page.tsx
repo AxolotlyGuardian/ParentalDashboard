@@ -40,11 +40,14 @@ export default function FandomScrapePage() {
       });
       
       setResults(response.data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Scrape failed:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error as any)?.response?.data?.detail || 'Unknown error';
       setResults({
         success: false,
-        error: error.response?.data?.detail || error.message || 'Unknown error'
+        error: errorMessage
       });
     } finally {
       setLoading(false);
@@ -85,7 +88,7 @@ export default function FandomScrapePage() {
               placeholder="pawpatrol"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
             />
-            <p className="text-xs text-gray-500 mt-1">e.g., "pawpatrol" from pawpatrol.fandom.com</p>
+            <p className="text-xs text-gray-500 mt-1">e.g., &ldquo;pawpatrol&rdquo; from pawpatrol.fandom.com</p>
           </div>
 
           <div>
@@ -99,7 +102,7 @@ export default function FandomScrapePage() {
               placeholder="Spiders"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
             />
-            <p className="text-xs text-gray-500 mt-1">e.g., "Spiders" from /wiki/Category:Spiders</p>
+            <p className="text-xs text-gray-500 mt-1">e.g., &ldquo;Spiders&rdquo; from /wiki/Category:Spiders</p>
           </div>
         </div>
 
