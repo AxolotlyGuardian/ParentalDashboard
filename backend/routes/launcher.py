@@ -316,7 +316,27 @@ async def get_apps(
                 backdrop_url = f"https://image.tmdb.org/t/p/w780{title.backdrop_path}" if title.backdrop_path else ""
                 
                 primary_link = ""
-                if title.deep_links and isinstance(title.deep_links, dict):
+                
+                # For TV shows, try to get episode 1 deep link first
+                if title.media_type == 'tv':
+                    episode_1 = db.query(Episode).filter(
+                        Episode.title_id == title.id,
+                        Episode.season_number == 1,
+                        Episode.episode_number == 1
+                    ).first()
+                    
+                    if episode_1:
+                        # Check for episode-specific deep link
+                        episode_link = db.query(EpisodeLink).filter(
+                            EpisodeLink.episode_id == episode_1.id,
+                            EpisodeLink.streaming_url.isnot(None)
+                        ).first()
+                        
+                        if episode_link and episode_link.streaming_url:
+                            primary_link = episode_link.streaming_url
+                
+                # If no episode link found, fall back to series deep link
+                if not primary_link and title.deep_links and isinstance(title.deep_links, dict):
                     for provider_id, link in title.deep_links.items():
                         if link:
                             primary_link = link
