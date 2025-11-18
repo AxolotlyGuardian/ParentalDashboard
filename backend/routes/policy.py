@@ -6,6 +6,7 @@ from db import get_db
 from models import Policy, Title, KidProfile, User, Episode, EpisodePolicy
 from auth_utils import require_parent, require_admin
 from services.fandom_scraper import trigger_show_scrape
+from services.auto_tagger import AutoTagger
 from datetime import datetime
 import sys
 import os
@@ -13,6 +14,85 @@ sys.path.append(os.path.dirname(__file__))
 from catalog import fetch_and_update_providers, normalize_providers
 
 router = APIRouter(prefix="/policy", tags=["policy"])
+
+def load_episodes_for_title(title_id: int, db: Session):
+    """Background task to load episodes from TMDB for a TV show"""
+    from config import settings
+    import httpx
+    
+    # Create new session for background task
+    from db import SessionLocal
+    db = SessionLocal()
+    
+    try:
+        title = db.query(Title).filter(Title.id == title_id).first()
+        if not title or title.media_type != "tv" or not title.tmdb_id:
+            return
+        
+        if not settings.TMDB_API_KEY:
+            print(f"No TMDB API key configured")
+            return
+        
+        # Get TV show details
+        tv_url = f"{settings.TMDB_API_BASE_URL}/tv/{title.tmdb_id}"
+        tv_params = {"api_key": settings.TMDB_API_KEY}
+        
+        with httpx.Client() as client:
+            tv_response = client.get(tv_url, params=tv_params, timeout=10)
+            if tv_response.status_code != 200:
+                print(f"Failed to fetch TV show details for {title.title}")
+                return
+            
+            tv_data = tv_response.json()
+            num_seasons = tv_data.get("number_of_seasons", 0)
+            num_episodes = tv_data.get("number_of_episodes", 0)
+            
+            # Update title
+            title.number_of_seasons = num_seasons
+            title.number_of_episodes = num_episodes
+            db.commit()
+            
+            episodes_loaded = 0
+            
+            # Load each season
+            for season_num in range(1, num_seasons + 1):
+                season_url = f"{settings.TMDB_API_BASE_URL}/tv/{title.tmdb_id}/season/{season_num}"
+                season_response = client.get(season_url, params=tv_params, timeout=10)
+                
+                if season_response.status_code != 200:
+                    continue
+                
+                season_data = season_response.json()
+                
+                for episode_data in season_data.get("episodes", []):
+                    tmdb_episode_id = episode_data.get("id")
+                    
+                    existing = db.query(Episode).filter(Episode.tmdb_episode_id == tmdb_episode_id).first()
+                    if existing:
+                        continue
+                    
+                    episode = Episode(
+                        title_id=title.id,
+                        tmdb_episode_id=tmdb_episode_id,
+                        season_number=episode_data.get("season_number", season_num),
+                        episode_number=episode_data.get("episode_number"),
+                        episode_name=episode_data.get("name"),
+                        overview=episode_data.get("overview"),
+                        runtime=episode_data.get("runtime"),
+                        thumbnail_path=episode_data.get("still_path"),
+                        air_date=episode_data.get("air_date")
+                    )
+                    db.add(episode)
+                    episodes_loaded += 1
+            
+            db.commit()
+            print(f"Auto-loaded {episodes_loaded} episodes for {title.title}")
+    
+    except Exception as e:
+        print(f"Error loading episodes for title {title_id}: {str(e)}")
+        db.rollback()
+    finally:
+        db.close()
 
 class PolicyCreateRequest(BaseModel):
     kid_profile_id: int
@@ -52,10 +132,20 @@ def create_policy(
         db.commit()
         title = new_title
     
-    if title and title.media_type == "tv" and not title.fandom_scraped:
+    # Auto-tag the title with appropriate content tags
+    tagger = AutoTagger(db)
+    tags_added = tagger.apply_tags_to_title(title.id)
+    
+    # Auto-load episodes for TV shows if not already loaded
+    if title and title.media_type == "tv":
         episode_count = db.query(Episode).filter(Episode.title_id == title.id).count()
         if episode_count == 0:
-            background_tasks.add_task(trigger_show_scrape, title.id, title.title)
+            # Load episodes from TMDB in background
+            background_tasks.add_task(load_episodes_for_title, title.id, db)
+            
+            # Also try Fandom scraping if not already done
+            if not title.fandom_scraped:
+                background_tasks.add_task(trigger_show_scrape, title.id, title.title)
     
     existing_policy = db.query(Policy).filter(
         Policy.kid_profile_id == request.kid_profile_id,
@@ -66,7 +156,7 @@ def create_policy(
         existing_policy.is_allowed = request.is_allowed
         db.commit()
         db.refresh(existing_policy)
-        return {"id": existing_policy.id, "message": "Policy updated"}
+        return {"id": existing_policy.id, "message": "Policy updated", "tags_added": tags_added}
     
     new_policy = Policy(
         kid_profile_id=request.kid_profile_id,
@@ -76,7 +166,7 @@ def create_policy(
     db.add(new_policy)
     db.commit()
     db.refresh(new_policy)
-    return {"id": new_policy.id, "message": "Policy created"}
+    return {"id": new_policy.id, "message": "Policy created", "tags_added": tags_added}
 
 @router.get("/profile/{kid_profile_id}")
 async def get_profile_policies(

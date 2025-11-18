@@ -14,6 +14,8 @@ The application features a parent dashboard and a kid's launcher. The parent das
 ### Technical Implementations
 -   **Authentication**: JWT-based for parents (email/password) and PIN-based for kids, with bcrypt hashing. Role-based access control is enforced.
 -   **Content Management**: Integrates with TMDB for real-time search and metadata. A nightly script syncs popular titles. Full episode data (1,880+ episodes) is loaded from TMDB for all TV shows. Content policies are enforced, and deep links are generated for streaming platforms. Content is categorized and grouped by streaming service.
+-   **Automatic Content Tagging**: When a title is added to the parental dashboard, the system automatically assigns appropriate content tags based on TMDB genres, ratings, and metadata. Tags include content warnings (violence, monsters), intensity levels (mild/moderate peril), age appropriateness, and more.
+-   **Automatic Episode Loading**: TV shows automatically load all episode data from TMDB in the background when added to a policy, including season/episode metadata, thumbnails, air dates, and descriptions.
 -   **Device Management**: Implements a 3-step pairing flow for Android launcher devices using 6-digit codes. Devices can be renamed and their activity tracked.
 -   **Deep Linking**: Supports crowdsourced episode-level deep linking where devices report streaming URLs, which are then processed, matched to TMDB episodes, and stored.
 -   **Episode Management**: Admin endpoints to bulk-load episodes from TMDB API for all TV shows. Episodes include metadata (thumbnails, air dates, overviews) and can be individually blocked by parents.
