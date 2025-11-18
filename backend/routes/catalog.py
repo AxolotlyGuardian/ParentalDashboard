@@ -19,6 +19,37 @@ PROVIDER_MAP = {
     "youtube": 192
 }
 
+# TMDB Genre ID to Name mapping
+GENRE_MAP = {
+    12: "Adventure",
+    14: "Fantasy",
+    16: "Animation",
+    18: "Drama",
+    27: "Horror",
+    28: "Action",
+    35: "Comedy",
+    36: "History",
+    37: "Western",
+    53: "Thriller",
+    80: "Crime",
+    99: "Documentary",
+    878: "Science Fiction",
+    9648: "Mystery",
+    10402: "Music",
+    10749: "Romance",
+    10751: "Family",
+    10752: "War",
+    10759: "Action & Adventure",
+    10762: "Kids",
+    10763: "News",
+    10764: "Reality",
+    10765: "Sci-Fi & Fantasy",
+    10766: "Soap",
+    10767: "Talk",
+    10768: "War & Politics",
+    10770: "TV Movie",
+}
+
 # Legacy mapping for backwards compatibility
 LEGACY_PROVIDER_MAP = {
     "Netflix": "netflix",
@@ -244,7 +275,15 @@ def get_title_details(
     genre_names = []
     if title.genres:
         if isinstance(title.genres, list):
-            genre_names = [g.get("name", str(g)) if isinstance(g, dict) else str(g) for g in title.genres]
+            for g in title.genres:
+                if isinstance(g, dict):
+                    # Already has name (from detailed TMDB fetch)
+                    genre_names.append(g.get("name", str(g)))
+                elif isinstance(g, int):
+                    # Convert genre ID to name
+                    genre_names.append(GENRE_MAP.get(g, f"Genre {g}"))
+                else:
+                    genre_names.append(str(g))
         else:
             genre_names = title.genres
     
