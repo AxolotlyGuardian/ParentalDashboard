@@ -517,8 +517,8 @@ export default function ParentDashboard() {
             </div>
           </div>
 
-          {/* Add Device Section */}
-          {kidProfiles.length > 0 && (
+          {/* Add Device Section - Only show on Devices tab */}
+          {kidProfiles.length > 0 && activeTab === 'devices' && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-800">Devices</h2>
