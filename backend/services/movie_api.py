@@ -80,13 +80,13 @@ class MovieAPIClient:
             print(f"Movie API request failed: {e}")
             return None
     
-    def get_show_details(self, tmdb_id: int, show_type: str = "series") -> Optional[Dict]:
+    def get_show_details(self, tmdb_id: int, show_type: str = "tv") -> Optional[Dict]:
         """
         Get show details by TMDB ID
         
         Args:
             tmdb_id: TMDB ID of the show
-            show_type: "series" or "movie"
+            show_type: "tv" for TV series or "movie" for movies
         
         Returns:
             Show metadata including streaming availability
@@ -98,7 +98,7 @@ class MovieAPIClient:
         if cached:
             return cached
         
-        # Make API request
+        # Make API request - Updated endpoint format for 2025 API
         endpoint = f"/shows/{show_type}/{tmdb_id}"
         data = self._make_request(endpoint, {"country": "us"})
         
@@ -126,7 +126,7 @@ class MovieAPIClient:
         Returns:
             Deep link URL or None if not available
         """
-        show_data = self.get_show_details(tmdb_id, "series")
+        show_data = self.get_show_details(tmdb_id, "tv")
         
         if not show_data:
             return None
@@ -179,7 +179,7 @@ class MovieAPIClient:
             return {"source": "cache", "verified": True, "data": cached}
         
         # Get show details from Movie of the Night
-        show_data = self.get_show_details(tmdb_id, "series")
+        show_data = self.get_show_details(tmdb_id, "tv")
         
         if not show_data:
             return {"source": "local", "verified": False, "data": {"provider": self._detect_provider(url)}}

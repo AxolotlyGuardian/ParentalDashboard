@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List
 from db import get_db
-from models import Policy, Title, KidProfile, User, Episode, EpisodePolicy
+from models import Policy, Title, KidProfile, User, Episode, EpisodePolicy, EpisodeLink
 from auth_utils import require_parent, require_admin
 from services.fandom_scraper import trigger_show_scrape
 from services.auto_tagger import AutoTagger
+from services.movie_api import movie_api_client
 from datetime import datetime
 import sys
 import os
@@ -94,6 +95,91 @@ def load_episodes_for_title(title_id: int, db: Session):
     finally:
         db.close()
 
+def fetch_episode_1_deep_link(title_id: int, db: Session):
+    """Background task to fetch episode 1 deep link from Movie of the Night API"""
+    import time
+    from db import SessionLocal
+    db = SessionLocal()
+    
+    try:
+        title = db.query(Title).filter(Title.id == title_id).first()
+        if not title or title.media_type != "tv" or not title.tmdb_id:
+            return
+        
+        # Wait for episodes to be loaded (retry for up to 30 seconds)
+        episode_1 = None
+        for attempt in range(6):
+            episode_1 = db.query(Episode).filter(
+                Episode.title_id == title.id,
+                Episode.season_number == 1,
+                Episode.episode_number == 1
+            ).first()
+            
+            if episode_1:
+                break
+            
+            print(f"Waiting for episode 1 to be loaded for {title.title} (attempt {attempt + 1}/6)")
+            time.sleep(5)
+            db.expire_all()  # Refresh session to see new data
+        
+        if not episode_1:
+            print(f"Episode 1 not found for {title.title} after waiting, skipping deep link fetch")
+            return
+        
+        # Check if deep link already exists
+        existing_link = db.query(EpisodeLink).filter(
+            EpisodeLink.episode_id == episode_1.id
+        ).first()
+        
+        if existing_link:
+            print(f"Deep link already exists for {title.title} S1E1")
+            return
+        
+        # Try to fetch deep links from Movie of the Night API for common providers
+        providers = ["disney", "netflix", "hulu", "prime", "peacock"]
+        links_added = 0
+        
+        for provider in providers:
+            try:
+                deep_link_url = movie_api_client.get_episode_deep_link(
+                    tmdb_id=title.tmdb_id,
+                    season=1,
+                    episode=1,
+                    provider=provider
+                )
+                
+                if deep_link_url:
+                    # Create episode link record
+                    episode_link = EpisodeLink(
+                        episode_id=episode_1.id,
+                        raw_provider=provider,
+                        provider=provider,
+                        deep_link_url=deep_link_url,
+                        source="motn_api",
+                        confidence_score=1.0,
+                        motn_verified=True,
+                        is_active=True
+                    )
+                    db.add(episode_link)
+                    links_added += 1
+                    print(f"Added {provider} deep link for {title.title} S1E1: {deep_link_url}")
+            
+            except Exception as provider_error:
+                print(f"Failed to fetch {provider} link for {title.title}: {str(provider_error)}")
+                continue
+        
+        if links_added > 0:
+            db.commit()
+            print(f"Successfully added {links_added} deep link(s) for {title.title} Episode 1")
+        else:
+            print(f"No deep links found for {title.title} Episode 1")
+    
+    except Exception as e:
+        print(f"Error fetching episode 1 deep link for title {title_id}: {str(e)}")
+        db.rollback()
+    finally:
+        db.close()
+
 class PolicyCreateRequest(BaseModel):
     kid_profile_id: int
     title_id: int
@@ -143,9 +229,16 @@ def create_policy(
             # Load episodes from TMDB in background
             background_tasks.add_task(load_episodes_for_title, title.id, db)
             
+            # Fetch episode 1 deep link from Movie of the Night API
+            # This runs after episode loading, so it will find episode 1
+            background_tasks.add_task(fetch_episode_1_deep_link, title.id, db)
+            
             # Also try Fandom scraping if not already done
             if not title.fandom_scraped:
                 background_tasks.add_task(trigger_show_scrape, title.id, title.title)
+        else:
+            # Episodes already loaded, just fetch episode 1 deep link if needed
+            background_tasks.add_task(fetch_episode_1_deep_link, title.id, db)
     
     existing_policy = db.query(Policy).filter(
         Policy.kid_profile_id == request.kid_profile_id,
