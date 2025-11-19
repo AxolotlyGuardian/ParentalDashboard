@@ -639,6 +639,31 @@ async def update_device_name(
         "device_name": device.device_name
     }
 
+@router.delete("/launcher/device/{device_id}")
+async def delete_device_for_repairing(
+    device_id: int,
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Delete a device so it can be re-paired"""
+    # Find device and verify it belongs to this parent
+    device = db.query(Device).filter(
+        Device.id == device_id,
+        Device.family_id == current_user.id
+    ).first()
+    
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    
+    # Delete the device
+    db.delete(device)
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": "Device deleted. It can now be re-paired."
+    }
+
 @router.post("/device/episode-report")
 async def report_episode_url(
     request: dict,

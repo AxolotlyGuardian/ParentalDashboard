@@ -154,6 +154,21 @@ export default function ParentDashboard() {
     }
   };
 
+  const handleRepairDevice = async (deviceId: number, deviceName: string) => {
+    if (!confirm(`Re-pair "${deviceName}"?\n\nThis will remove the device so it can be paired again. The device will need to enter a new pairing code.`)) {
+      return;
+    }
+    
+    try {
+      await deviceApi.deleteDevice(deviceId);
+      await loadDevices();
+      alert('Device removed. It can now be paired again using the "Add Device" button.');
+    } catch (error) {
+      const errorMessage = (error as ApiError).response?.data?.detail || 'Failed to remove device';
+      alert(errorMessage);
+    }
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -867,15 +882,24 @@ export default function ParentDashboard() {
                               )}
                               <p className="text-sm text-gray-600 mt-1">Linked to: {device.kid_profile_name}</p>
                             </div>
-                            <button
-                              onClick={() => {
-                                setEditingDeviceId(device.id);
-                                setEditingDeviceName(device.device_name);
-                              }}
-                              className="ml-4 px-3 py-1 text-sm text-[#F77B8A] hover:bg-pink-50 rounded-lg transition-all"
-                            >
-                              Rename
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditingDeviceId(device.id);
+                                  setEditingDeviceName(device.device_name);
+                                }}
+                                className="px-3 py-1 text-sm text-[#F77B8A] hover:bg-pink-50 rounded-lg transition-all"
+                              >
+                                Rename
+                              </button>
+                              <button
+                                onClick={() => handleRepairDevice(device.id, device.device_name)}
+                                className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                title="Remove this device so it can be paired again"
+                              >
+                                Re-pair
+                              </button>
+                            </div>
                           </div>
                           
                           <div className="space-y-2 text-sm text-gray-600">
