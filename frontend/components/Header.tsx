@@ -27,11 +27,12 @@ export default function Header({ variant = 'pink' }: HeaderProps) {
             onClick={() => handleNavigation('/')}
           >
             <Image 
-              src="/logos/axolotly-icon.png"
+              src="/axolotly-logo.svg"
               alt="Axolotly Logo" 
               width={45}
-              height={45}
+              height={50}
               className="object-contain"
+              style={{ width: 'auto', height: '45px' }}
             />
             <span className="text-xl font-bold text-[#fb7f95]">Axolotly</span>
           </div>
