@@ -6,6 +6,7 @@ import { authApi, catalogApi, policyApi, deviceApi } from '@/lib/api';
 import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
 import ContentReportModal from '@/components/ContentReportModal';
 import ContentActionModal from '@/components/ContentActionModal';
+import ConfirmModal from '@/components/ConfirmModal';
 import { PairedDevice, ApiError } from '@/lib/types';
 import { Policy } from '@/types/policy';
 
@@ -49,6 +50,8 @@ export default function ParentDashboard() {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedTitleForReport, setSelectedTitleForReport] = useState<Title | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [deviceToRepair, setDeviceToRepair] = useState<{ id: number; name: string } | null>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedContentForAction, setSelectedContentForAction] = useState<Policy | null>(null);
 
@@ -154,19 +157,31 @@ export default function ParentDashboard() {
     }
   };
 
-  const handleRepairDevice = async (deviceId: number, deviceName: string) => {
-    if (!confirm(`Re-pair "${deviceName}"?\n\nThis will remove the device so it can be paired again. The device will need to enter a new pairing code.`)) {
-      return;
-    }
+  const handleRepairDevice = (deviceId: number, deviceName: string) => {
+    setDeviceToRepair({ id: deviceId, name: deviceName });
+    setIsConfirmModalOpen(true);
+  };
+
+  const confirmRepairDevice = async () => {
+    if (!deviceToRepair) return;
+    
+    setIsConfirmModalOpen(false);
     
     try {
-      await deviceApi.deleteDevice(deviceId);
+      await deviceApi.deleteDevice(deviceToRepair.id);
       await loadDevices();
       alert('Device removed. It can now be paired again using the "Add Device" button.');
     } catch (error) {
       const errorMessage = (error as ApiError).response?.data?.detail || 'Failed to remove device';
       alert(errorMessage);
+    } finally {
+      setDeviceToRepair(null);
     }
+  };
+
+  const cancelRepairDevice = () => {
+    setIsConfirmModalOpen(false);
+    setDeviceToRepair(null);
   };
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -948,6 +963,16 @@ export default function ParentDashboard() {
         policy={selectedContentForAction}
         onClose={handleCloseActionModal}
         onPlay={handleLaunchContent}
+      />
+
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        title={`Re-pair "${deviceToRepair?.name}"?`}
+        message={`This will remove the device so it can be paired again. The device will need to enter a new pairing code.`}
+        confirmText="Re-pair"
+        cancelText="Cancel"
+        onConfirm={confirmRepairDevice}
+        onCancel={cancelRepairDevice}
       />
     </div>
   );
