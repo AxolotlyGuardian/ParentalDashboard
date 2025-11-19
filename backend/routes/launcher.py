@@ -325,10 +325,48 @@ async def get_apps(
                 poster_url = f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else ""
                 backdrop_url = f"https://image.tmdb.org/t/p/w780{title.backdrop_path}" if title.backdrop_path else ""
                 
-                primary_link = ""
+                # Determine primary provider for package name
+                provider_package_map = {
+                    "netflix": "com.netflix.mediaclient",
+                    "disney_plus": "com.disney.disneyplus",
+                    "hulu": "com.hulu.plus",
+                    "prime_video": "com.amazon.avod.thirdpartyclient",
+                    "peacock": "com.peacocktv.peacockandroid",
+                    "youtube": "com.google.android.youtube"
+                }
                 
-                # For TV shows, try to get episode 1 deep link first
+                primary_provider = None
+                if title.providers and len(title.providers) > 0:
+                    primary_provider = title.providers[0]
+                
+                package_name = provider_package_map.get(primary_provider, "com.google.android.youtube")
+                
+                # Get series-level deep link
+                series_deep_link = ""
+                if title.deep_links and isinstance(title.deep_links, dict):
+                    for provider_id, link in title.deep_links.items():
+                        if link:
+                            series_deep_link = link
+                            break
+                
+                # Build base content item
+                content_item = {
+                    "id": str(title.id),
+                    "appName": title.title,
+                    "packageName": package_name,
+                    "iconUrl": poster_url,
+                    "coverArt": backdrop_url,
+                    "isEnabled": True,
+                    "ageRating": title.rating or "All",
+                    "mediaType": title.media_type.upper() if title.media_type else "Content",
+                    "deepLink": series_deep_link
+                }
+                
+                # For TV shows, add episodes array
                 if title.media_type == 'tv':
+                    episodes_array = []
+                    
+                    # Get episode 1
                     episode_1 = db.query(Episode).filter(
                         Episode.title_id == title.id,
                         Episode.season_number == 1,
@@ -336,32 +374,23 @@ async def get_apps(
                     ).first()
                     
                     if episode_1:
-                        # Check for episode-specific deep link
+                        # Get episode 1 deep link
                         episode_link = db.query(EpisodeLink).filter(
                             EpisodeLink.episode_id == episode_1.id,
                             EpisodeLink.deep_link_url.isnot(None)
                         ).first()
                         
+                        episode_deep_link = ""
                         if episode_link and episode_link.deep_link_url:
-                            primary_link = episode_link.deep_link_url
-                
-                # If no episode link found, fall back to series deep link
-                if not primary_link and title.deep_links and isinstance(title.deep_links, dict):
-                    for provider_id, link in title.deep_links.items():
-                        if link:
-                            primary_link = link
-                            break
-                
-                content_item = {
-                    "id": str(title.id),
-                    "appName": title.title,
-                    "packageName": primary_link or f"tmdb.{title.media_type}.{title.tmdb_id}",
-                    "iconUrl": poster_url,
-                    "coverArt": backdrop_url,
-                    "isEnabled": True,
-                    "ageRating": title.rating or "All",
-                    "mediaType": title.media_type.upper() if title.media_type else "Content"
-                }
+                            episode_deep_link = episode_link.deep_link_url
+                        
+                        episodes_array.append({
+                            "id": f"s{episode_1.season_number}e{episode_1.episode_number}",
+                            "name": episode_1.episode_name or "Episode 1",
+                            "deepLink": episode_deep_link
+                        })
+                    
+                    content_item["episodes"] = episodes_array
                 
                 if title.providers and len(title.providers) > 0:
                     for provider in title.providers:
