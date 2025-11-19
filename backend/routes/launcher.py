@@ -27,10 +27,8 @@ async def initiate_pairing(
     if len(pairing_code) != 6 or not pairing_code.isdigit():
         raise HTTPException(status_code=400, detail="pairing_code must be 6 digits")
     
-    # Check if device is already paired
-    existing_device = db.query(Device).filter(Device.device_id == device_id).first()
-    if existing_device:
-        raise HTTPException(status_code=409, detail="Device already paired")
+    # Allow existing devices to re-pair (they may have lost credentials)
+    # The device will be updated with new credentials when pairing is confirmed
     
     # Check if this device already has a pending pairing (allow retries)
     existing_pending = db.query(PendingDevice).filter(
@@ -121,16 +119,28 @@ async def confirm_pairing(
         db.commit()
         raise HTTPException(status_code=410, detail="Pairing code expired")
     
-    # Generate API key and create device
+    # Generate new API key
     api_key = secrets.token_urlsafe(48)
-    device = Device(
-        device_id=pending.device_id,
-        api_key=api_key,
-        family_id=current_user.id,
-        kid_profile_id=kid_profile_id
-    )
     
-    db.add(device)
+    # Check if device already exists (re-pairing scenario)
+    existing_device = db.query(Device).filter(Device.device_id == pending.device_id).first()
+    
+    if existing_device:
+        # Update existing device with new credentials (re-pairing)
+        existing_device.api_key = api_key
+        existing_device.family_id = current_user.id
+        existing_device.kid_profile_id = kid_profile_id
+        device = existing_device
+    else:
+        # Create new device
+        device = Device(
+            device_id=pending.device_id,
+            api_key=api_key,
+            family_id=current_user.id,
+            kid_profile_id=kid_profile_id
+        )
+        db.add(device)
+    
     # Delete the pending entry
     db.delete(pending)
     db.commit()
