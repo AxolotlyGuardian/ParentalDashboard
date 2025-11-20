@@ -283,7 +283,7 @@ async def get_profile_policies(
         {
             "policy_id": policy.id,
             "title_id": title.id,
-            "title": title.title,
+            "title": str(title.title) if title and hasattr(title, 'title') else "Unknown",
             "media_type": title.media_type,
             "poster_path": f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else None,
             "is_allowed": policy.is_allowed,
@@ -352,7 +352,7 @@ def get_allowed_titles(
         if title:
             titles.append({
                 "id": title.id,
-                "title": title.title,
+                "title": str(title.title) if title and hasattr(title, 'title') else "Unknown",
                 "media_type": title.media_type,
                 "poster_path": f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else None,
                 "overview": title.overview,
@@ -382,7 +382,7 @@ def get_all_policies_admin(
         result.append({
             "policy_id": policy.id,
             "title_id": policy.title_id,
-            "title_name": title.title if title else None,
+            "title_name": str(title.title) if title and hasattr(title, 'title') else "Unknown",
             "media_type": title.media_type if title else None,
             "kid_profile_id": policy.kid_profile_id,
             "kid_name": kid.name if kid else None,

@@ -352,7 +352,7 @@ async def get_apps(
                 # Build base content item
                 content_item = {
                     "id": str(title.id),
-                    "appName": title.title,
+                    "appName": str(title.title) if title and hasattr(title, 'title') else "Unknown",
                     "packageName": package_name,
                     "iconUrl": poster_url,
                     "coverArt": backdrop_url,

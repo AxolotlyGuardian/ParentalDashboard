@@ -119,7 +119,7 @@ def get_all_episode_tags(
                 episode_name=episode.episode_name,
                 season_number=episode.season_number,
                 episode_number=episode.episode_number,
-                show_title=title.title,
+                show_title=str(title.title) if title and hasattr(title, 'title') else "Unknown",
                 tag_id=et.tag_id,
                 tag_name=tag.display_name,
                 tag_slug=tag.slug,
@@ -271,7 +271,7 @@ def load_all_episodes(
             if existing_count > 0:
                 results.append({
                     "title_id": title.id,
-                    "title_name": title.title,
+                    "title_name": str(title.title) if title and hasattr(title, 'title') else "Unknown",
                     "status": "skipped",
                     "message": f"Already has {existing_count} episodes"
                 })
@@ -286,7 +286,7 @@ def load_all_episodes(
                 if tv_response.status_code != 200:
                     results.append({
                         "title_id": title.id,
-                        "title_name": title.title,
+                        "title_name": str(title.title) if title and hasattr(title, 'title') else "Unknown",
                         "status": "error",
                         "message": f"TMDB request failed: {tv_response.status_code}"
                     })
@@ -338,7 +338,7 @@ def load_all_episodes(
                 
                 results.append({
                     "title_id": title.id,
-                    "title_name": title.title,
+                    "title_name": str(title.title) if title and hasattr(title, 'title') else "Unknown",
                     "status": "success",
                     "seasons_loaded": num_seasons,
                     "episodes_loaded": episodes_loaded,
@@ -349,7 +349,7 @@ def load_all_episodes(
             db.rollback()
             results.append({
                 "title_id": title.id,
-                "title_name": title.title,
+                "title_name": str(title.title) if title and hasattr(title, 'title') else "Unknown",
                 "status": "error",
                 "message": str(e)
             })
@@ -441,14 +441,15 @@ def load_title_episodes(
             
             db.commit()
             
+            title_name_str = str(title.title) if title and hasattr(title, 'title') else "Unknown"
             return {
                 "success": True,
                 "title_id": title.id,
-                "title_name": title.title,
+                "title_name": title_name_str,
                 "seasons_loaded": num_seasons,
                 "episodes_loaded": episodes_loaded,
                 "total_episodes": num_episodes,
-                "message": f"Loaded {episodes_loaded} episodes across {num_seasons} seasons for {title.title}"
+                "message": f"Loaded {episodes_loaded} episodes across {num_seasons} seasons for {title_name_str}"
             }
     
     except httpx.RequestError as e:
@@ -600,7 +601,7 @@ def get_fandom_episode_links(
         
         result.append(FandomEpisodeLinkResponse(
             id=link.id,
-            title_name=title.title if title else "Unknown",
+            title_name=str(title.title) if title and hasattr(title, 'title') else "Unknown",
             season_number=link.season_number,
             episode_number=link.episode_number,
             episode_name=episode.episode_name if episode else None,
@@ -716,7 +717,7 @@ def get_scrape_stats(
     tag_rate = (tagged_episodes / total_episodes * 100) if total_episodes > 0 else 0
     
     return ScrapeStatsResponse(
-        title_name=title.title,
+        title_name=str(title.title) if title and hasattr(title, 'title') else "Unknown",
         total_episodes=total_episodes,
         matched_episodes=matched_episodes,
         tagged_episodes=tagged_episodes,
