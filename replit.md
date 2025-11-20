@@ -18,13 +18,13 @@ The application features a parent dashboard and a kid's launcher. The parent das
 -   **Automatic Episode Loading**: TV shows automatically load all episode data from TMDB in the background when added to a policy, including season/episode metadata, thumbnails, air dates, and descriptions.
 -   **Device Management**: Implements a 3-step pairing flow for Android launcher devices using 6-digit codes. Devices can be renamed and their activity tracked.
 -   **Deep Linking**: Supports crowdsourced episode-level deep linking where devices report streaming URLs, which are then processed, matched to TMDB episodes, and stored.
--   **Episode Management**: Admin endpoints to bulk-load episodes from TMDB API for all TV shows. Episodes include metadata (thumbnails, air dates, overviews) and can be individually blocked by parents.
+-   **Episode Management**: Admin endpoints to bulk-load episodes from TMDB API for all TV shows. Episodes include metadata (thumbnails, air dates, overviews) and can be individually blocked by parents. The backfill system automatically fetches episode 1 deep links from Movie of the Night API for immediate playback capability on launcher devices.
 
 ### Feature Specifications
 -   **Parent Dashboard**: Manages kid profiles, TMDB content search, allow/deny policies, paired devices (view/rename/track), and content reporting. A "Content Action Modal" provides play options, detailed title information, episode browsing by season, and clickable content tags with visual indicators showing which tags have blocked episodes.
 -   **Kids Launcher**: PIN-based login, grid view of allowed content, tap-to-launch, blocked content screen, and deep link support for major streaming platforms.
 -   **Launcher Device API**: Endpoints for device pairing, retrieving approved content, screen time limits, app usage logging, and episode deep link reporting.
--   **Admin Dashboard**: Provides comprehensive backend data management (Content Reports, Content Tags, Titles, Episode Links, Parents, Kid Profiles, Devices, Policies) with role-based access control for admin users. Includes a dynamic menu system, Fandom Wiki scraping interface for automated episode tagging, and bulk TMDB episode loading.
+-   **Admin Dashboard**: Provides comprehensive backend data management (Content Reports, Content Tags, Titles, Episode Links, Parents, Kid Profiles, Devices, Policies) with role-based access control for admin users. Includes a dynamic menu system, Fandom Wiki scraping interface for automated episode tagging, bulk TMDB episode loading, and a one-click Episode 1 Deep Link Backfill feature that automatically fetches verified streaming URLs from the Movie of the Night API for all TV shows.
 
 ### System Design Choices
 -   **Backend**: FastAPI with PostgreSQL, SQLAlchemy ORM, JWT, and APScheduler.

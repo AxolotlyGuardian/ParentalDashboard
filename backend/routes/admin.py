@@ -724,3 +724,104 @@ def get_scrape_stats(
         match_rate=round(match_rate, 2),
         tag_rate=round(tag_rate, 2)
     )
+
+class BackfillResultResponse(BaseModel):
+    success: bool
+    message: str
+    processed: int
+    added: int
+    skipped: int
+    failed: int
+
+@router.post("/backfill-episode-links", response_model=BackfillResultResponse)
+def backfill_episode_links(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Admin endpoint to backfill episode 1 deep links for all TV titles
+    Fetches deep links from Movie of the Night API
+    """
+    from services.movie_api import MovieAPIClient
+    from sqlalchemy import func
+    import time
+    
+    movie_api = MovieAPIClient()
+    
+    tv_titles = db.query(Title).filter(Title.media_type == 'tv').all()
+    
+    processed = 0
+    skipped = 0
+    added = 0
+    failed = 0
+    
+    for title in tv_titles:
+        episode_1 = db.query(Episode).filter(
+            Episode.title_id == title.id,
+            Episode.season_number == 1,
+            Episode.episode_number == 1
+        ).first()
+        
+        if not episode_1:
+            skipped += 1
+            processed += 1
+            continue
+        
+        existing_links_count = db.query(func.count(EpisodeLink.id)).filter(
+            EpisodeLink.episode_id == episode_1.id,
+            EpisodeLink.source == 'motn_api'
+        ).scalar()
+        
+        if existing_links_count > 0:
+            skipped += 1
+            processed += 1
+            continue
+        
+        providers = ['disney', 'netflix', 'hulu', 'prime', 'peacock']
+        links_added = 0
+        
+        for provider in providers:
+            try:
+                deep_link = movie_api.get_episode_deep_link(
+                    title.tmdb_id,
+                    season=1,
+                    episode=1,
+                    provider=provider
+                )
+                
+                if deep_link:
+                    episode_link = EpisodeLink(
+                        episode_id=episode_1.id,
+                        raw_provider=provider,
+                        provider=provider,
+                        deep_link_url=deep_link,
+                        source='motn_api',
+                        confidence_score=1.0,
+                        motn_verified=True,
+                        is_active=True
+                    )
+                    db.add(episode_link)
+                    links_added += 1
+                
+                time.sleep(0.2)
+                
+            except Exception as e:
+                print(f"Error fetching {provider} for {title.title}: {str(e)}")
+        
+        if links_added > 0:
+            db.commit()
+            added += links_added
+        else:
+            failed += 1
+        
+        processed += 1
+        time.sleep(0.5)
+    
+    return BackfillResultResponse(
+        success=True,
+        message=f"Backfill complete: {added} links added for {processed} titles",
+        processed=processed,
+        added=added,
+        skipped=skipped,
+        failed=failed
+    )
