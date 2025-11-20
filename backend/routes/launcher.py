@@ -913,13 +913,13 @@ def get_all_episode_links(
         
         result.append({
             "id": link.id,
-            "title_name": title.title if title else None,
+            "title_name": str(title.title) if title and title.title else None,
             "season": episode.season_number if episode else None,
             "episode": episode.episode_number if episode else None,
-            "episode_title": episode.title if episode else None,
-            "provider": link.provider,
-            "deep_link_url": link.deep_link_url,
-            "source": link.source,
+            "episode_title": str(episode.title) if episode and episode.title else None,
+            "provider": str(link.provider) if link.provider else None,
+            "deep_link_url": str(link.deep_link_url) if link.deep_link_url else None,
+            "source": str(link.source) if link.source else None,
             "confidence_score": link.confidence_score,
             "confirmed_count": link.confirmed_count,
             "motn_verified": link.motn_verified,
