@@ -76,5 +76,5 @@ packages = ["redis", "xcodebuild", "zlib"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["sh", "-c", "cd frontend && npm run build"]
-run = ["sh", "-c", "./start.sh"]
+build = ["bash", "build.sh"]
+run = ["bash", "start.sh"]
