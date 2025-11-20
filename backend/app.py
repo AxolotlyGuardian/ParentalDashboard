@@ -15,13 +15,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
-app.include_router(catalog.router)
-app.include_router(policy.router)
-app.include_router(launch.router)
+app.include_router(auth.router, prefix="/api")
+app.include_router(catalog.router, prefix="/api")
+app.include_router(policy.router, prefix="/api")
+app.include_router(launch.router, prefix="/api")
 app.include_router(launcher.router, prefix="/api")
 app.include_router(content_tags.router, prefix="/api")
-app.include_router(admin.router)
+app.include_router(admin.router, prefix="/api")
 
 @app.get("/")
 def root():
