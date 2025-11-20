@@ -1,0 +1,121 @@
+2025-11-20 15:38:23.59
+64a95ec9
+System
+starting up user application
+
+2025-11-20 15:38:23.59
+64a95ec9
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2025-11-20 15:38:23.67
+64a95ec9
+User
+Starting Axolotly deployment...
+2025-11-20 15:38:23.67
+64a95ec9
+User
+Starting FastAPI backend on port 8000...
+2025-11-20 15:38:23.68
+64a95ec9
+User
+Waiting for backend to initialize...
+2025-11-20 15:38:28.69
+64a95ec9
+User
+Starting Next.js frontend on port 5000...
+2025-11-20 15:38:31.02
+64a95ec9
+User
+> frontend@0.1.0 start
+2025-11-20 15:38:31.02
+64a95ec9
+User
+> next start -H 0.0.0.0 -p 5000
+2025-11-20 15:38:31.89
+64a95ec9
+User
+- Network: http://0.0.0.0:5000
+2025-11-20 15:38:31.89
+64a95ec9
+User
+- Local: http://localhost:5000
+2025-11-20 15:38:31.89
+64a95ec9
+User
+✓ Starting...
+2025-11-20 15:38:31.89
+64a95ec9
+User
+▲ Next.js 15.5.4
+2025-11-20 15:38:32.58
+64a95ec9
+User
+INFO: Started server process [28]
+2025-11-20 15:38:32.58
+64a95ec9
+User
+INFO: Waiting for application startup.
+2025-11-20 15:38:32.58
+64a95ec9
+User
+INFO: Application startup complete.
+2025-11-20 15:38:32.58
+64a95ec9
+User
+INFO: Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-11-20 15:38:33.37
+64a95ec9
+User
+✓ Ready in 1939ms
+2025-11-20 15:39:01.21
+64a95ec9
+User
+Warning: Redis not available, caching disabled
+2025-11-20 15:39:01.21
+64a95ec9
+User
+INFO: 104.196.21.106:0 - "POST /api/auth/parent/login HTTP/1.1" 200 OK
+2025-11-20 15:39:01.42
+64a95ec9
+User
+INFO: 104.196.21.106:0 - "GET /api/api/launcher/devices HTTP/1.1" 404 Not Found
+2025-11-20 15:39:01.54
+64a95ec9
+User
+INFO: 104.196.221.213:0 - "GET /api/auth/kid/profiles/4 HTTP/1.1" 200 OK
+2025-11-20 15:39:02.86
+64a95ec9
+User
+INFO: 104.196.21.106:0 - "GET /api/policy/profile/1 HTTP/1.1" 200 OK
+2025-11-20 15:39:09.90
+64a95ec9
+User
+INFO: 104.196.21.106:0 - "GET /api/api/content-reports HTTP/1.1" 404 Not Found
+2025-11-20 15:39:14.07
+64a95ec9
+User
+INFO: 104.196.221.213:0 - "GET /api/api/tags HTTP/1.1" 404 Not Found
+2025-11-20 15:39:17.18
+64a95ec9
+User
+INFO: 104.196.21.106:0 - "GET /api/catalog/titles?skip=0&limit=50 HTTP/1.1" 200 OK
+2025-11-20 15:39:18.45
+64a95ec9
+User
+INFO: 104.196.21.106:0 - "GET /api/api/launcher/admin/episode-links?skip=0&limit=50&verified_only=false HTTP/1.1" 404 Not Found
+2025-11-20 15:40:12.89
+a39233ff
+System
+system: received signal terminated
+2025-11-20 15:40:24.25
+a39233ff
+System
+system: received signal terminated
+2025-11-20 15:44:59.25
+64a95ec9
+User
+INFO: 104.154.217.247:0 - "GET /api/health HTTP/1.1" 404 Not Found
+2025-11-20 15:45:00.68
+64a95ec9
+User
+INFO: 104.154.217.247:0 - "GET /api/api/health HTTP/1.1" 404 Not Found
