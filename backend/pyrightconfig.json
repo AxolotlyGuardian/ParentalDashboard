@@ -1,0 +1,8 @@
+{
+  "typeCheckingMode": "basic",
+  "reportGeneralTypeIssues": "warning",
+  "reportOptionalMemberAccess": "warning",
+  "reportOptionalSubscript": "warning",
+  "reportIncompatibleVariableOverride": "warning",
+  "reportIncompatibleMethodOverride": "warning"
+}

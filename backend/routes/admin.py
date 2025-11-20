@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
-from db import get_db
-from models import Device, KidProfile, User, ContentReport, ContentTag, Title, Episode, EpisodeTag, FandomScrapeJob, FandomScrapeRun, FandomEpisodeLink, EpisodeLink
+from db import get_db, SessionLocal
+from models import Device, KidProfile, User, ContentReport, ContentTag, Title, Episode, EpisodeTag, FandomScrapeJob, FandomScrapeRun, FandomEpisodeLink, EpisodeLink, Policy, TitleTag
 from auth_utils import require_admin
 from services.fandom_scraper import FandomScraper
 from services.fandom_coordinator import FandomScrapeCoordinator
