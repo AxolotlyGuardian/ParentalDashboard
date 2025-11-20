@@ -45,6 +45,7 @@ export default function EpisodeLinksPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
   
   const ITEMS_PER_PAGE = 50;
 
@@ -86,6 +87,24 @@ export default function EpisodeLinksPage() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
+  };
+
+  const handleBackfill = async () => {
+    if (!confirm('This will fetch episode 1 deep links for all TV shows from the Movie of the Night API. This may take a few minutes. Continue?')) {
+      return;
+    }
+    
+    try {
+      setBackfilling(true);
+      const response = await adminApi.backfillEpisodeLinks();
+      alert(`Backfill complete!\n\nProcessed: ${response.data.processed} titles\nAdded: ${response.data.added} links\nSkipped: ${response.data.skipped} titles\nFailed: ${response.data.failed} titles`);
+      await loadData();
+    } catch (error) {
+      console.error('Backfill failed:', error);
+      alert('Failed to run backfill. Check console for details.');
+    } finally {
+      setBackfilling(false);
+    }
   };
 
   if (loading) {
@@ -143,6 +162,13 @@ export default function EpisodeLinksPage() {
                 />
                 <span className="text-sm text-gray-700">Movie of the Night verified only</span>
               </label>
+              <button
+                onClick={handleBackfill}
+                disabled={backfilling}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                {backfilling ? 'Backfilling...' : '🔄 Backfill Episode 1 Links'}
+              </button>
               <div className="ml-auto text-sm text-gray-600">
                 Showing {links.length} links
               </div>
