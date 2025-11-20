@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   title: "Axolotly - Parental Control Protection",
   description: "Protection that grows with your family",
   icons: {
-    icon: '/axolotly-logo.svg',
-    apple: '/axolotly-logo.svg',
+    icon: '/favicon.svg',
+    apple: '/favicon.svg',
   },
 };
 
