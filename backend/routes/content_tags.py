@@ -216,17 +216,23 @@ def get_content_reports(
         tag = db.query(ContentTag).filter(ContentTag.id == report.tag_id).first()
         reporter = db.query(User).filter(User.id == report.reported_by).first()
         
+        # Ensure values are always primitives, never SQLAlchemy objects
+        title_name_str = str(title.title) if title and hasattr(title, 'title') else "Unknown"
+        tag_name_str = str(tag.display_name) if tag and hasattr(tag, 'display_name') else "Unknown"
+        tag_category_str = str(tag.category) if tag and hasattr(tag, 'category') else "Unknown"
+        reporter_email_str = str(reporter.email) if reporter and hasattr(reporter, 'email') else "Unknown"
+        
         result.append(ContentReportResponse(
             id=report.id,
             title_id=report.title_id,
-            title_name=title.title if title else "Unknown",
-            tag_name=tag.display_name if tag else "Unknown",
-            tag_category=tag.category if tag else "Unknown",
+            title_name=title_name_str,
+            tag_name=tag_name_str,
+            tag_category=tag_category_str,
             season_number=report.season_number,
             episode_number=report.episode_number,
             notes=report.notes,
             status=report.status,
-            reported_by_email=reporter.email if reporter else "Unknown",
+            reported_by_email=reporter_email_str,
             created_at=report.created_at,
             reviewed_at=report.reviewed_at
         ))
