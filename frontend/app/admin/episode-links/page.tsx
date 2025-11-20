@@ -60,7 +60,11 @@ export default function EpisodeLinksPage() {
         setReports(response.data);
       } else {
         const response = await adminApi.getEpisodeLinks(page * ITEMS_PER_PAGE, ITEMS_PER_PAGE, undefined, verifiedOnly);
-        setLinks(response.data);
+        const normalizedLinks = response.data.map((link: any) => ({
+          ...link,
+          title_name: typeof link.title_name === 'string' ? link.title_name : (link.title_name?.title || link.title?.title || 'Unknown')
+        }));
+        setLinks(normalizedLinks);
       }
     } catch (error) {
       console.error('Failed to load data', error);
