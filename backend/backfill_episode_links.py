@@ -13,7 +13,7 @@ def backfill_episode_1_links():
     Fetch episode 1 deep links for all TV titles that don't have them yet
     """
     db = SessionLocal()
-    movie_api = MovieAPIClient(os.environ.get("MOVIE_OF_THE_NIGHT_API_KEY"))
+    movie_api = MovieAPIClient()
     
     try:
         # Get all TV titles
