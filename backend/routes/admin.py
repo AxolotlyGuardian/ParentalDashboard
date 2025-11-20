@@ -10,7 +10,7 @@ from services.fandom_coordinator import FandomScrapeCoordinator
 from services.enhanced_fandom_scraper import EnhancedFandomScraper
 import asyncio
 
-router = APIRouter(prefix="/api/admin", tags=["admin"])
+router = APIRouter(prefix="/admin", tags=["admin"])
 
 class DeviceResponse(BaseModel):
     id: int
