@@ -543,9 +543,12 @@ def get_streaming_episode_links(
         episode = db.query(Episode).filter(Episode.id == link.episode_id).first()
         title = db.query(Title).filter(Title.id == episode.title_id).first() if episode else None
         
+        # Ensure title_name is always a string, never an object
+        title_name_str = str(title.title) if title and hasattr(title, 'title') else None
+        
         result.append(StreamingEpisodeLinkResponse(
             id=link.id,
-            title_name=title.title if title else None,
+            title_name=title_name_str,
             season=episode.season_number if episode else None,
             episode=episode.episode_number if episode else None,
             episode_title=episode.episode_name if episode else None,
