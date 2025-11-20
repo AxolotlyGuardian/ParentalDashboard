@@ -603,7 +603,7 @@ async def get_devices(
     
     return result
 
-@router.get("/admin/devices")
+@router.get("/launcher/admin/devices")
 async def get_all_devices_admin(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
@@ -844,7 +844,7 @@ async def report_episode_url(
         "message": "Episode URL reported successfully"
     }
 
-@router.get("/admin/episode-reports")
+@router.get("/launcher/admin/episode-reports")
 def get_all_episode_reports(
     skip: int = 0,
     limit: int = 100,
@@ -883,7 +883,7 @@ def get_all_episode_reports(
     
     return result
 
-@router.get("/admin/episode-links")
+@router.get("/launcher/admin/episode-links")
 def get_all_episode_links(
     skip: int = 0,
     limit: int = 100,
