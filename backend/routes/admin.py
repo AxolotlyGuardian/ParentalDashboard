@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
 from db import get_db
-from models import Device, KidProfile, User, ContentReport, ContentTag, Title, Episode, EpisodeTag, FandomScrapeJob, FandomScrapeRun, FandomEpisodeLink
+from models import Device, KidProfile, User, ContentReport, ContentTag, Title, Episode, EpisodeTag, FandomScrapeJob, FandomScrapeRun, FandomEpisodeLink, EpisodeLink
 from auth_utils import require_admin
 from services.fandom_scraper import FandomScraper
 from services.fandom_coordinator import FandomScrapeCoordinator
@@ -493,7 +493,78 @@ def run_enhanced_scrape(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Enhanced scraping failed: {str(e)}")
 
-class EpisodeLinkResponse(BaseModel):
+class StreamingEpisodeLinkResponse(BaseModel):
+    id: int
+    title_name: Optional[str]
+    season: Optional[int]
+    episode: Optional[int]
+    episode_title: Optional[str]
+    provider: str
+    deep_link_url: str
+    source: str
+    confidence_score: float
+    confirmed_count: int
+    motn_verified: bool
+    motn_quality_score: Optional[float]
+    custom_tags: Optional[str]
+    first_seen_at: str
+    last_confirmed_at: str
+    last_enriched_at: Optional[str]
+
+@router.get("/episode-links", response_model=List[StreamingEpisodeLinkResponse])
+def get_streaming_episode_links(
+    skip: int = 0,
+    limit: int = 50,
+    provider: Optional[str] = None,
+    verified_only: bool = False,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Get Movie of the Night streaming deep links
+    Shows verified episode-level deep links from streaming providers
+    """
+    query = db.query(EpisodeLink).join(
+        Episode, EpisodeLink.episode_id == Episode.id
+    ).join(
+        Title, Episode.title_id == Title.id
+    )
+    
+    if verified_only:
+        query = query.filter(EpisodeLink.motn_verified == True)
+    
+    if provider:
+        query = query.filter(EpisodeLink.provider == provider)
+    
+    links = query.order_by(EpisodeLink.id.desc()).offset(skip).limit(limit).all()
+    
+    result = []
+    for link in links:
+        episode = db.query(Episode).filter(Episode.id == link.episode_id).first()
+        title = db.query(Title).filter(Title.id == episode.title_id).first() if episode else None
+        
+        result.append(StreamingEpisodeLinkResponse(
+            id=link.id,
+            title_name=title.title if title else None,
+            season=episode.season_number if episode else None,
+            episode=episode.episode_number if episode else None,
+            episode_title=episode.episode_name if episode else None,
+            provider=link.provider,
+            deep_link_url=link.deep_link_url,
+            source=link.source,
+            confidence_score=link.confidence_score or 0.0,
+            confirmed_count=link.confirmed_count or 0,
+            motn_verified=link.motn_verified or False,
+            motn_quality_score=link.motn_quality_score,
+            custom_tags=link.custom_tags,
+            first_seen_at=link.first_seen_at.isoformat() if link.first_seen_at else "",
+            last_confirmed_at=link.last_confirmed_at.isoformat() if link.last_confirmed_at else "",
+            last_enriched_at=link.last_enriched_at.isoformat() if link.last_enriched_at else None
+        ))
+    
+    return result
+
+class FandomEpisodeLinkResponse(BaseModel):
     id: int
     title_name: str
     season_number: int
@@ -505,8 +576,8 @@ class EpisodeLinkResponse(BaseModel):
     matching_method: Optional[str]
     created_at: str
 
-@router.get("/fandom/episode-links/{title_id}", response_model=List[EpisodeLinkResponse])
-def get_episode_links(
+@router.get("/fandom/episode-links/{title_id}", response_model=List[FandomEpisodeLinkResponse])
+def get_fandom_episode_links(
     title_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin)
@@ -524,7 +595,7 @@ def get_episode_links(
         title = db.query(Title).filter(Title.id == link.title_id).first()
         episode = db.query(Episode).filter(Episode.id == link.episode_id).first() if link.episode_id else None
         
-        result.append(EpisodeLinkResponse(
+        result.append(FandomEpisodeLinkResponse(
             id=link.id,
             title_name=title.title if title else "Unknown",
             season_number=link.season_number,
