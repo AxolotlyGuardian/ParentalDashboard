@@ -23,6 +23,15 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Tagline */}
+        <section className="max-w-5xl mx-auto px-6 py-6">
+          <div className="text-center">
+            <p className="text-xl italic text-gray-700 font-medium">
+              Axolotly doesn't dictate what's right or wrong — it gives parents the tools to decide.
+            </p>
+          </div>
+        </section>
+
         {/* Section 2: Why Axolotl? */}
         <section className="bg-gradient-to-r from-pink-100 to-pink-200/70 py-10">
           <div className="max-w-5xl mx-auto px-6">
