@@ -1,1 +1,66 @@
-site_name: My Docs
+site_name: Axolotly Documentation
+site_description: Complete platform documentation for Axolotly - Parental Control System
+site_author: Axolotly Team
+theme:
+  name: material
+  palette:
+    primary: pink
+    accent: blue
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  icon:
+    logo: material/shield-account
+
+nav:
+  - Home: index.md
+  - Overview:
+      - Executive Summary: overview/executive-summary.md
+      - Problem & Solution: overview/problem-solution.md
+      - Market Opportunity: overview/market.md
+  - Features:
+      - Feature Overview: features/overview.md
+      - Parent Dashboard: features/parent-dashboard.md
+      - Kids Launcher: features/kids-launcher.md
+      - Content Management: features/content-management.md
+      - Device Management: features/device-management.md
+      - Admin Dashboard: features/admin-dashboard.md
+  - User Workflows:
+      - Parent Workflow: workflows/parent-workflow.md
+      - Child Workflow: workflows/child-workflow.md
+      - Device Pairing: workflows/device-pairing.md
+  - Technical Architecture:
+      - System Overview: technical/architecture.md
+      - Backend (FastAPI): technical/backend.md
+      - Frontend (Next.js): technical/frontend.md
+      - Database Schema: technical/database.md
+      - API Integration: technical/api-integration.md
+      - Security: technical/security.md
+  - Integrations:
+      - TMDB Integration: integrations/tmdb.md
+      - Streaming Services: integrations/streaming.md
+      - Movie of the Night API: integrations/motn.md
+  - Roadmap:
+      - Future Features: roadmap/features.md
+      - Scalability Plan: roadmap/scalability.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
