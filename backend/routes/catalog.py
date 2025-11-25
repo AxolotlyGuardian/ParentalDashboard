@@ -193,6 +193,14 @@ async def search_titles(
     if not settings.TMDB_API_KEY:
         raise HTTPException(status_code=500, detail="TMDB API key not configured")
     
+    from models import StreamingServiceSelection
+    
+    service_selection = db.query(StreamingServiceSelection).filter(
+        StreamingServiceSelection.family_id == current_user.id
+    ).first()
+    
+    selected_services = service_selection.selected_services if service_selection else []
+    
     url = f"{settings.TMDB_API_BASE_URL}/search/multi"
     params = {
         "api_key": settings.TMDB_API_KEY,
@@ -223,6 +231,13 @@ async def search_titles(
             
             if not providers:
                 continue
+            
+            if selected_services:
+                has_matching_service = any(
+                    provider in selected_services for provider in providers
+                )
+                if not has_matching_service:
+                    continue
             
             existing_title = db.query(Title).filter(Title.tmdb_id == tmdb_id).first()
             

@@ -15,6 +15,17 @@ class User(Base):
     
     kid_profiles = relationship("KidProfile", back_populates="parent")
 
+class StreamingServiceSelection(Base):
+    __tablename__ = "streaming_service_selections"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    family_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    selected_services = Column(JSON, nullable=False, default=list)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    family = relationship("User")
+
 class KidProfile(Base):
     __tablename__ = "kid_profiles"
     

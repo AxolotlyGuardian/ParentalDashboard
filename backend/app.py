@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db import engine, Base
-from routes import auth, catalog, policy, launch, launcher, content_tags, admin
+from routes import auth, catalog, policy, launch, launcher, content_tags, admin, services
 
 Base.metadata.create_all(bind=engine)
 
@@ -22,6 +22,7 @@ app.include_router(launch.router, prefix="/api")
 app.include_router(launcher.router, prefix="/api")
 app.include_router(content_tags.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(services.router, prefix="/api")
 
 @app.get("/")
 def root():
