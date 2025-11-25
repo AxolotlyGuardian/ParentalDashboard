@@ -7,6 +7,7 @@ import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
 import ContentReportModal from '@/components/ContentReportModal';
 import ContentActionModal from '@/components/ContentActionModal';
 import ConfirmModal from '@/components/ConfirmModal';
+import ServiceSelection from '@/components/ServiceSelection';
 import { PairedDevice, ApiError } from '@/lib/types';
 import { Policy } from '@/types/policy';
 
@@ -43,7 +44,7 @@ export default function ParentDashboard() {
   const [showAddDeviceForm, setShowAddDeviceForm] = useState(false);
   const [pairingCode, setPairingCode] = useState('');
   const [selectedKidForDevice, setSelectedKidForDevice] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'search' | 'policies' | 'devices'>('policies');
+  const [activeTab, setActiveTab] = useState<'search' | 'policies' | 'devices' | 'services'>('policies');
   const [devices, setDevices] = useState<PairedDevice[]>([]);
   const [editingDeviceId, setEditingDeviceId] = useState<number | null>(null);
   const [editingDeviceName, setEditingDeviceName] = useState('');
@@ -433,7 +434,7 @@ export default function ParentDashboard() {
                 setActiveTab('devices');
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-full transition-all ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all ${
                 activeTab === 'devices'
                   ? 'bg-[#F77B8A] text-white shadow-md'
                   : 'text-gray-700 hover:bg-gray-200'
@@ -441,6 +442,19 @@ export default function ParentDashboard() {
             >
               <span className="font-medium">Devices</span>
               <span className="text-sm">{selectedProfile ? devices.filter(d => d.kid_profile_id === selectedProfile).length : devices.length}</span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('services');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full transition-all ${
+                activeTab === 'services'
+                  ? 'bg-[#F77B8A] text-white shadow-md'
+                  : 'text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <span className="font-medium">My Services</span>
             </button>
           </div>
         </div>
@@ -936,6 +950,12 @@ export default function ParentDashboard() {
                       </div>
                     );
                   })()}
+                </div>
+              )}
+
+              {activeTab === 'services' && (
+                <div>
+                  <ServiceSelection />
                 </div>
               )}
             </div>
