@@ -1,7 +1,7 @@
 # Axolotly Android Launcher API Documentation
 
 **Version:** 1.0  
-**Base URL:** `https://your-app.replit.app`  
+**Base URL:** `https://axolotly.replit.app`  
 **Last Updated:** December 2024
 
 ---
