@@ -337,7 +337,7 @@ async def get_apps(
                 
                 primary_provider = None
                 if title.providers and len(title.providers) > 0:
-                    primary_provider = title.providers[0]
+                    primary_provider = title.providers[0].lower().replace(" ", "_") if title.providers[0] else None
                 
                 package_name = provider_package_map.get(primary_provider, "com.google.android.youtube")
                 
@@ -394,9 +394,10 @@ async def get_apps(
                 
                 if title.providers and len(title.providers) > 0:
                     for provider in title.providers:
-                        if provider not in provider_groups:
-                            provider_groups[provider] = []
-                        provider_groups[provider].append(content_item)
+                        normalized_provider = provider.lower().replace(" ", "_") if provider else "other"
+                        if normalized_provider not in provider_groups:
+                            provider_groups[normalized_provider] = []
+                        provider_groups[normalized_provider].append(content_item)
                 else:
                     if "other" not in provider_groups:
                         provider_groups["other"] = []
