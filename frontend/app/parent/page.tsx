@@ -23,7 +23,21 @@ interface Title {
   poster_path?: string;
   media_type: string;
   rating: string;
+  providers?: string[];
 }
+
+const getProviderBadge = (provider: string) => {
+  const providerStyles: { [key: string]: { bg: string; text: string; label: string } } = {
+    'netflix': { bg: 'bg-red-600', text: 'text-white', label: 'Netflix' },
+    'disney_plus': { bg: 'bg-blue-600', text: 'text-white', label: 'Disney+' },
+    'hulu': { bg: 'bg-green-500', text: 'text-white', label: 'Hulu' },
+    'prime_video': { bg: 'bg-cyan-600', text: 'text-white', label: 'Prime' },
+    'peacock': { bg: 'bg-yellow-500', text: 'text-black', label: 'Peacock' },
+    'youtube': { bg: 'bg-red-500', text: 'text-white', label: 'YouTube' },
+    'max': { bg: 'bg-purple-600', text: 'text-white', label: 'Max' },
+  };
+  return providerStyles[provider.toLowerCase()] || { bg: 'bg-gray-500', text: 'text-white', label: provider };
+};
 
 export default function ParentDashboard() {
   const router = useRouter();
@@ -671,13 +685,35 @@ export default function ParentDashboard() {
                           className="group relative"
                           onContextMenu={(e) => handleOpenReportModal(title, e)}
                         >
-                          {title.poster_path && (
-                            <img
-                              src={title.poster_path}
-                              alt={title.title}
-                              className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer"
-                            />
-                          )}
+                          <div className="relative">
+                            {title.poster_path && (
+                              <img
+                                src={title.poster_path}
+                                alt={title.title}
+                                className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer"
+                              />
+                            )}
+                            {title.providers && title.providers.length > 0 && (
+                              <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                                {title.providers.slice(0, 2).map((provider, idx) => {
+                                  const badge = getProviderBadge(provider);
+                                  return (
+                                    <span
+                                      key={idx}
+                                      className={`${badge.bg} ${badge.text} text-[10px] px-1.5 py-0.5 rounded font-medium shadow-sm`}
+                                    >
+                                      {badge.label}
+                                    </span>
+                                  );
+                                })}
+                                {title.providers.length > 2 && (
+                                  <span className="bg-gray-800 text-white text-[10px] px-1.5 py-0.5 rounded font-medium shadow-sm">
+                                    +{title.providers.length - 2}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                           <button
                             onClick={() => handleTogglePolicy(title, getTitleStatus(title.id))}
                             className={`mt-2 w-full py-2 rounded-lg text-sm font-semibold transition-all ${
