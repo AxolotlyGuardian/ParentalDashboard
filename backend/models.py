@@ -126,10 +126,11 @@ class PairingCode(Base):
 
 class PendingDevice(Base):
     __tablename__ = "pending_devices"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     device_id = Column(String, unique=True, nullable=False, index=True)
     pairing_code = Column(String(6), unique=True, nullable=False, index=True)
+    api_key_plaintext = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=False)
 
@@ -411,6 +412,25 @@ class FandomShowConfig(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     title = relationship("Title")
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    stripe_customer_id = Column(String, nullable=True, unique=True, index=True)
+    stripe_subscription_id = Column(String, nullable=True, unique=True, index=True)
+    plan = Column(String, nullable=False)  # starter, family, educator
+    status = Column(String, default="pending")  # pending, active, canceled, past_due
+    device_limit = Column(Integer, nullable=False, default=1)
+    hardware_units = Column(Integer, default=1)
+    current_period_start = Column(DateTime, nullable=True)
+    current_period_end = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User")
+
 
 class FandomEpisodeLink(Base):
     __tablename__ = "fandom_episode_links"
