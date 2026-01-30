@@ -50,7 +50,10 @@ def parent_signup(request: ParentSignupRequest, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == request.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
+    if len(request.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+
     hashed_password = bcrypt.hashpw(request.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     new_user = User(email=request.email, password_hash=hashed_password)
     db.add(new_user)
@@ -91,8 +94,16 @@ def parent_login(request: ParentLoginRequest, db: Session = Depends(get_db)):
 def kid_login(request: KidLoginRequest, db: Session = Depends(get_db)):
     profile = db.query(KidProfile).filter(KidProfile.id == request.profile_id).first()
     if not profile:
-        raise HTTPException(status_code=401, detail="Profile not found")
-    
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    try:
+        pin_valid = bcrypt.checkpw(request.pin.encode('utf-8'), profile.pin.encode('utf-8'))
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not pin_valid:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
     access_token = create_access_token({"sub": str(profile.id), "role": "kid"})
     return TokenResponse(
         access_token=access_token,
@@ -135,7 +146,11 @@ def get_kid_profiles(
     return [{"id": p.id, "name": p.name, "age": p.age} for p in profiles]
 
 @router.get("/kid/profiles")
-def get_all_kid_profiles(db: Session = Depends(get_db)):
+def get_all_kid_profiles(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Admin-only endpoint to view all kid profiles"""
     profiles = db.query(KidProfile).all()
     return [{"id": p.id, "name": p.name, "age": p.age} for p in profiles]
 
