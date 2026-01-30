@@ -83,6 +83,22 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* CTA Section */}
+        <section className="max-w-5xl mx-auto px-6 py-10">
+          <div className="bg-gradient-to-r from-[#FF6B9D] to-[#FF8FB3] rounded-3xl shadow-lg p-12 text-center text-white">
+            <h2 className="text-3xl font-bold mb-4">Start protecting your family today</h2>
+            <p className="text-lg mb-8 max-w-2xl mx-auto">
+              Plans start at just $4.99/month. Get your Axolotly device and take control of your family&apos;s screen time.
+            </p>
+            <button
+              onClick={() => router.push('/pricing')}
+              className="bg-white text-[#FF6B9D] hover:bg-gray-100 font-bold py-4 px-10 rounded-full text-xl transition-colors"
+            >
+              See Plans & Pricing
+            </button>
+          </div>
+        </section>
       </main>
 
       <footer className="text-center py-8 bg-gradient-to-r from-pink-100 to-blue-100 border-t border-pink-200">
