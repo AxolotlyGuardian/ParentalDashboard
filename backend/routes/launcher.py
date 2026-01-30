@@ -4,11 +4,27 @@ from datetime import datetime, timedelta
 from typing import Optional
 import secrets
 import random
+import hashlib
+import hmac
 from db import get_db
 from models import Device, PairingCode, PendingDevice, App, FamilyApp, TimeLimit, UsageLog, User, KidProfile, Policy, Title, DeviceEpisodeReport, Episode, EpisodeLink
 from auth_utils import require_parent, require_admin
 from services.movie_api import movie_api_client
 import json
+
+
+def hash_api_key(api_key: str) -> str:
+    """Hash an API key for secure storage using SHA-256."""
+    return hashlib.sha256(api_key.encode('utf-8')).hexdigest()
+
+
+def verify_api_key(provided_key: str, stored_hash: str) -> bool:
+    """Verify an API key against its stored hash using constant-time comparison."""
+    return hmac.compare_digest(
+        hashlib.sha256(provided_key.encode('utf-8')).hexdigest(),
+        stored_hash
+    )
+
 
 router = APIRouter()
 
@@ -73,11 +89,23 @@ async def check_pairing_status(
     device = db.query(Device).filter(Device.device_id == device_id).first()
     
     if device:
+        # Check if there's a one-time key delivery pending for this device
+        # The api_key_plaintext is stored temporarily in pending_devices during pairing
+        pending = db.query(PendingDevice).filter(
+            PendingDevice.device_id == device_id
+        ).first()
+
+        api_key_to_deliver = None
+        if pending and hasattr(pending, 'api_key_plaintext') and pending.api_key_plaintext:
+            api_key_to_deliver = pending.api_key_plaintext
+            db.delete(pending)
+            db.commit()
+
         return {
             "is_paired": True,
-            "api_key": device.api_key
+            "api_key": api_key_to_deliver
         }
-    
+
     return {
         "is_paired": False,
         "api_key": None
@@ -119,30 +147,29 @@ async def confirm_pairing(
         db.commit()
         raise HTTPException(status_code=410, detail="Pairing code expired")
     
-    # Generate new API key
+    # Generate new API key and hash it for storage
     api_key = secrets.token_urlsafe(48)
-    
+    api_key_hashed = hash_api_key(api_key)
+
     # Check if device already exists (re-pairing scenario)
     existing_device = db.query(Device).filter(Device.device_id == pending.device_id).first()
-    
+
     if existing_device:
-        # Update existing device with new credentials (re-pairing)
-        existing_device.api_key = api_key
+        existing_device.api_key = api_key_hashed
         existing_device.family_id = current_user.id
         existing_device.kid_profile_id = kid_profile_id
         device = existing_device
     else:
-        # Create new device
         device = Device(
             device_id=pending.device_id,
-            api_key=api_key,
+            api_key=api_key_hashed,
             family_id=current_user.id,
             kid_profile_id=kid_profile_id
         )
         db.add(device)
-    
-    # Delete the pending entry
-    db.delete(pending)
+
+    # Store the plaintext key temporarily so the device can retrieve it once
+    pending.api_key_plaintext = api_key
     db.commit()
     db.refresh(device)
     
@@ -159,18 +186,19 @@ def get_device_from_headers(
 ):
     if not x_device_id or not x_api_key:
         raise HTTPException(status_code=401, detail="Missing device authentication headers")
-    
-    device = db.query(Device).filter(
-        Device.device_id == x_device_id,
-        Device.api_key == x_api_key
-    ).first()
-    
+
+    device = db.query(Device).filter(Device.device_id == x_device_id).first()
+
     if not device:
         raise HTTPException(status_code=401, detail="Invalid device credentials")
-    
+
+    # Support both hashed and legacy plaintext keys during migration
+    if not verify_api_key(x_api_key, device.api_key) and device.api_key != x_api_key:
+        raise HTTPException(status_code=401, detail="Invalid device credentials")
+
     db.query(Device).filter(Device.id == device.id).update({"last_active": datetime.utcnow()})
     db.commit()
-    
+
     return device
 
 @router.get("/device/validate")
@@ -232,22 +260,22 @@ async def pair_device_to_kid(
         device.kid_profile_id = kid_profile_id
         device.last_active = datetime.utcnow()
     else:
-        # Create new device
+        # Create new device with hashed API key
         api_key = secrets.token_urlsafe(48)
         device = Device(
             device_id=device_id_input,
-            api_key=api_key,
+            api_key=hash_api_key(api_key),
             family_id=parent_id,
             kid_profile_id=kid_profile_id
         )
         db.add(device)
-    
+
     db.commit()
     db.refresh(device)
-    
+
     return {
         "device_id": device.device_id,
-        "api_key": device.api_key,
+        "api_key": api_key if 'api_key' in dir() else None,
         "family_id": device.family_id,
         "kid_profile_id": device.kid_profile_id,
         "kid_name": kid_profile.name
@@ -274,21 +302,22 @@ async def pair_device(
     
     device_id = secrets.token_urlsafe(32)
     api_key = secrets.token_urlsafe(48)
-    
+    api_key_hashed = hash_api_key(api_key)
+
     device = Device(
         device_id=device_id,
-        api_key=api_key,
+        api_key=api_key_hashed,
         family_id=code_entry.family_id
     )
     db.add(device)
-    
+
     db.query(PairingCode).filter(PairingCode.id == code_entry.id).update({"is_used": True})
     db.commit()
     db.refresh(device)
-    
+
     family = db.query(User).filter(User.id == code_entry.family_id).first()
     family_name = family.email.split('@')[0] if family else "Family"
-    
+
     return {
         "deviceId": device_id,
         "apiKey": api_key,
