@@ -314,14 +314,14 @@ export default function ParentDashboard() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F77B8A] to-[#F77B8A] flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full">
+      <div className="min-h-screen bg-gradient-to-br from-[#F77B8A] via-[#f8909e] to-[#e8697a] flex items-center justify-center p-4">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)] max-w-md w-full border border-white/50 hover:shadow-[0_24px_68px_rgba(0,0,0,0.2)] transition-shadow duration-500">
           <div className="text-center mb-6">
             <div className="inline-block mb-4">
               <img 
                 src="/images/axolotly-logo.png" 
                 alt="Axolotly" 
-                className="w-24 h-24 mx-auto"
+                className="w-24 h-24 mx-auto drop-shadow-xl hover:scale-110 transition-transform duration-300"
               />
             </div>
             <h1 className="text-3xl font-bold text-gray-800">
@@ -338,7 +338,7 @@ export default function ParentDashboard() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent text-gray-800"
+                className="w-full px-4 py-3.5 border border-gray-200/50 rounded-2xl focus:ring-2 focus:ring-pink-300 focus:border-transparent text-gray-800 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all"
                 required
               />
             </div>
@@ -351,14 +351,14 @@ export default function ParentDashboard() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent text-gray-800"
+                className="w-full px-4 py-3.5 border border-gray-200/50 rounded-2xl focus:ring-2 focus:ring-pink-300 focus:border-transparent text-gray-800 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all"
                 required
               />
             </div>
             
             <button
               type="submit"
-              className="w-full bg-[#F77B8A] text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
+              className="w-full bg-[#F77B8A] text-white py-3.5 rounded-2xl font-semibold hover:shadow-[0_8px_24px_rgba(247,123,138,0.45)] transition-all duration-200 transform hover:scale-[1.02]"
             >
               {isSignup ? 'Sign Up' : 'Log In'}
             </button>
@@ -384,11 +384,11 @@ export default function ParentDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -396,16 +396,16 @@ export default function ParentDashboard() {
       {/* Left Sidebar */}
       <div className={`
         fixed md:static inset-y-0 left-0 z-50
-        w-64 bg-[#f5f5f5] border-r border-gray-200 flex flex-col
+        w-64 bg-white/80 backdrop-blur-xl border-r border-gray-200/50 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.06)]
         transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         {/* Logo */}
-        <div className="p-4 border-b border-gray-200 cursor-pointer" onClick={() => router.push('/')}>
+        <div className="p-4 border-b border-gray-200/50 cursor-pointer group" onClick={() => router.push('/')}>
           <img 
             src="/images/axolotly-logo.png" 
             alt="Axolotly" 
-            className="w-32 h-32 mx-auto hover:opacity-80 transition-opacity"
+            className="w-32 h-32 mx-auto group-hover:scale-105 transition-transform duration-300 drop-shadow-lg"
           />
         </div>
 
@@ -420,10 +420,10 @@ export default function ParentDashboard() {
                 setActiveTab('search');
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all duration-200 ${
                 activeTab === 'search'
-                  ? 'bg-[#F77B8A] text-white shadow-md'
-                  : 'text-gray-700 hover:bg-gray-200'
+                  ? 'bg-[#F77B8A] text-white shadow-[0_4px_14px_rgba(247,123,138,0.4)] scale-[1.02]'
+                  : 'text-gray-700 hover:bg-white hover:shadow-md hover:scale-[1.02]'
               }`}
             >
               <span className="font-medium">Search Content</span>
@@ -434,10 +434,10 @@ export default function ParentDashboard() {
                 setActiveTab('policies');
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all duration-200 ${
                 activeTab === 'policies'
-                  ? 'bg-[#F77B8A] text-white shadow-md'
-                  : 'text-gray-700 hover:bg-gray-200'
+                  ? 'bg-[#F77B8A] text-white shadow-[0_4px_14px_rgba(247,123,138,0.4)] scale-[1.02]'
+                  : 'text-gray-700 hover:bg-white hover:shadow-md hover:scale-[1.02]'
               }`}
             >
               <span className="font-medium">Allowed Content</span>
@@ -448,10 +448,10 @@ export default function ParentDashboard() {
                 setActiveTab('devices');
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all duration-200 ${
                 activeTab === 'devices'
-                  ? 'bg-[#F77B8A] text-white shadow-md'
-                  : 'text-gray-700 hover:bg-gray-200'
+                  ? 'bg-[#F77B8A] text-white shadow-[0_4px_14px_rgba(247,123,138,0.4)] scale-[1.02]'
+                  : 'text-gray-700 hover:bg-white hover:shadow-md hover:scale-[1.02]'
               }`}
             >
               <span className="font-medium">Devices</span>
@@ -462,10 +462,10 @@ export default function ParentDashboard() {
                 setActiveTab('services');
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-full transition-all ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full transition-all duration-200 ${
                 activeTab === 'services'
-                  ? 'bg-[#F77B8A] text-white shadow-md'
-                  : 'text-gray-700 hover:bg-gray-200'
+                  ? 'bg-[#F77B8A] text-white shadow-[0_4px_14px_rgba(247,123,138,0.4)] scale-[1.02]'
+                  : 'text-gray-700 hover:bg-white hover:shadow-md hover:scale-[1.02]'
               }`}
             >
               <span className="font-medium">My Services</span>
@@ -474,14 +474,14 @@ export default function ParentDashboard() {
         </div>
 
         {/* Stats Footer */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="bg-gray-50 rounded-xl p-4 mb-3">
+        <div className="p-4 border-t border-gray-200/50">
+          <div className="bg-gradient-to-br from-pink-50 to-white rounded-2xl p-4 mb-3 shadow-[0_2px_8px_rgba(247,123,138,0.12)] border border-pink-100/50">
             <div className="text-xs text-gray-500 mb-1">Kid Profiles</div>
             <div className="text-2xl font-bold text-gray-800">{kidProfiles.length}</div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            className="w-full px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-white rounded-xl transition-all duration-200"
           >
             Logout
           </button>
@@ -491,12 +491,12 @@ export default function ParentDashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-[#f5f5f5] border-b border-gray-200 px-4 md:px-8 py-4">
+        <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/50 px-4 md:px-8 py-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
           <div className="flex items-center justify-between">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-800"
+              className="md:hidden p-2 text-gray-600 hover:text-gray-800 hover:bg-white rounded-xl transition-all"
               aria-label="Open menu"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -520,7 +520,7 @@ export default function ParentDashboard() {
               {!showNewKidForm && (
                 <button
                   onClick={() => setShowNewKidForm(true)}
-                  className="px-4 py-2 bg-[#F77B8A] text-white rounded-full text-sm font-medium hover:shadow-lg transition-all"
+                  className="px-5 py-2.5 bg-[#F77B8A] text-white rounded-full text-sm font-medium hover:shadow-[0_6px_20px_rgba(247,123,138,0.4)] hover:scale-105 transition-all duration-200"
                 >
                   + Add Kid
                 </button>
@@ -528,14 +528,14 @@ export default function ParentDashboard() {
             </div>
 
             {showNewKidForm && (
-              <form onSubmit={handleCreateKidProfile} className="mb-4 p-4 bg-white rounded-xl border border-gray-200">
+              <form onSubmit={handleCreateKidProfile} className="mb-4 p-5 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="text"
                     placeholder="Name"
                     value={newKidName}
                     onChange={(e) => setNewKidName(e.target.value)}
-                    className="px-4 py-2 border border-gray-200 rounded-lg text-gray-800 flex-1"
+                    className="px-4 py-2.5 border border-gray-200 rounded-xl text-gray-800 flex-1 focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all"
                     required
                   />
                   <input
@@ -543,28 +543,28 @@ export default function ParentDashboard() {
                     placeholder="Age"
                     value={newKidAge}
                     onChange={(e) => setNewKidAge(e.target.value)}
-                    className="px-4 py-2 border border-gray-200 rounded-lg text-gray-800 w-20"
+                    className="px-4 py-2.5 border border-gray-200 rounded-xl text-gray-800 w-20 focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all"
                     required
                   />
-                  <button type="submit" className="px-6 py-2 bg-[#F77B8A] text-white rounded-lg text-sm font-medium">
+                  <button type="submit" className="px-6 py-2.5 bg-[#F77B8A] text-white rounded-xl text-sm font-medium hover:shadow-[0_4px_14px_rgba(247,123,138,0.4)] hover:scale-105 transition-all duration-200">
                     Create
                   </button>
-                  <button type="button" onClick={() => setShowNewKidForm(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                  <button type="button" onClick={() => setShowNewKidForm(false)} className="px-4 py-2.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all">
                     Cancel
                   </button>
                 </div>
               </form>
             )}
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" style={{ perspective: '800px' }}>
               {kidProfiles.map((profile) => (
                 <button
                   key={profile.id}
                   onClick={() => setSelectedProfile(profile.id)}
-                  className={`p-4 rounded-xl border-2 transition-all ${
+                  className={`p-5 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${
                     selectedProfile === profile.id
-                      ? 'border-[#F77B8A] bg-pink-50'
-                      : 'border-gray-200 bg-white hover:border-[#F77B8A]/30'
+                      ? 'border-[#F77B8A] bg-gradient-to-br from-pink-50 to-white shadow-[0_8px_24px_rgba(247,123,138,0.25)] scale-[1.02]'
+                      : 'border-gray-200/50 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:border-[#F77B8A]/40 hover:shadow-[0_8px_24px_rgba(247,123,138,0.2)]'
                   }`}
                 >
                   <div className="text-3xl mb-2">👤</div>
@@ -583,7 +583,7 @@ export default function ParentDashboard() {
                 {!showAddDeviceForm && (
                   <button
                     onClick={() => setShowAddDeviceForm(true)}
-                    className="px-4 py-2 bg-[#F77B8A] text-white rounded-full text-sm font-medium hover:shadow-lg transition-all"
+                    className="px-5 py-2.5 bg-[#F77B8A] text-white rounded-full text-sm font-medium hover:shadow-[0_6px_20px_rgba(247,123,138,0.4)] hover:scale-105 transition-all duration-200"
                   >
                     + Add Device
                   </button>
@@ -591,7 +591,7 @@ export default function ParentDashboard() {
               </div>
 
               {showAddDeviceForm && (
-                <form onSubmit={handlePairDevice} className="mb-4 p-6 bg-white rounded-xl border border-gray-200">
+                <form onSubmit={handlePairDevice} className="mb-4 p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Select Kid Profile
@@ -666,11 +666,11 @@ export default function ParentDashboard() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search movies and TV shows..."
-                        className="flex-1 px-6 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent text-gray-800 bg-white"
+                        className="flex-1 px-6 py-3.5 border border-gray-200/50 rounded-2xl focus:ring-2 focus:ring-pink-300 focus:border-transparent text-gray-800 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all"
                       />
                       <button
                         type="submit"
-                        className="px-8 py-3 bg-[#F77B8A] text-white rounded-xl hover:shadow-lg transition-all font-medium"
+                        className="px-8 py-3.5 bg-[#F77B8A] text-white rounded-2xl hover:shadow-[0_6px_20px_rgba(247,123,138,0.4)] hover:scale-105 transition-all duration-200 font-medium"
                       >
                         Search
                       </button>
@@ -910,7 +910,7 @@ export default function ParentDashboard() {
                     
                     if (profileDevices.length === 0) {
                       return (
-                        <div className="text-center py-16">
+                        <div className="text-center py-16 bg-white/50 rounded-3xl border border-gray-200/30 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
                           <div className="text-gray-400 text-6xl mb-4">📱</div>
                           <h3 className="text-lg font-semibold text-gray-600 mb-2">No devices paired</h3>
                           <p className="text-sm text-gray-500">Add a device using the &quot;Add Device&quot; button above</p>
@@ -919,9 +919,9 @@ export default function ParentDashboard() {
                     }
                     
                     return (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ perspective: '800px' }}>
                         {profileDevices.map((device) => (
-                        <div key={device.id} className="p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-[#F77B8A]/30 transition-all">
+                        <div key={device.id} className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_28px_rgba(247,123,138,0.2)] hover:-translate-y-1 hover:border-[#F77B8A]/30 transition-all duration-300">
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex-1">
                               {editingDeviceId === device.id ? (
@@ -1002,7 +1002,7 @@ export default function ParentDashboard() {
           )}
 
           {!selectedProfile && (
-            <div className="text-center py-16">
+            <div className="text-center py-16 bg-white/50 rounded-3xl border border-gray-200/30 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
               <div className="text-gray-400 text-6xl mb-4">👤</div>
               <h3 className="text-lg font-semibold text-gray-600 mb-2">Select a kid profile</h3>
               <p className="text-sm text-gray-500">Select a profile above to manage their content and devices</p>
