@@ -463,7 +463,7 @@ async def get_time_limits(
     time_limit = db.query(TimeLimit).filter(
         TimeLimit.family_id == device.family_id
     ).first()
-    
+
     if not time_limit:
         return {
             "dailyLimitMinutes": None,
@@ -471,8 +471,89 @@ async def get_time_limits(
             "bedtimeEnd": None,
             "scheduleEnabled": False
         }
-    
+
     return {
+        "dailyLimitMinutes": time_limit.daily_limit_minutes,
+        "bedtimeStart": time_limit.bedtime_start,
+        "bedtimeEnd": time_limit.bedtime_end,
+        "scheduleEnabled": time_limit.schedule_enabled
+    }
+
+# --- Parent-facing Time Limits CRUD ---
+
+@router.get("/parent/time-limits")
+async def get_parent_time_limits(
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Get time limits for the current parent's family (JWT auth)"""
+    time_limit = db.query(TimeLimit).filter(
+        TimeLimit.family_id == current_user.id
+    ).first()
+
+    if not time_limit:
+        return {
+            "id": None,
+            "dailyLimitMinutes": None,
+            "bedtimeStart": None,
+            "bedtimeEnd": None,
+            "scheduleEnabled": False
+        }
+
+    return {
+        "id": time_limit.id,
+        "dailyLimitMinutes": time_limit.daily_limit_minutes,
+        "bedtimeStart": time_limit.bedtime_start,
+        "bedtimeEnd": time_limit.bedtime_end,
+        "scheduleEnabled": time_limit.schedule_enabled
+    }
+
+@router.put("/parent/time-limits")
+async def upsert_parent_time_limits(
+    request: dict,
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Create or update time limits for the current parent's family"""
+    import re
+    time_format = re.compile(r'^\d{2}:\d{2}$')
+
+    daily_limit = request.get("dailyLimitMinutes")
+    bedtime_start = request.get("bedtimeStart")
+    bedtime_end = request.get("bedtimeEnd")
+    schedule_enabled = request.get("scheduleEnabled", False)
+
+    if daily_limit is not None and (not isinstance(daily_limit, int) or daily_limit < 0):
+        raise HTTPException(status_code=400, detail="dailyLimitMinutes must be a non-negative integer")
+    if bedtime_start and not time_format.match(bedtime_start):
+        raise HTTPException(status_code=400, detail="bedtimeStart must be in HH:MM format")
+    if bedtime_end and not time_format.match(bedtime_end):
+        raise HTTPException(status_code=400, detail="bedtimeEnd must be in HH:MM format")
+
+    time_limit = db.query(TimeLimit).filter(
+        TimeLimit.family_id == current_user.id
+    ).first()
+
+    if time_limit:
+        time_limit.daily_limit_minutes = daily_limit
+        time_limit.bedtime_start = bedtime_start
+        time_limit.bedtime_end = bedtime_end
+        time_limit.schedule_enabled = schedule_enabled
+    else:
+        time_limit = TimeLimit(
+            family_id=current_user.id,
+            daily_limit_minutes=daily_limit,
+            bedtime_start=bedtime_start,
+            bedtime_end=bedtime_end,
+            schedule_enabled=schedule_enabled
+        )
+        db.add(time_limit)
+
+    db.commit()
+    db.refresh(time_limit)
+
+    return {
+        "id": time_limit.id,
         "dailyLimitMinutes": time_limit.daily_limit_minutes,
         "bedtimeStart": time_limit.bedtime_start,
         "bedtimeEnd": time_limit.bedtime_end,
@@ -580,6 +661,70 @@ async def log_usage(
     db.commit()
     
     return {"success": True}
+
+@router.get("/parent/usage-stats")
+async def get_parent_usage_stats(
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Get usage stats across all devices for the current parent's family"""
+    devices = db.query(Device).filter(
+        Device.family_id == current_user.id
+    ).all()
+
+    today = datetime.utcnow().date()
+    today_start = datetime.combine(today, datetime.min.time())
+
+    time_limit = db.query(TimeLimit).filter(
+        TimeLimit.family_id == current_user.id
+    ).first()
+
+    device_stats = []
+    total_time_today = 0
+
+    for device in devices:
+        kid_profile = None
+        if device.kid_profile_id:
+            kid_profile = db.query(KidProfile).filter(
+                KidProfile.id == device.kid_profile_id
+            ).first()
+
+        usage_today = db.query(UsageLog).filter(
+            UsageLog.device_id == device.id,
+            UsageLog.start_time >= today_start
+        ).all()
+
+        device_time = sum(log.duration_minutes for log in usage_today)
+        total_time_today += device_time
+
+        app_usage = {}
+        for log in usage_today:
+            if log.app_name not in app_usage:
+                app_usage[log.app_name] = 0
+            app_usage[log.app_name] += log.duration_minutes
+
+        most_used = max(app_usage.items(), key=lambda x: x[1])[0] if app_usage else None
+
+        device_stats.append({
+            "device_id": device.device_id,
+            "device_name": device.device_name or f"Device {device.device_id[:8]}",
+            "kid_name": kid_profile.name if kid_profile else "Unassigned",
+            "timeUsedToday": device_time,
+            "mostUsedApp": most_used,
+            "lastActive": device.last_active.isoformat() if device.last_active else None
+        })
+
+    daily_limit = time_limit.daily_limit_minutes if time_limit else None
+    time_remaining = None
+    if daily_limit is not None:
+        time_remaining = max(0, daily_limit - total_time_today)
+
+    return {
+        "totalTimeToday": total_time_today,
+        "dailyLimitMinutes": daily_limit,
+        "timeRemainingToday": time_remaining,
+        "devices": device_stats
+    }
 
 @router.post("/pairing-code/generate")
 async def generate_pairing_code(
@@ -696,6 +841,50 @@ async def update_device_name(
         "id": device.id,
         "device_id": device.device_id,
         "device_name": device.device_name
+    }
+
+@router.patch("/launcher/device/{device_id}/profile")
+async def reassign_device_profile(
+    device_id: int,
+    request: dict,
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Reassign a device to a different kid profile without re-pairing"""
+    kid_profile_id = request.get("kid_profile_id")
+
+    device = db.query(Device).filter(
+        Device.id == device_id,
+        Device.family_id == current_user.id
+    ).first()
+
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Allow setting to None (unassign)
+    if kid_profile_id is not None:
+        kid_profile = db.query(KidProfile).filter(
+            KidProfile.id == kid_profile_id,
+            KidProfile.parent_id == current_user.id
+        ).first()
+        if not kid_profile:
+            raise HTTPException(status_code=404, detail="Kid profile not found")
+
+    device.kid_profile_id = kid_profile_id
+    db.commit()
+    db.refresh(device)
+
+    kid_name = None
+    if device.kid_profile_id:
+        kp = db.query(KidProfile).filter(KidProfile.id == device.kid_profile_id).first()
+        kid_name = kp.name if kp else None
+
+    return {
+        "id": device.id,
+        "device_id": device.device_id,
+        "device_name": device.device_name or f"Device {device.device_id[:8]}",
+        "kid_profile_id": device.kid_profile_id,
+        "kid_profile_name": kid_name or "Unassigned"
     }
 
 @router.delete("/launcher/device/{device_id}")

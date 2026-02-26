@@ -38,6 +38,11 @@ class KidProfileCreateRequest(BaseModel):
     age: int
     pin: str
 
+class KidProfileUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    age: Optional[int] = None
+    pin: Optional[str] = None
+
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -177,6 +182,65 @@ def get_all_parents(
         })
     
     return result
+
+@router.put("/kid/profile/{profile_id}")
+def update_kid_profile(
+    profile_id: int,
+    request: KidProfileUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
+    """Update a kid profile's name, age, or PIN"""
+    profile = db.query(KidProfile).filter(
+        KidProfile.id == profile_id,
+        KidProfile.parent_id == current_user.id
+    ).first()
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="Kid profile not found")
+
+    if request.name is not None:
+        profile.name = request.name
+    if request.age is not None:
+        if request.age < 1 or request.age > 17:
+            raise HTTPException(status_code=400, detail="Age must be between 1 and 17")
+        profile.age = request.age
+    if request.pin is not None:
+        if len(request.pin) < 4:
+            raise HTTPException(status_code=400, detail="PIN must be at least 4 characters")
+        profile.pin = bcrypt.hashpw(request.pin.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    db.commit()
+    db.refresh(profile)
+    return {"id": profile.id, "name": profile.name, "age": profile.age}
+
+@router.delete("/kid/profile/{profile_id}")
+def delete_kid_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
+    """Delete a kid profile and its associated policies and device links"""
+    profile = db.query(KidProfile).filter(
+        KidProfile.id == profile_id,
+        KidProfile.parent_id == current_user.id
+    ).first()
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="Kid profile not found")
+
+    # Unlink devices from this profile (don't delete devices, just unassign)
+    db.query(Device).filter(Device.kid_profile_id == profile_id).update(
+        {"kid_profile_id": None}
+    )
+
+    # Delete associated policies
+    db.query(Policy).filter(Policy.kid_profile_id == profile_id).delete()
+
+    db.delete(profile)
+    db.commit()
+
+    return {"success": True, "message": f"Profile '{profile.name}' deleted"}
 
 @router.get("/admin/kid-profiles")
 def get_all_kid_profiles_admin(
