@@ -35,6 +35,15 @@ const getProviderBadge = (provider: string) => {
     'peacock': { bg: 'bg-yellow-500', text: 'text-black', label: 'Peacock' },
     'youtube': { bg: 'bg-red-500', text: 'text-white', label: 'YouTube' },
     'max': { bg: 'bg-purple-600', text: 'text-white', label: 'Max' },
+    'apple_tv_plus': { bg: 'bg-gray-800', text: 'text-white', label: 'Apple TV+' },
+    'paramount_plus': { bg: 'bg-blue-500', text: 'text-white', label: 'Paramount+' },
+    'tubi': { bg: 'bg-orange-500', text: 'text-white', label: 'Tubi' },
+    'crunchyroll': { bg: 'bg-orange-600', text: 'text-white', label: 'Crunchyroll' },
+    'pbs_kids': { bg: 'bg-green-600', text: 'text-white', label: 'PBS Kids' },
+    'espn_plus': { bg: 'bg-red-700', text: 'text-white', label: 'ESPN+' },
+    'curiosity_stream': { bg: 'bg-teal-600', text: 'text-white', label: 'Curiosity' },
+    'noggin': { bg: 'bg-orange-400', text: 'text-white', label: 'Noggin' },
+    'kidoodle_tv': { bg: 'bg-pink-500', text: 'text-white', label: 'Kidoodle' },
   };
   return providerStyles[provider.toLowerCase()] || { bg: 'bg-gray-500', text: 'text-white', label: provider };
 };
@@ -1015,8 +1024,18 @@ export default function ParentDashboard() {
                       'disney_plus': { name: 'Disney+' },
                       'hulu': { name: 'Hulu' },
                       'prime_video': { name: 'Prime Video' },
+                      'max': { name: 'Max' },
                       'peacock': { name: 'Peacock' },
-                      'youtube': { name: 'YouTube' }
+                      'youtube': { name: 'YouTube' },
+                      'apple_tv_plus': { name: 'Apple TV+' },
+                      'paramount_plus': { name: 'Paramount+' },
+                      'tubi': { name: 'Tubi' },
+                      'crunchyroll': { name: 'Crunchyroll' },
+                      'pbs_kids': { name: 'PBS Kids' },
+                      'espn_plus': { name: 'ESPN+' },
+                      'curiosity_stream': { name: 'Curiosity Stream' },
+                      'noggin': { name: 'Noggin' },
+                      'kidoodle_tv': { name: 'Kidoodle.TV' }
                     };
                     
                     return (
