@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { authApi, catalogApi, policyApi, deviceApi } from '@/lib/api';
+import { authApi, catalogApi, policyApi, deviceApi, timeLimitsApi, usageStatsApi } from '@/lib/api';
 import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
 import ContentReportModal from '@/components/ContentReportModal';
 import ContentActionModal from '@/components/ContentActionModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import ServiceSelection from '@/components/ServiceSelection';
-import { PairedDevice, ApiError } from '@/lib/types';
+import { PairedDevice, ApiError, TimeLimits, ParentUsageStats } from '@/lib/types';
 import { Policy } from '@/types/policy';
 
 interface KidProfile {
@@ -58,7 +58,7 @@ export default function ParentDashboard() {
   const [showAddDeviceForm, setShowAddDeviceForm] = useState(false);
   const [pairingCode, setPairingCode] = useState('');
   const [selectedKidForDevice, setSelectedKidForDevice] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'search' | 'policies' | 'devices' | 'services'>('policies');
+  const [activeTab, setActiveTab] = useState<'search' | 'policies' | 'devices' | 'services' | 'timelimits' | 'usage'>('policies');
   const [devices, setDevices] = useState<PairedDevice[]>([]);
   const [editingDeviceId, setEditingDeviceId] = useState<number | null>(null);
   const [editingDeviceName, setEditingDeviceName] = useState('');
@@ -70,6 +70,24 @@ export default function ParentDashboard() {
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedContentForAction, setSelectedContentForAction] = useState<Policy | null>(null);
 
+  // Kid profile edit/delete state
+  const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
+  const [editingProfileName, setEditingProfileName] = useState('');
+  const [editingProfileAge, setEditingProfileAge] = useState('');
+  const [profileToDelete, setProfileToDelete] = useState<{ id: number; name: string } | null>(null);
+  const [isDeleteProfileModalOpen, setIsDeleteProfileModalOpen] = useState(false);
+
+  // Time limits state
+  const [timeLimits, setTimeLimits] = useState<TimeLimits>({ id: null, dailyLimitMinutes: null, bedtimeStart: null, bedtimeEnd: null, scheduleEnabled: false });
+  const [editingTimeLimits, setEditingTimeLimits] = useState(false);
+  const [tlDailyMinutes, setTlDailyMinutes] = useState('');
+  const [tlBedtimeStart, setTlBedtimeStart] = useState('');
+  const [tlBedtimeEnd, setTlBedtimeEnd] = useState('');
+  const [tlScheduleEnabled, setTlScheduleEnabled] = useState(false);
+
+  // Usage stats state
+  const [usageStats, setUsageStats] = useState<ParentUsageStats | null>(null);
+
   useEffect(() => {
     const user = getUserFromToken();
     if (user && user.role === 'parent') {
@@ -77,6 +95,8 @@ export default function ParentDashboard() {
       setUserId(parseInt(user.sub));
       loadKidProfiles(parseInt(user.sub));
       loadDevices();
+      loadTimeLimits();
+      loadUsageStats();
     }
   }, []);
 
@@ -98,6 +118,85 @@ export default function ParentDashboard() {
     }
   };
 
+  const loadTimeLimits = async () => {
+    try {
+      const response = await timeLimitsApi.get();
+      setTimeLimits(response.data);
+    } catch (error) {
+      console.error('Failed to load time limits', error);
+    }
+  };
+
+  const loadUsageStats = async () => {
+    try {
+      const response = await usageStatsApi.get();
+      setUsageStats(response.data);
+    } catch (error) {
+      console.error('Failed to load usage stats', error);
+    }
+  };
+
+  const handleUpdateProfile = async (profileId: number) => {
+    try {
+      const data: { name?: string; age?: number } = {};
+      if (editingProfileName.trim()) data.name = editingProfileName.trim();
+      if (editingProfileAge) data.age = parseInt(editingProfileAge);
+      await authApi.updateKidProfile(profileId, data);
+      setEditingProfileId(null);
+      if (userId) loadKidProfiles(userId);
+    } catch (error) {
+      const errorMessage = (error as ApiError).response?.data?.detail || 'Failed to update profile';
+      alert(errorMessage);
+    }
+  };
+
+  const handleDeleteProfile = async () => {
+    if (!profileToDelete) return;
+    setIsDeleteProfileModalOpen(false);
+    try {
+      await authApi.deleteKidProfile(profileToDelete.id);
+      if (selectedProfile === profileToDelete.id) {
+        setSelectedProfile(null);
+        setPolicies([]);
+      }
+      if (userId) {
+        loadKidProfiles(userId);
+        loadDevices();
+      }
+    } catch (error) {
+      const errorMessage = (error as ApiError).response?.data?.detail || 'Failed to delete profile';
+      alert(errorMessage);
+    } finally {
+      setProfileToDelete(null);
+    }
+  };
+
+  const handleSaveTimeLimits = async () => {
+    try {
+      const response = await timeLimitsApi.upsert({
+        dailyLimitMinutes: tlDailyMinutes ? parseInt(tlDailyMinutes) : null,
+        bedtimeStart: tlBedtimeStart || null,
+        bedtimeEnd: tlBedtimeEnd || null,
+        scheduleEnabled: tlScheduleEnabled,
+      });
+      setTimeLimits(response.data);
+      setEditingTimeLimits(false);
+    } catch (error) {
+      const errorMessage = (error as ApiError).response?.data?.detail || 'Failed to save time limits';
+      alert(errorMessage);
+    }
+  };
+
+  const handleReassignDevice = async (deviceId: number, kidProfileId: number | null) => {
+    try {
+      await deviceApi.reassignProfile(deviceId, kidProfileId);
+      loadDevices();
+    } catch (error) {
+      const errorMessage = (error as ApiError).response?.data?.detail || 'Failed to reassign device';
+      alert(errorMessage);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -113,6 +212,8 @@ export default function ParentDashboard() {
       await new Promise(resolve => setTimeout(resolve, 100));
       loadKidProfiles(response.data.user_id);
       loadDevices();
+      loadTimeLimits();
+      loadUsageStats();
     } catch (error) {
       const errorMessage = (error as ApiError).response?.data?.detail || 'Authentication failed';
       alert(errorMessage);
@@ -459,6 +560,34 @@ export default function ParentDashboard() {
             </button>
             <button
               onClick={() => {
+                setActiveTab('timelimits');
+                setIsMobileMenuOpen(false);
+                loadTimeLimits();
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all duration-200 ${
+                activeTab === 'timelimits'
+                  ? 'bg-[#F77B8A] text-white shadow-[0_4px_14px_rgba(247,123,138,0.4)] scale-[1.02]'
+                  : 'text-gray-700 hover:bg-white hover:shadow-md hover:scale-[1.02]'
+              }`}
+            >
+              <span className="font-medium">Time Limits</span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('usage');
+                setIsMobileMenuOpen(false);
+                loadUsageStats();
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all duration-200 ${
+                activeTab === 'usage'
+                  ? 'bg-[#F77B8A] text-white shadow-[0_4px_14px_rgba(247,123,138,0.4)] scale-[1.02]'
+                  : 'text-gray-700 hover:bg-white hover:shadow-md hover:scale-[1.02]'
+              }`}
+            >
+              <span className="font-medium">Usage Stats</span>
+            </button>
+            <button
+              onClick={() => {
                 setActiveTab('services');
                 setIsMobileMenuOpen(false);
               }}
@@ -558,19 +687,88 @@ export default function ParentDashboard() {
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" style={{ perspective: '800px' }}>
               {kidProfiles.map((profile) => (
-                <button
+                <div
                   key={profile.id}
-                  onClick={() => setSelectedProfile(profile.id)}
-                  className={`p-5 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${
+                  className={`relative p-5 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${
                     selectedProfile === profile.id
                       ? 'border-[#F77B8A] bg-gradient-to-br from-pink-50 to-white shadow-[0_8px_24px_rgba(247,123,138,0.25)] scale-[1.02]'
                       : 'border-gray-200/50 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:border-[#F77B8A]/40 hover:shadow-[0_8px_24px_rgba(247,123,138,0.2)]'
                   }`}
                 >
-                  <div className="text-3xl mb-2">👤</div>
-                  <div className="font-semibold text-gray-800 text-sm">{profile.name}</div>
-                  <div className="text-xs text-gray-600">Age {profile.age}</div>
-                </button>
+                  {editingProfileId === profile.id ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={editingProfileName}
+                        onChange={(e) => setEditingProfileName(e.target.value)}
+                        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                        placeholder="Name"
+                        autoFocus
+                      />
+                      <input
+                        type="number"
+                        value={editingProfileAge}
+                        onChange={(e) => setEditingProfileAge(e.target.value)}
+                        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                        placeholder="Age"
+                        min={1}
+                        max={17}
+                      />
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={() => handleUpdateProfile(profile.id)}
+                          className="flex-1 px-3 py-1.5 bg-[#F77B8A] text-white rounded-lg text-xs font-medium hover:shadow-md transition-all"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingProfileId(null)}
+                          className="px-3 py-1.5 text-gray-500 hover:text-gray-700 rounded-lg text-xs transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setSelectedProfile(profile.id)}
+                        className="w-full text-left"
+                      >
+                        <div className="text-3xl mb-2">👤</div>
+                        <div className="font-semibold text-gray-800 text-sm">{profile.name}</div>
+                        <div className="text-xs text-gray-600">Age {profile.age}</div>
+                      </button>
+                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 hover:opacity-100"
+                        style={{ opacity: selectedProfile === profile.id ? 1 : undefined }}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingProfileId(profile.id);
+                            setEditingProfileName(profile.name);
+                            setEditingProfileAge(String(profile.age));
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-[#F77B8A] hover:bg-pink-50 rounded-lg transition-all text-xs"
+                          title="Edit profile"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setProfileToDelete({ id: profile.id, name: profile.name });
+                            setIsDeleteProfileModalOpen(true);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all text-xs"
+                          title="Delete profile"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -949,7 +1147,22 @@ export default function ParentDashboard() {
                               ) : (
                                 <h3 className="text-lg font-semibold text-gray-800">{device.device_name}</h3>
                               )}
-                              <p className="text-sm text-gray-600 mt-1">Linked to: {device.kid_profile_name}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-500">Linked to:</span>
+                                <select
+                                  value={device.kid_profile_id || ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value ? parseInt(e.target.value) : null;
+                                    handleReassignDevice(device.id, val);
+                                  }}
+                                  className="text-sm text-gray-700 border border-gray-200 rounded-lg px-2 py-1 focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                                >
+                                  <option value="">Unassigned</option>
+                                  {kidProfiles.map((kp) => (
+                                    <option key={kp.id} value={kp.id}>{kp.name}</option>
+                                  ))}
+                                </select>
+                              </div>
                             </div>
                             <div className="flex gap-2">
                               <button
@@ -993,15 +1206,220 @@ export default function ParentDashboard() {
                 </div>
               )}
 
-              {activeTab === 'services' && (
-                <div>
-                  <ServiceSelection />
+            </div>
+          )}
+
+          {/* Family-wide tabs (no profile selection needed) */}
+          {activeTab === 'timelimits' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800">Screen Time Limits</h2>
+                {!editingTimeLimits && (
+                  <button
+                    onClick={() => {
+                      setTlDailyMinutes(timeLimits.dailyLimitMinutes !== null ? String(timeLimits.dailyLimitMinutes) : '');
+                      setTlBedtimeStart(timeLimits.bedtimeStart || '');
+                      setTlBedtimeEnd(timeLimits.bedtimeEnd || '');
+                      setTlScheduleEnabled(timeLimits.scheduleEnabled);
+                      setEditingTimeLimits(true);
+                    }}
+                    className="px-5 py-2.5 bg-[#F77B8A] text-white rounded-full text-sm font-medium hover:shadow-[0_6px_20px_rgba(247,123,138,0.4)] hover:scale-105 transition-all duration-200"
+                  >
+                    Edit Limits
+                  </button>
+                )}
+              </div>
+
+              {editingTimeLimits ? (
+                <div className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)] space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Daily Screen Time (minutes)</label>
+                    <input
+                      type="number"
+                      value={tlDailyMinutes}
+                      onChange={(e) => setTlDailyMinutes(e.target.value)}
+                      placeholder="e.g. 120"
+                      min={0}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-gray-800 focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Leave empty for unlimited</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Bedtime Start</label>
+                      <input
+                        type="time"
+                        value={tlBedtimeStart}
+                        onChange={(e) => setTlBedtimeStart(e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-gray-800 focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Bedtime End</label>
+                      <input
+                        type="time"
+                        value={tlBedtimeEnd}
+                        onChange={(e) => setTlBedtimeEnd(e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-gray-800 focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setTlScheduleEnabled(!tlScheduleEnabled)}
+                      className={`relative w-12 h-6 rounded-full transition-all duration-200 ${tlScheduleEnabled ? 'bg-[#F77B8A]' : 'bg-gray-300'}`}
+                    >
+                      <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${tlScheduleEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                    </button>
+                    <span className="text-sm text-gray-700 font-medium">Enforce schedule on devices</span>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={handleSaveTimeLimits}
+                      className="px-6 py-2.5 bg-[#F77B8A] text-white rounded-xl text-sm font-medium hover:shadow-[0_4px_14px_rgba(247,123,138,0.4)] hover:scale-105 transition-all duration-200"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setEditingTimeLimits(false)}
+                      className="px-4 py-2.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                    <div className="text-sm text-gray-500 mb-1">Daily Limit</div>
+                    <div className="text-2xl font-bold text-gray-800">
+                      {timeLimits.dailyLimitMinutes !== null ? `${timeLimits.dailyLimitMinutes} min` : 'Unlimited'}
+                    </div>
+                    {timeLimits.dailyLimitMinutes !== null && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {Math.floor(timeLimits.dailyLimitMinutes / 60)}h {timeLimits.dailyLimitMinutes % 60}m per day
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                    <div className="text-sm text-gray-500 mb-1">Bedtime</div>
+                    <div className="text-2xl font-bold text-gray-800">
+                      {timeLimits.bedtimeStart && timeLimits.bedtimeEnd
+                        ? `${timeLimits.bedtimeStart} - ${timeLimits.bedtimeEnd}`
+                        : 'Not set'}
+                    </div>
+                  </div>
+                  <div className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                    <div className="text-sm text-gray-500 mb-1">Schedule</div>
+                    <div className={`text-2xl font-bold ${timeLimits.scheduleEnabled ? 'text-green-600' : 'text-gray-400'}`}>
+                      {timeLimits.scheduleEnabled ? 'Active' : 'Off'}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {timeLimits.scheduleEnabled ? 'Enforced on all devices' : 'Devices unrestricted'}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
           )}
 
-          {!selectedProfile && (
+          {activeTab === 'usage' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800">Usage Statistics</h2>
+                <button
+                  onClick={loadUsageStats}
+                  className="px-5 py-2.5 bg-[#F77B8A] text-white rounded-full text-sm font-medium hover:shadow-[0_6px_20px_rgba(247,123,138,0.4)] hover:scale-105 transition-all duration-200"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              {usageStats ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                      <div className="text-sm text-gray-500 mb-1">Time Used Today</div>
+                      <div className="text-2xl font-bold text-gray-800">
+                        {Math.floor(usageStats.totalTimeToday / 60)}h {usageStats.totalTimeToday % 60}m
+                      </div>
+                    </div>
+                    <div className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                      <div className="text-sm text-gray-500 mb-1">Daily Limit</div>
+                      <div className="text-2xl font-bold text-gray-800">
+                        {usageStats.dailyLimitMinutes !== null
+                          ? `${Math.floor(usageStats.dailyLimitMinutes / 60)}h ${usageStats.dailyLimitMinutes % 60}m`
+                          : 'Unlimited'}
+                      </div>
+                    </div>
+                    <div className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                      <div className="text-sm text-gray-500 mb-1">Time Remaining</div>
+                      <div className={`text-2xl font-bold ${
+                        usageStats.timeRemainingToday !== null && usageStats.timeRemainingToday <= 15
+                          ? 'text-red-500'
+                          : usageStats.timeRemainingToday !== null && usageStats.timeRemainingToday <= 30
+                          ? 'text-orange-500'
+                          : 'text-green-600'
+                      }`}>
+                        {usageStats.timeRemainingToday !== null
+                          ? `${Math.floor(usageStats.timeRemainingToday / 60)}h ${usageStats.timeRemainingToday % 60}m`
+                          : 'N/A'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <h3 className="text-lg font-bold text-gray-700 mb-3">Per-Device Breakdown</h3>
+                  {usageStats.devices.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {usageStats.devices.map((dev) => (
+                        <div key={dev.device_id} className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_28px_rgba(247,123,138,0.2)] hover:-translate-y-1 transition-all duration-300">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h4 className="font-semibold text-gray-800">{dev.device_name}</h4>
+                              <p className="text-sm text-gray-500">{dev.kid_name}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-bold text-gray-800">{dev.timeUsedToday}m</div>
+                              <div className="text-xs text-gray-500">today</div>
+                            </div>
+                          </div>
+                          <div className="space-y-2 text-sm text-gray-600">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Most Used:</span>
+                              <span>{dev.mostUsedApp || 'None'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Last Active:</span>
+                              <span>{dev.lastActive ? new Date(dev.lastActive).toLocaleString() : 'Never'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 bg-white/50 rounded-3xl border border-gray-200/30">
+                      <div className="text-gray-400 text-5xl mb-3">📊</div>
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">No device usage data</h3>
+                      <p className="text-sm text-gray-500">Usage will appear once devices are active</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-16 bg-white/50 rounded-3xl border border-gray-200/30">
+                  <div className="text-gray-400 text-5xl mb-3">📊</div>
+                  <h3 className="text-lg font-semibold text-gray-600 mb-2">Loading usage data...</h3>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'services' && (
+            <div>
+              <ServiceSelection />
+            </div>
+          )}
+
+          {!selectedProfile && !['timelimits', 'usage', 'services'].includes(activeTab) && (
             <div className="text-center py-16 bg-white/50 rounded-3xl border border-gray-200/30 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
               <div className="text-gray-400 text-6xl mb-4">👤</div>
               <h3 className="text-lg font-semibold text-gray-600 mb-2">Select a kid profile</h3>
@@ -1033,6 +1451,19 @@ export default function ParentDashboard() {
         cancelText="Cancel"
         onConfirm={confirmRepairDevice}
         onCancel={cancelRepairDevice}
+      />
+
+      <ConfirmModal
+        isOpen={isDeleteProfileModalOpen}
+        title={`Delete "${profileToDelete?.name}"?`}
+        message="This will remove the profile, unlink all devices, and delete all content policies. This cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDeleteProfile}
+        onCancel={() => {
+          setIsDeleteProfileModalOpen(false);
+          setProfileToDelete(null);
+        }}
       />
     </div>
   );
