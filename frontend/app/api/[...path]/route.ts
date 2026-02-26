@@ -34,6 +34,14 @@ export async function DELETE(
   return proxyRequest(request, path, 'DELETE');
 }
 
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  const { path } = await params;
+  return proxyRequest(request, path, 'PATCH');
+}
+
 async function proxyRequest(
   request: NextRequest,
   path: string[],
