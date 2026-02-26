@@ -678,19 +678,19 @@ export default function ParentDashboard() {
                   </form>
 
                   {searchResults.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4" style={{ perspective: '1200px' }}>
                       {searchResults.map((title) => (
                         <div 
                           key={title.id} 
                           className="group relative"
                           onContextMenu={(e) => handleOpenReportModal(title, e)}
                         >
-                          <div className="relative">
+                          <div className="relative transition-all duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-105" style={{ transformStyle: 'preserve-3d' }}>
                             {title.poster_path && (
                               <img
                                 src={title.poster_path}
                                 alt={title.title}
-                                className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer"
+                                className="w-full aspect-[2/3] object-cover rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] group-hover:shadow-[0_12px_28px_rgba(247,123,138,0.35)] transition-all duration-300 cursor-pointer ring-1 ring-white/10 group-hover:ring-2 group-hover:ring-[#F77B8A]/40"
                               />
                             )}
                             {title.providers && title.providers.length > 0 && (
@@ -831,17 +831,19 @@ export default function ParentDashboard() {
                                 <span>{info.name}</span>
                                 <span className="text-sm font-normal text-gray-500">({providerGroups[provider].length})</span>
                               </h3>
-                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4" style={{ perspective: '1200px' }}>
                                 {providerGroups[provider].map((policy) => (
                                   <div key={`${provider}-${policy.policy_id}`} className="group relative">
+                                    <div className="transition-all duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-105" style={{ transformStyle: 'preserve-3d' }}>
                                     {policy.poster_path && (
                                       <img
                                         src={policy.poster_path}
                                         alt={policy.title}
                                         onClick={() => handleContentClick(policy)}
-                                        className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer hover:scale-105"
+                                        className="w-full aspect-[2/3] object-cover rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] group-hover:shadow-[0_12px_28px_rgba(247,123,138,0.35)] transition-all duration-300 cursor-pointer ring-1 ring-white/10 group-hover:ring-2 group-hover:ring-[#F77B8A]/40"
                                       />
                                     )}
+                                    </div>
                                     <button
                                       onClick={() => handleTogglePolicy(
                                         { id: policy.title_id, title: policy.title, media_type: '', rating: '', poster_path: policy.poster_path },
@@ -864,17 +866,19 @@ export default function ParentDashboard() {
                               <span>Other</span>
                               <span className="text-sm font-normal text-gray-500">({unknownProvider.length})</span>
                             </h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4" style={{ perspective: '1200px' }}>
                               {unknownProvider.map((policy) => (
                                 <div key={policy.policy_id} className="group relative">
+                                  <div className="transition-all duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-105" style={{ transformStyle: 'preserve-3d' }}>
                                   {policy.poster_path && (
                                     <img
                                       src={policy.poster_path}
                                       alt={policy.title}
                                       onClick={() => handleContentClick(policy)}
-                                      className="w-full aspect-[2/3] object-cover rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer hover:scale-105"
+                                      className="w-full aspect-[2/3] object-cover rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] group-hover:shadow-[0_12px_28px_rgba(247,123,138,0.35)] transition-all duration-300 cursor-pointer ring-1 ring-white/10 group-hover:ring-2 group-hover:ring-[#F77B8A]/40"
                                     />
                                   )}
+                                  </div>
                                   <button
                                     onClick={() => handleTogglePolicy(
                                       { id: policy.title_id, title: policy.title, media_type: '', rating: '', poster_path: policy.poster_path },
