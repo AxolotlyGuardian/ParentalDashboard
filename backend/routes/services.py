@@ -15,7 +15,16 @@ AVAILABLE_SERVICES = [
     {"id": "prime_video", "name": "Prime Video", "package": "com.amazon.avod.thirdpartyclient"},
     {"id": "max", "name": "Max", "package": "com.hbo.hbonow"},
     {"id": "peacock", "name": "Peacock", "package": "com.peacocktv.peacockandroid"},
-    {"id": "youtube", "name": "YouTube", "package": "com.google.android.youtube"}
+    {"id": "youtube", "name": "YouTube", "package": "com.google.android.youtube"},
+    {"id": "apple_tv_plus", "name": "Apple TV+", "package": "com.apple.atve.androidtv.appletv"},
+    {"id": "paramount_plus", "name": "Paramount+", "package": "com.cbs.ott"},
+    {"id": "tubi", "name": "Tubi", "package": "com.tubitv"},
+    {"id": "crunchyroll", "name": "Crunchyroll", "package": "com.crunchyroll.crunchyroid"},
+    {"id": "pbs_kids", "name": "PBS Kids", "package": "org.pbskids.video"},
+    {"id": "espn_plus", "name": "ESPN+", "package": "com.espn.score_center"},
+    {"id": "curiosity_stream", "name": "Curiosity Stream", "package": "com.curiositystream.curiositystream"},
+    {"id": "noggin", "name": "Noggin", "package": "com.nick.noggin"},
+    {"id": "kidoodle_tv", "name": "Kidoodle.TV", "package": "com.kidoodle.kidoodle"}
 ]
 
 class ServiceSelectionUpdate(BaseModel):

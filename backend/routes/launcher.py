@@ -360,8 +360,18 @@ async def get_apps(
                     "disney_plus": "com.disney.disneyplus",
                     "hulu": "com.hulu.plus",
                     "prime_video": "com.amazon.avod.thirdpartyclient",
+                    "max": "com.hbo.hbonow",
                     "peacock": "com.peacocktv.peacockandroid",
-                    "youtube": "com.google.android.youtube"
+                    "youtube": "com.google.android.youtube",
+                    "apple_tv_plus": "com.apple.atve.androidtv.appletv",
+                    "paramount_plus": "com.cbs.ott",
+                    "tubi": "com.tubitv",
+                    "crunchyroll": "com.crunchyroll.crunchyroid",
+                    "pbs_kids": "org.pbskids.video",
+                    "espn_plus": "com.espn.score_center",
+                    "curiosity_stream": "com.curiositystream.curiositystream",
+                    "noggin": "com.nick.noggin",
+                    "kidoodle_tv": "com.kidoodle.kidoodle"
                 }
                 
                 primary_provider = None
