@@ -192,7 +192,7 @@ export const servicesApi = {
     api.get('/services'),
 
   updateServices: (selectedServices: string[]) =>
-    api.put('/services', { selected_services: selectedServices }),
+    api.post('/services', { selected_services: selectedServices }),
 };
 
 // --- Admin ---
