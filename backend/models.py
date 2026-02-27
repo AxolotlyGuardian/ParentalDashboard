@@ -65,17 +65,85 @@ class Title(Base):
     
     policies = relationship("Policy", back_populates="title")
 
+# Content Package System
+
+class ContentPackage(Base):
+    __tablename__ = "content_packages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    age_min = Column(Integer, nullable=True)
+    age_max = Column(Integer, nullable=True)
+    category = Column(String, nullable=False, index=True)  # age_band, theme, genre
+    icon = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True, index=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    creator = relationship("User")
+    items = relationship("ContentPackageItem", back_populates="package", cascade="all, delete-orphan")
+
+
+class ContentPackageItem(Base):
+    __tablename__ = "content_package_items"
+    __table_args__ = (
+        UniqueConstraint('package_id', 'title_id', name='_package_title_uc'),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    package_id = Column(Integer, ForeignKey("content_packages.id", ondelete="CASCADE"), nullable=False, index=True)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False, index=True)
+    added_at = Column(DateTime, default=datetime.utcnow)
+
+    package = relationship("ContentPackage", back_populates="items")
+    title = relationship("Title")
+
+
+class AppliedPackage(Base):
+    __tablename__ = "applied_packages"
+    __table_args__ = (
+        UniqueConstraint('kid_profile_id', 'package_id', name='_kid_package_uc'),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=False, index=True)
+    package_id = Column(Integer, ForeignKey("content_packages.id"), nullable=False, index=True)
+    applied_at = Column(DateTime, default=datetime.utcnow)
+
+    kid_profile = relationship("KidProfile")
+    package = relationship("ContentPackage")
+
+
+class PackageUpdate(Base):
+    __tablename__ = "package_updates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=False, index=True)
+    package_id = Column(Integer, ForeignKey("content_packages.id"), nullable=False, index=True)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False, index=True)
+    status = Column(String, default="pending", index=True)  # pending, accepted, dismissed
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    kid_profile = relationship("KidProfile")
+    package = relationship("ContentPackage")
+    title = relationship("Title")
+
+
 class Policy(Base):
     __tablename__ = "policies"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=False, index=True)
     title_id = Column(Integer, ForeignKey("titles.id"), nullable=False, index=True)
     is_allowed = Column(Boolean, nullable=False, default=True)
+    source_package_id = Column(Integer, ForeignKey("content_packages.id"), nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
+
     kid_profile = relationship("KidProfile", back_populates="policies")
     title = relationship("Title", back_populates="policies")
+    source_package = relationship("ContentPackage")
 
 class EpisodePolicy(Base):
     __tablename__ = "episode_policies"

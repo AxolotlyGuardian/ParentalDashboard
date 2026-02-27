@@ -38,6 +38,7 @@ export default function AdminLayout({
       { href: '/admin/content-tags', label: 'Content Tags' },
       { href: '/admin/titles', label: 'Titles' },
       { href: '/admin/episode-links', label: 'Episode Links' },
+      { href: '/admin/packages', label: 'Packages' },
     ],
     users: [
       { href: '/admin/parents', label: 'Parents' },
