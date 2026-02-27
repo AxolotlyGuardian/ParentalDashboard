@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
     STRIPE_PUBLISHABLE_KEY: str = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
     STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+    STRIPE_PRICE_STARTER: str = os.getenv("STRIPE_PRICE_STARTER", "")
+    STRIPE_PRICE_FAMILY: str = os.getenv("STRIPE_PRICE_FAMILY", "")
+    STRIPE_PRICE_EDUCATOR: str = os.getenv("STRIPE_PRICE_EDUCATOR", "")
     ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "")
 
     class Config:

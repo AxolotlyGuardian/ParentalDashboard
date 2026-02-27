@@ -432,6 +432,15 @@ class Subscription(Base):
     user = relationship("User")
 
 
+class RevokedToken(Base):
+    __tablename__ = "revoked_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    jti = Column(String, unique=True, nullable=False, index=True)
+    revoked_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
+
+
 class FandomEpisodeLink(Base):
     __tablename__ = "fandom_episode_links"
     __table_args__ = (

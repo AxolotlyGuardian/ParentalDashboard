@@ -7,10 +7,11 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional
 from db import get_db
-from models import User, KidProfile, PairingCode, Device, Policy
+from models import User, KidProfile, PairingCode, Device, Policy, RevokedToken
 import secrets
+import uuid
 from config import settings
-from auth_utils import require_parent, require_admin
+from auth_utils import get_current_user, require_parent, require_admin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -54,7 +55,7 @@ class KidProfileUpdateRequest(BaseModel):
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "jti": str(uuid.uuid4())})
     encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
     return encoded_jwt
 
@@ -124,6 +125,23 @@ def kid_login(request: KidLoginRequest, db: Session = Depends(get_db)):
         profile_id=profile.id,
         role="kid"
     )
+
+@router.post("/logout")
+def logout(
+    auth_data: tuple = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Revoke the current access token so it cannot be reused."""
+    user, profile, role, payload = auth_data
+    jti = payload.get("jti")
+    if jti:
+        exp = payload.get("exp")
+        expires_at = datetime.utcfromtimestamp(exp) if exp else datetime.utcnow()
+        revoked = RevokedToken(jti=jti, expires_at=expires_at)
+        db.add(revoked)
+        db.commit()
+    return {"message": "Logged out successfully"}
+
 
 @router.post("/kid/profile")
 def create_kid_profile(
