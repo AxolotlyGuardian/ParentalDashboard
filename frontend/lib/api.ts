@@ -144,8 +144,14 @@ export const usageStatsApi = {
 // --- Launch ---
 
 export const launchApi = {
-  checkLaunch: (kidProfileId: number, titleId: number, provider: string) =>
-    api.post('/launch/check', { kid_profile_id: kidProfileId, title_id: titleId, provider }),
+  checkLaunch: (kidProfileId: number, titleId: number, provider: string, seasonNumber?: number, episodeNumber?: number) =>
+    api.post('/launch/check', {
+      kid_profile_id: kidProfileId,
+      title_id: titleId,
+      provider,
+      ...(seasonNumber != null && { season_number: seasonNumber }),
+      ...(episodeNumber != null && { episode_number: episodeNumber }),
+    }),
 };
 
 // --- Content Tags ---
@@ -218,6 +224,9 @@ export const adminApi = {
 
   backfillEpisodeLinks: () =>
     api.post('/launcher/admin/backfill-episode-links'),
+
+  processPendingReports: () =>
+    api.post('/launcher/admin/process-pending-reports'),
 
   scrapeFandomCategory: (data: { title_ids?: number[]; tag_ids?: number[]; force_rescrape?: boolean }) =>
     api.post('/admin/fandom-scrape', data),
