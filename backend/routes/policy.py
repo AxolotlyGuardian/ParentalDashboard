@@ -9,8 +9,11 @@ from services.fandom_scraper import trigger_show_scrape
 from services.auto_tagger import AutoTagger
 from services.movie_api import movie_api_client
 from datetime import datetime
+import logging
 import sys
 import os
+
+logger = logging.getLogger(__name__)
 sys.path.append(os.path.dirname(__file__))
 from catalog import fetch_and_update_providers, normalize_providers
 
@@ -31,7 +34,7 @@ def load_episodes_for_title(title_id: int, db: Session):
             return
         
         if not settings.TMDB_API_KEY:
-            print(f"No TMDB API key configured")
+            logger.warning("No TMDB API key configured")
             return
         
         # Get TV show details
@@ -41,7 +44,7 @@ def load_episodes_for_title(title_id: int, db: Session):
         with httpx.Client() as client:
             tv_response = client.get(tv_url, params=tv_params, timeout=10)
             if tv_response.status_code != 200:
-                print(f"Failed to fetch TV show details for {title.title}")
+                logger.warning("Failed to fetch TV show details for %s", title.title)
                 return
             
             tv_data = tv_response.json()
@@ -87,10 +90,10 @@ def load_episodes_for_title(title_id: int, db: Session):
                     episodes_loaded += 1
             
             db.commit()
-            print(f"Auto-loaded {episodes_loaded} episodes for {title.title}")
+            logger.info("Auto-loaded %d episodes for %s", episodes_loaded, title.title)
     
     except Exception as e:
-        print(f"Error loading episodes for title {title_id}: {str(e)}")
+        logger.error("Error loading episodes for title %d: %s", title_id, e)
         db.rollback()
     finally:
         db.close()
@@ -118,12 +121,12 @@ def fetch_episode_1_deep_link(title_id: int, db: Session):
             if episode_1:
                 break
             
-            print(f"Waiting for episode 1 to be loaded for {title.title} (attempt {attempt + 1}/6)")
+            logger.info("Waiting for episode 1 to be loaded for %s (attempt %d/6)", title.title, attempt + 1)
             time.sleep(5)
             db.expire_all()  # Refresh session to see new data
         
         if not episode_1:
-            print(f"Episode 1 not found for {title.title} after waiting, skipping deep link fetch")
+            logger.warning("Episode 1 not found for %s after waiting, skipping deep link fetch", title.title)
             return
         
         # Check if deep link already exists
@@ -132,7 +135,7 @@ def fetch_episode_1_deep_link(title_id: int, db: Session):
         ).first()
         
         if existing_link:
-            print(f"Deep link already exists for {title.title} S1E1")
+            logger.info("Deep link already exists for %s S1E1", title.title)
             return
         
         # Try to fetch deep links from Movie of the Night API for common providers
@@ -162,20 +165,20 @@ def fetch_episode_1_deep_link(title_id: int, db: Session):
                     )
                     db.add(episode_link)
                     links_added += 1
-                    print(f"Added {provider} deep link for {title.title} S1E1: {deep_link_url}")
+                    logger.info("Added %s deep link for %s S1E1: %s", provider, title.title, deep_link_url)
             
             except Exception as provider_error:
-                print(f"Failed to fetch {provider} link for {title.title}: {str(provider_error)}")
+                logger.warning("Failed to fetch %s link for %s: %s", provider, title.title, provider_error)
                 continue
         
         if links_added > 0:
             db.commit()
-            print(f"Successfully added {links_added} deep link(s) for {title.title} Episode 1")
+            logger.info("Successfully added %d deep link(s) for %s Episode 1", links_added, title.title)
         else:
-            print(f"No deep links found for {title.title} Episode 1")
+            logger.info("No deep links found for %s Episode 1", title.title)
     
     except Exception as e:
-        print(f"Error fetching episode 1 deep link for title {title_id}: {str(e)}")
+        logger.error("Error fetching episode 1 deep link for title %d: %s", title_id, e)
         db.rollback()
     finally:
         db.close()

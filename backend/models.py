@@ -30,7 +30,7 @@ class KidProfile(Base):
     __tablename__ = "kid_profiles"
     
     id = Column(Integer, primary_key=True, index=True)
-    parent_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    parent_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     name = Column(String, nullable=False)
     age = Column(Integer, nullable=False)
     pin = Column(String, nullable=False)
@@ -69,8 +69,8 @@ class Policy(Base):
     __tablename__ = "policies"
     
     id = Column(Integer, primary_key=True, index=True)
-    kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=False)
-    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False)
+    kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=False, index=True)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False, index=True)
     is_allowed = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
@@ -100,8 +100,8 @@ class Device(Base):
     id = Column(Integer, primary_key=True, index=True)
     device_id = Column(String, unique=True, nullable=False, index=True)
     api_key = Column(String, nullable=False)
-    family_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=True)
+    family_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=True, index=True)
     device_name = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active = Column(DateTime, default=datetime.utcnow)
@@ -196,7 +196,7 @@ class Episode(Base):
     __tablename__ = "episodes"
     
     id = Column(Integer, primary_key=True, index=True)
-    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False, index=True)
     tmdb_episode_id = Column(Integer, unique=True, nullable=True, index=True)
     season_number = Column(Integer, nullable=False)
     episode_number = Column(Integer, nullable=False)
@@ -215,7 +215,7 @@ class EpisodeLink(Base):
     __tablename__ = "episode_links"
     
     id = Column(Integer, primary_key=True, index=True)
-    episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=False)
+    episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=False, index=True)
     raw_provider = Column(String, nullable=False)
     provider = Column(String, nullable=False, index=True)
     deep_link_url = Column(String, nullable=False)
@@ -239,7 +239,7 @@ class DeviceEpisodeReport(Base):
     __tablename__ = "device_episode_reports"
     
     id = Column(Integer, primary_key=True, index=True)
-    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False, index=True)
     raw_url = Column(String, nullable=False)
     provider = Column(String, nullable=False, index=True)
     normalized_provider = Column(String, nullable=False, index=True)
@@ -247,7 +247,7 @@ class DeviceEpisodeReport(Base):
     season_hint = Column(Integer, nullable=True)
     episode_hint = Column(Integer, nullable=True)
     tmdb_title_id = Column(Integer, nullable=True)
-    kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=True)
+    kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=True, index=True)
     playback_position = Column(Integer, nullable=True)
     processing_status = Column(String, default="pending", index=True)
     matched_episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=True)
@@ -275,10 +275,10 @@ class ContentTag(Base):
 
 class TitleTag(Base):
     __tablename__ = "title_tags"
-    
+
     id = Column(Integer, primary_key=True, index=True)
-    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False)
-    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False, index=True)
+    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False, index=True)
     source = Column(String, default="manual")
     confidence = Column(Float, default=1.0)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -288,10 +288,10 @@ class TitleTag(Base):
 
 class EpisodeTag(Base):
     __tablename__ = "episode_tags"
-    
+
     id = Column(Integer, primary_key=True, index=True)
-    episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=False)
-    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False)
+    episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=False, index=True)
+    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False, index=True)
     source = Column(String, default="fandom_scrape")
     confidence = Column(Float, default=1.0)
     source_url = Column(String, nullable=True)
@@ -307,9 +307,9 @@ class ContentReport(Base):
     __tablename__ = "content_reports"
     
     id = Column(Integer, primary_key=True, index=True)
-    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False)
-    reported_by = Column(Integer, ForeignKey("users.id"), nullable=False)
-    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False, index=True)
+    reported_by = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    tag_id = Column(Integer, ForeignKey("content_tags.id"), nullable=False, index=True)
     season_number = Column(Integer, nullable=True)
     episode_number = Column(Integer, nullable=True)
     notes = Column(Text, nullable=True)

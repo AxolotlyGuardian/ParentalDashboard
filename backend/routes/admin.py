@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
+import logging
 from db import get_db, SessionLocal
 from models import Device, KidProfile, User, ContentReport, ContentTag, Title, Episode, EpisodeTag, FandomScrapeJob, FandomScrapeRun, FandomEpisodeLink, EpisodeLink, Policy, TitleTag
 from auth_utils import require_admin
@@ -9,6 +10,8 @@ from services.fandom_scraper import FandomScraper
 from services.fandom_coordinator import FandomScrapeCoordinator
 from services.enhanced_fandom_scraper import EnhancedFandomScraper
 import asyncio
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -411,7 +414,7 @@ def load_title_episodes(
                 season_response = client.get(season_url, params=tv_params, timeout=10)
                 
                 if season_response.status_code != 200:
-                    print(f"Failed to fetch season {season_num} for {title.title}")
+                    logger.warning("Failed to fetch season %d for %s", season_num, title.title)
                     continue
                 
                 season_data = season_response.json()
@@ -807,7 +810,7 @@ def backfill_episode_links(
                 time.sleep(0.2)
                 
             except Exception as e:
-                print(f"Error fetching {provider} for {title.title}: {str(e)}")
+                logger.error("Error fetching %s for %s: %s", provider, title.title, e)
         
         if links_added > 0:
             db.commit()
