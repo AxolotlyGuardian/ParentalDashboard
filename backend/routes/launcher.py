@@ -1,16 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import datetime, timedelta
 from typing import Optional
 import secrets
 import random
 import hashlib
 import hmac
+import logging
 from db import get_db
 from models import Device, PairingCode, PendingDevice, App, FamilyApp, TimeLimit, UsageLog, User, KidProfile, Policy, Title, DeviceEpisodeReport, Episode, EpisodeLink
 from auth_utils import require_parent, require_admin
 from services.movie_api import movie_api_client
 import json
+
+logger = logging.getLogger(__name__)
 
 
 def hash_api_key(api_key: str) -> str:
@@ -1043,7 +1047,7 @@ async def report_episode_url(
                         if enrichment.get("verified") is True:
                             existing_link.motn_verified = True
                 except Exception as e:
-                    print(f"Enrichment failed: {e}")
+                    logger.warning("Enrichment failed: %s", e)
                 
                 db.commit()
             else:
@@ -1072,7 +1076,7 @@ async def report_episode_url(
                         if enrichment.get("verified") is True:
                             episode_link.motn_verified = True
                 except Exception as e:
-                    print(f"Enrichment failed: {e}")
+                    logger.warning("Enrichment failed: %s", e)
                 
                 db.add(episode_link)
                 report.processing_status = "matched_new"
@@ -1098,22 +1102,23 @@ def get_all_episode_reports(
     db: Session = Depends(get_db)
 ):
     """Get all device episode reports for admin review"""
-    query = db.query(DeviceEpisodeReport).order_by(DeviceEpisodeReport.reported_at.desc())
-    
+    query = (
+        db.query(DeviceEpisodeReport, Device.device_name, KidProfile.name)
+        .outerjoin(Device, DeviceEpisodeReport.device_id == Device.id)
+        .outerjoin(KidProfile, DeviceEpisodeReport.kid_profile_id == KidProfile.id)
+        .order_by(DeviceEpisodeReport.reported_at.desc())
+    )
+
     if status:
         query = query.filter(DeviceEpisodeReport.processing_status == status)
-    
-    reports = query.offset(skip).limit(limit).all()
-    
-    result = []
-    for report in reports:
-        device = db.query(Device).filter(Device.id == report.device_id).first()
-        kid = db.query(KidProfile).filter(KidProfile.id == report.kid_profile_id).first()
-        
-        result.append({
+
+    rows = query.offset(skip).limit(limit).all()
+
+    return [
+        {
             "id": report.id,
-            "device_name": device.device_name if device else None,
-            "kid_name": kid.name if kid else None,
+            "device_name": device_name,
+            "kid_name": kid_name,
             "reported_title": report.reported_title,
             "provider": report.normalized_provider,
             "season": report.season_hint,
@@ -1124,9 +1129,9 @@ def get_all_episode_reports(
             "confidence_score": report.confidence_score,
             "reported_at": report.reported_at,
             "processed_at": report.processed_at
-        })
-    
-    return result
+        }
+        for report, device_name, kid_name in rows
+    ]
 
 @router.post("/launcher/admin/process-pending-reports")
 def process_pending_episode_reports(
@@ -1210,30 +1215,29 @@ def get_all_episode_links(
     db: Session = Depends(get_db)
 ):
     """Get all episode deep links for admin review"""
-    query = db.query(EpisodeLink).filter(EpisodeLink.is_active == True)
-    
+    query = (
+        db.query(EpisodeLink, Episode, Title)
+        .outerjoin(Episode, EpisodeLink.episode_id == Episode.id)
+        .outerjoin(Title, Episode.title_id == Title.id)
+        .filter(EpisodeLink.is_active == True)
+    )
+
     if provider:
         query = query.filter(EpisodeLink.provider == provider)
-    
+
     if verified_only:
         query = query.filter(EpisodeLink.motn_verified == True)
-    
+
     query = query.order_by(EpisodeLink.last_confirmed_at.desc())
-    links = query.offset(skip).limit(limit).all()
-    
-    result = []
-    for link in links:
-        episode = db.query(Episode).filter(Episode.id == link.episode_id).first()
-        title = None
-        if episode:
-            title = db.query(Title).filter(Title.id == episode.title_id).first()
-        
-        result.append({
+    rows = query.offset(skip).limit(limit).all()
+
+    return [
+        {
             "id": link.id,
             "title_name": str(title.title) if title and title.title else None,
             "season": episode.season_number if episode else None,
             "episode": episode.episode_number if episode else None,
-            "episode_title": str(episode.title) if episode and episode.title else None,
+            "episode_title": str(episode.episode_name) if episode and episode.episode_name else None,
             "provider": str(link.provider) if link.provider else None,
             "deep_link_url": str(link.deep_link_url) if link.deep_link_url else None,
             "source": str(link.source) if link.source else None,
@@ -1245,6 +1249,6 @@ def get_all_episode_links(
             "first_seen_at": link.first_seen_at,
             "last_confirmed_at": link.last_confirmed_at,
             "last_enriched_at": link.last_enriched_at
-        })
-    
-    return result
+        }
+        for link, episode, title in rows
+    ]

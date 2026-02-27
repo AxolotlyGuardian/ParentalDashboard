@@ -2,11 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
 import httpx
+import logging
 from db import get_db
 from models import Title, User, Episode, EpisodeTag, ContentTag, EpisodePolicy, Policy
 from config import settings
 from datetime import datetime
 from auth_utils import require_parent
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
@@ -87,11 +90,11 @@ def normalize_providers(providers: list) -> list:
 async def fetch_and_update_providers(title: Title, db: Session):
     """Fetch provider information from TMDB and update the title"""
     if not settings.TMDB_API_KEY:
-        print(f"No TMDB API key configured")
+        logger.warning("No TMDB API key configured")
         return
-    
+
     if not title.tmdb_id:
-        print(f"Title {title.id} has no TMDB ID")
+        logger.warning("Title %d has no TMDB ID", title.id)
         return
     
     media_type = "movie" if title.media_type == "movie" else "tv"
@@ -102,7 +105,7 @@ async def fetch_and_update_providers(title: Title, db: Session):
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=params)
             if response.status_code != 200:
-                print(f"TMDB API returned {response.status_code} for title {title.id}")
+                logger.warning("TMDB API returned %d for title %d", response.status_code, title.id)
                 return
             
             data = response.json()
@@ -124,9 +127,9 @@ async def fetch_and_update_providers(title: Title, db: Session):
             
             title.providers = available_providers
             db.commit()
-            print(f"Updated title {title.id} ({title.title}) with providers: {available_providers}")
+            logger.info("Updated title %d (%s) with providers: %s", title.id, title.title, available_providers)
     except Exception as e:
-        print(f"Error fetching providers for title {title.id}: {e}")
+        logger.error("Error fetching providers for title %d: %s", title.id, e)
 
 @router.post("/update-all-providers")
 async def update_all_providers(
@@ -484,7 +487,7 @@ async def get_title_providers(
                             # If decoding fails, continue to next URL
                             continue
             except Exception as e:
-                print(f"Error fetching JustWatch links: {e}")
+                logger.error("Error fetching JustWatch links: %s", e)
         
         # Fallback to TMDB link if JustWatch extraction failed
         for provider in available_providers:

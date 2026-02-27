@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from pydantic import BaseModel, EmailStr, field_validator
 import bcrypt
 from jose import JWTError, jwt
@@ -172,22 +173,44 @@ def get_all_parents(
     db: Session = Depends(get_db)
 ):
     """Admin endpoint to view all parent accounts"""
-    parents = db.query(User).all()
-    
+    # Get all parents with kid profile counts and device counts in one query
+    kid_count_sub = (
+        db.query(KidProfile.parent_id, func.count(KidProfile.id).label("kid_count"))
+        .group_by(KidProfile.parent_id)
+        .subquery()
+    )
+    device_count_sub = (
+        db.query(KidProfile.parent_id, func.count(Device.id).label("device_count"))
+        .join(Device, Device.kid_profile_id == KidProfile.id)
+        .group_by(KidProfile.parent_id)
+        .subquery()
+    )
+    rows = (
+        db.query(User, kid_count_sub.c.kid_count, device_count_sub.c.device_count)
+        .outerjoin(kid_count_sub, User.id == kid_count_sub.c.parent_id)
+        .outerjoin(device_count_sub, User.id == device_count_sub.c.parent_id)
+        .all()
+    )
+
+    # Batch-load kid profiles for all parents
+    parent_ids = [row[0].id for row in rows]
+    all_kids = db.query(KidProfile).filter(KidProfile.parent_id.in_(parent_ids)).all() if parent_ids else []
+    kids_by_parent = {}
+    for k in all_kids:
+        kids_by_parent.setdefault(k.parent_id, []).append(k)
+
     result = []
-    for parent in parents:
-        kid_profiles = db.query(KidProfile).filter(KidProfile.parent_id == parent.id).all()
-        devices = db.query(Device).join(KidProfile).filter(KidProfile.parent_id == parent.id).all()
-        
+    for parent, kid_count, device_count in rows:
+        kids = kids_by_parent.get(parent.id, [])
         result.append({
             "id": parent.id,
             "email": parent.email,
             "created_at": parent.created_at,
-            "kid_profiles_count": len(kid_profiles),
-            "devices_count": len(devices),
-            "kid_profiles": [{"id": k.id, "name": k.name, "age": k.age} for k in kid_profiles]
+            "kid_profiles_count": kid_count or 0,
+            "devices_count": device_count or 0,
+            "kid_profiles": [{"id": k.id, "name": k.name, "age": k.age} for k in kids]
         })
-    
+
     return result
 
 @router.put("/kid/profile/{profile_id}")
@@ -255,23 +278,35 @@ def get_all_kid_profiles_admin(
     db: Session = Depends(get_db)
 ):
     """Admin endpoint to view all kid profiles with parent info"""
-    profiles = db.query(KidProfile).all()
-    
-    result = []
-    for profile in profiles:
-        parent = db.query(User).filter(User.id == profile.parent_id).first()
-        policies = db.query(Policy).filter(Policy.kid_profile_id == profile.id).all()
-        devices = db.query(Device).filter(Device.kid_profile_id == profile.id).all()
-        
-        result.append({
+    policy_count_sub = (
+        db.query(Policy.kid_profile_id, func.count(Policy.id).label("policy_count"))
+        .group_by(Policy.kid_profile_id)
+        .subquery()
+    )
+    device_count_sub = (
+        db.query(Device.kid_profile_id, func.count(Device.id).label("device_count"))
+        .group_by(Device.kid_profile_id)
+        .subquery()
+    )
+
+    rows = (
+        db.query(KidProfile, User.email, policy_count_sub.c.policy_count, device_count_sub.c.device_count)
+        .join(User, KidProfile.parent_id == User.id)
+        .outerjoin(policy_count_sub, KidProfile.id == policy_count_sub.c.kid_profile_id)
+        .outerjoin(device_count_sub, KidProfile.id == device_count_sub.c.kid_profile_id)
+        .all()
+    )
+
+    return [
+        {
             "id": profile.id,
             "name": profile.name,
             "age": profile.age,
-            "parent_email": parent.email if parent else None,
+            "parent_email": parent_email,
             "parent_id": profile.parent_id,
-            "policies_count": len(policies),
-            "devices_count": len(devices),
+            "policies_count": policy_count or 0,
+            "devices_count": device_count or 0,
             "created_at": profile.created_at
-        })
-    
-    return result
+        }
+        for profile, parent_email, policy_count, device_count in rows
+    ]

@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
     TMDB_API_KEY: str = os.getenv("TMDB_API_KEY", "")
     TMDB_API_BASE_URL: str = "https://api.themoviedb.org/3"
+    MOVIE_OF_THE_NIGHT_API_KEY: str = os.getenv("MOVIE_OF_THE_NIGHT_API_KEY", "")
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
     STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
     STRIPE_PUBLISHABLE_KEY: str = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
     STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
