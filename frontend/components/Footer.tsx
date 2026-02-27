@@ -51,20 +51,20 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Support</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">Help Center</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">Contact Us</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">Setup Guide</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">FAQs</a></li>
+              <li><button onClick={() => router.push('/help-center')} className="text-gray-400 hover:text-white transition-colors text-sm">Help Center</button></li>
+              <li><button onClick={() => router.push('/contact')} className="text-gray-400 hover:text-white transition-colors text-sm">Contact Us</button></li>
+              <li><button onClick={() => router.push('/setup-guide')} className="text-gray-400 hover:text-white transition-colors text-sm">Setup Guide</button></li>
+              <li><button onClick={() => router.push('/faqs')} className="text-gray-400 hover:text-white transition-colors text-sm">FAQs</button></li>
             </ul>
           </div>
 
           <div>
             <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Legal</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">Privacy Policy</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">Terms of Service</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">Cookie Policy</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">COPPA Compliance</a></li>
+              <li><button onClick={() => router.push('/privacy-policy')} className="text-gray-400 hover:text-white transition-colors text-sm">Privacy Policy</button></li>
+              <li><button onClick={() => router.push('/terms-of-service')} className="text-gray-400 hover:text-white transition-colors text-sm">Terms of Service</button></li>
+              <li><button onClick={() => router.push('/cookie-policy')} className="text-gray-400 hover:text-white transition-colors text-sm">Cookie Policy</button></li>
+              <li><button onClick={() => router.push('/coppa-compliance')} className="text-gray-400 hover:text-white transition-colors text-sm">COPPA Compliance</button></li>
             </ul>
           </div>
         </div>
