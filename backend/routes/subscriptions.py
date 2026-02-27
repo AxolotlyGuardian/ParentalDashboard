@@ -15,19 +15,19 @@ PLAN_CONFIG = {
         "name": "Starter",
         "price_monthly": 499,  # cents
         "device_limit": 1,
-        "stripe_price_id": "price_starter_monthly",
+        "stripe_price_id": settings.STRIPE_PRICE_STARTER,
     },
     "family": {
         "name": "Family",
         "price_monthly": 999,
         "device_limit": 3,
-        "stripe_price_id": "price_family_monthly",
+        "stripe_price_id": settings.STRIPE_PRICE_FAMILY,
     },
     "educator": {
         "name": "Educator",
         "price_monthly": 1999,
         "device_limit": 10,
-        "stripe_price_id": "price_educator_monthly",
+        "stripe_price_id": settings.STRIPE_PRICE_EDUCATOR,
     },
 }
 
@@ -118,6 +118,12 @@ def create_checkout_session(
             "session_id": "dev_mode",
             "message": "Stripe not configured - subscription activated in dev mode",
         }
+
+    if not plan["stripe_price_id"]:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Stripe price ID not configured for plan '{request.plan}'. Set STRIPE_PRICE_* env vars.",
+        )
 
     try:
         import stripe

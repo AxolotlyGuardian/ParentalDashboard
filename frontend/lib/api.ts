@@ -40,6 +40,9 @@ export const authApi = {
 
   deleteKidProfile: (profileId: number) =>
     api.delete(`/auth/kid/profile/${profileId}`),
+
+  logout: () =>
+    api.post('/auth/logout'),
 };
 
 // --- Catalog ---

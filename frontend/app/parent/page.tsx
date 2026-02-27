@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi, catalogApi, policyApi, deviceApi, timeLimitsApi, usageStatsApi } from '@/lib/api';
 import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
@@ -97,6 +97,9 @@ export default function ParentDashboard() {
 
   // Usage stats state
   const [usageStats, setUsageStats] = useState<ParentUsageStats | null>(null);
+
+  // Track the latest profile load to prevent stale responses from overwriting
+  const profileLoadRef = useRef(0);
 
   useEffect(() => {
     const user = getUserFromToken();
@@ -395,14 +398,14 @@ export default function ParentDashboard() {
     setSelectedContentForAction(null);
   };
 
-  const loadPolicies = async () => {
+  const loadPolicies = async (loadId?: number) => {
     if (!selectedProfile) return;
-    
+
     try {
       const response = await policyApi.getProfilePolicies(selectedProfile);
-      console.log('Policies response:', response.data);
+      // If a newer profile switch happened while we were loading, discard stale results
+      if (loadId !== undefined && loadId !== profileLoadRef.current) return;
       const policiesData = response.data.policies || response.data;
-      console.log('Policies count:', policiesData.length);
       setPolicies(policiesData);
     } catch (error) {
       console.error('Failed to load policies', error);
@@ -411,11 +414,14 @@ export default function ParentDashboard() {
 
   useEffect(() => {
     if (selectedProfile) {
-      loadPolicies();
+      const loadId = ++profileLoadRef.current;
+      setPolicies([]); // Clear stale policies immediately
+      loadPolicies(loadId);
     }
   }, [selectedProfile]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await authApi.logout(); } catch { /* token already expired or network error */ }
     removeToken();
     setIsLoggedIn(false);
     setUserId(null);

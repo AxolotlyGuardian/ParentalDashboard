@@ -177,7 +177,8 @@ export default function KidsLauncher() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await authApi.logout(); } catch { /* token already expired or network error */ }
     removeToken();
     setIsLoggedIn(false);
     setProfileId(null);
