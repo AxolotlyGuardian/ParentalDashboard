@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -28,7 +29,7 @@ export default function RootLayout({
         className={`${nunito.variable} font-sans antialiased`}
         style={{ fontFamily: 'var(--font-nunito)' }}
       >
-        {children}
+        <ErrorBoundary>{children}</ErrorBoundary>
       </body>
     </html>
   );

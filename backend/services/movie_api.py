@@ -4,26 +4,35 @@ Provides episode-level deep links and metadata enrichment
 """
 import os
 import hashlib
+import logging
 import requests
 import redis
 from typing import Optional, Dict, Any
 from datetime import datetime
 
+logger = logging.getLogger(__name__)
+
 
 class MovieAPIClient:
     """Client for Movie of the Night / Streaming Availability API via RapidAPI"""
-    
+
     def __init__(self):
-        self.api_key = os.getenv("MOVIE_OF_THE_NIGHT_API_KEY")
+        from config import settings
+        self.api_key = settings.MOVIE_OF_THE_NIGHT_API_KEY or os.getenv("MOVIE_OF_THE_NIGHT_API_KEY")
         self.base_url = "https://streaming-availability.p.rapidapi.com"
         self.redis_client = None
-        
+
         # Try to connect to Redis for caching
         try:
-            self.redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+            self.redis_client = redis.Redis(
+                host=settings.REDIS_HOST,
+                port=settings.REDIS_PORT,
+                db=0,
+                decode_responses=True
+            )
             self.redis_client.ping()
         except (redis.ConnectionError, redis.TimeoutError):
-            print("Warning: Redis not available, caching disabled")
+            logger.warning("Redis not available, caching disabled")
             self.redis_client = None
     
     def _get_cache_key(self, endpoint: str, params: Dict) -> str:
@@ -42,7 +51,7 @@ class MovieAPIClient:
                 import json
                 return json.loads(cached)
         except Exception as e:
-            print(f"Cache read error: {e}")
+            logger.warning("Cache read error: %s", e)
         
         return None
     
@@ -55,7 +64,7 @@ class MovieAPIClient:
             import json
             self.redis_client.setex(cache_key, ttl, json.dumps(data))
         except Exception as e:
-            print(f"Cache write error: {e}")
+            logger.warning("Cache write error: %s", e)
     
     def _make_request(self, endpoint: str, params: Dict = None) -> Optional[Dict]:
         """Make authenticated request to Streaming Availability API"""
@@ -77,7 +86,7 @@ class MovieAPIClient:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            print(f"Movie API request failed: {e}")
+            logger.error("Movie API request failed: %s", e)
             return None
     
     def get_show_details(self, tmdb_id: int, show_type: str = "tv") -> Optional[Dict]:

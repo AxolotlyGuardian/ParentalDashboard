@@ -87,9 +87,9 @@ export default function ContentReportModal({ isOpen, title, onClose, onSubmitSuc
       await contentTagApi.createContentReport(
         title.id,
         selectedTagId,
+        notes || undefined,
         seasonNumber ? parseInt(seasonNumber) : undefined,
-        episodeNumber ? parseInt(episodeNumber) : undefined,
-        notes || undefined
+        episodeNumber ? parseInt(episodeNumber) : undefined
       );
       
       setSelectedTagId(null);

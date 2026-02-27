@@ -4,7 +4,7 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from typing import Optional
 from db import get_db
-from models import User, KidProfile
+from models import User, KidProfile, RevokedToken
 from config import settings
 
 security = HTTPBearer()
@@ -24,7 +24,15 @@ def get_current_user(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials"
             )
-        
+
+        # Check if token has been revoked
+        jti = payload.get("jti")
+        if jti and db.query(RevokedToken).filter(RevokedToken.jti == jti).first():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has been revoked"
+            )
+
         if role == "parent":
             user = db.query(User).filter(User.id == int(user_id)).first()
             if not user:

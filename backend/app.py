@@ -1,3 +1,4 @@
+import asyncio
 import time
 import logging
 from collections import defaultdict
@@ -33,32 +34,36 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.requests_per_minute = requests_per_minute
         self.requests: dict[str, list[float]] = defaultdict(list)
+        self._lock = asyncio.Lock()
 
     async def dispatch(self, request: Request, call_next):
         client_ip = request.client.host if request.client else "unknown"
         now = time.time()
         window = now - 60
 
-        # Clean old entries
-        self.requests[client_ip] = [
-            t for t in self.requests[client_ip] if t > window
-        ]
+        async with self._lock:
+            # Clean old entries
+            self.requests[client_ip] = [
+                t for t in self.requests[client_ip] if t > window
+            ]
 
-        if len(self.requests[client_ip]) >= self.requests_per_minute:
-            return Response(
-                content='{"detail":"Rate limit exceeded. Try again later."}',
-                status_code=429,
-                media_type="application/json",
-                headers={"Retry-After": "60"},
-            )
+            if len(self.requests[client_ip]) >= self.requests_per_minute:
+                return Response(
+                    content='{"detail":"Rate limit exceeded. Try again later."}',
+                    status_code=429,
+                    media_type="application/json",
+                    headers={"Retry-After": "60"},
+                )
 
-        self.requests[client_ip].append(now)
+            self.requests[client_ip].append(now)
+
         return await call_next(request)
 
 # --- Audit Logging Middleware ---
 AUDIT_PATHS = {
     "/api/auth/parent/signup", "/api/auth/parent/login",
     "/api/auth/kid/login", "/api/auth/kid/profile",
+    "/api/auth/logout",
     "/api/pairing/initiate", "/api/pairing/confirm",
     "/api/device/pair", "/api/pair",
     "/api/subscriptions/create-checkout",

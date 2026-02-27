@@ -2,6 +2,7 @@ export interface Policy {
   policy_id: number;
   title_id: number;
   title: string;
+  media_type?: string;
   poster_path?: string;
   is_allowed: boolean;
   providers?: string[];
