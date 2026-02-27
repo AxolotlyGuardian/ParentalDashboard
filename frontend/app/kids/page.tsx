@@ -37,6 +37,8 @@ export default function KidsLauncher() {
   const [allowedTitles, setAllowedTitles] = useState<Title[]>([]);
   const [selectedTitle, setSelectedTitle] = useState<Title | null>(null);
   const [blockMessage, setBlockMessage] = useState<BlockMessage>({ show: false, message: '', title: '' });
+  const [pinPrompt, setPinPrompt] = useState<{ show: boolean; profileId: number | null; profileName: string }>({ show: false, profileId: null, profileName: '' });
+  const [pinInput, setPinInput] = useState('');
 
   useEffect(() => {
     const user = getUserFromToken();
@@ -58,15 +60,25 @@ export default function KidsLauncher() {
     }
   };
 
-  const handleProfileClick = async (profileId: number) => {
+  const handleProfileClick = (profileId: number) => {
+    const profile = availableProfiles.find(p => p.id === profileId);
+    setPinPrompt({ show: true, profileId, profileName: profile?.name || '' });
+    setPinInput('');
+  };
+
+  const handlePinSubmit = async () => {
+    if (!pinPrompt.profileId) return;
     try {
-      const response = await authApi.kidLogin(profileId, '0000');
+      const response = await authApi.kidLogin(pinPrompt.profileId, pinInput);
       setToken(response.data.access_token);
       setProfileId(response.data.profile_id);
       setIsLoggedIn(true);
+      setPinPrompt({ show: false, profileId: null, profileName: '' });
+      setPinInput('');
       loadAllowedTitles(response.data.profile_id);
     } catch (error) {
-      alert('Failed to login');
+      setPinInput('');
+      alert('Wrong PIN. Try again!');
     }
   };
 
@@ -100,6 +112,8 @@ export default function KidsLauncher() {
         return;
       } catch (error) {
         console.error('Failed to fetch providers', error);
+        alert('Could not load streaming providers. Please try again.');
+        return;
       }
     }
     
@@ -119,9 +133,12 @@ export default function KidsLauncher() {
       const response = await launchApi.checkLaunch(profileId, title.id, provider);
       
       if (response.data.allowed) {
-        // Navigate directly to the deep link
         const url = response.data.deep_link || response.data.fallback_url;
-        window.location.href = url;
+        if (url) {
+          window.location.href = url;
+        } else {
+          alert('No streaming link available. Try a different provider.');
+        }
       } else {
         setBlockMessage({
           show: true,
@@ -139,11 +156,14 @@ export default function KidsLauncher() {
 
     try {
       const response = await launchApi.checkLaunch(profileId, selectedTitle.id, provider);
-      
+
       if (response.data.allowed) {
-        // Navigate directly to the deep link
         const url = response.data.deep_link || response.data.fallback_url;
-        window.location.href = url;
+        if (url) {
+          window.location.href = url;
+        } else {
+          alert('No streaming link available. Try a different provider.');
+        }
       } else {
         setBlockMessage({
           show: true,
@@ -266,6 +286,42 @@ export default function KidsLauncher() {
             ← Back to mode select
           </button>
         </div>
+
+        {pinPrompt.show && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center">
+              <div className="text-5xl mb-4">🔒</div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Enter PIN</h2>
+              <p className="text-gray-600 mb-6">for {pinPrompt.profileName}</p>
+              <input
+                type="password"
+                inputMode="numeric"
+                maxLength={6}
+                value={pinInput}
+                onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
+                onKeyDown={(e) => e.key === 'Enter' && handlePinSubmit()}
+                placeholder="****"
+                autoFocus
+                className="w-full text-center text-3xl tracking-widest px-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 mb-6"
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setPinPrompt({ show: false, profileId: null, profileName: '' }); setPinInput(''); }}
+                  className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePinSubmit}
+                  disabled={pinInput.length === 0}
+                  className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 disabled:opacity-50"
+                >
+                  Go!
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

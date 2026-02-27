@@ -209,6 +209,7 @@ def create_policy(
             raise HTTPException(status_code=400, detail="Title data required for new titles")
         new_title = Title(
             id=request.title_id,
+            tmdb_id=request.title_id,
             title=request.title,
             media_type=request.media_type or "movie",
             poster_path=request.poster_path,
@@ -341,26 +342,27 @@ def get_allowed_titles(
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
     
-    allowed_policies = db.query(Policy).filter(
+    allowed_with_titles = db.query(Policy, Title).join(
+        Title, Policy.title_id == Title.id
+    ).filter(
         Policy.kid_profile_id == kid_profile_id,
         Policy.is_allowed == True
     ).all()
-    
-    titles = []
-    for policy in allowed_policies:
-        title = db.query(Title).filter(Title.id == policy.title_id).first()
-        if title:
-            titles.append({
-                "id": title.id,
-                "title": str(title.title) if title and hasattr(title, 'title') else "Unknown",
-                "media_type": title.media_type,
-                "poster_path": f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else None,
-                "overview": title.overview,
-                "rating": title.rating,
-                "providers": title.providers or [],
-                "deep_links": title.deep_links or {}
-            })
-    
+
+    titles = [
+        {
+            "id": title.id,
+            "title": str(title.title) if title and hasattr(title, 'title') else "Unknown",
+            "media_type": title.media_type,
+            "poster_path": f"https://image.tmdb.org/t/p/w500{title.poster_path}" if title.poster_path else None,
+            "overview": title.overview,
+            "rating": title.rating,
+            "providers": title.providers or [],
+            "deep_links": title.deep_links or {}
+        }
+        for policy, title in allowed_with_titles
+    ]
+
     return {"allowed_titles": titles}
 
 @router.get("/admin/all-policies")
@@ -371,15 +373,18 @@ def get_all_policies_admin(
     db: Session = Depends(get_db)
 ):
     """Admin endpoint to view all policies across all families"""
-    policies = db.query(Policy).offset(skip).limit(limit).all()
-    
-    result = []
-    for policy in policies:
-        title = db.query(Title).filter(Title.id == policy.title_id).first()
-        kid = db.query(KidProfile).filter(KidProfile.id == policy.kid_profile_id).first()
-        parent = db.query(User).filter(User.id == kid.parent_id).first() if kid else None
-        
-        result.append({
+    rows = (
+        db.query(Policy, Title, KidProfile, User)
+        .join(Title, Policy.title_id == Title.id)
+        .join(KidProfile, Policy.kid_profile_id == KidProfile.id)
+        .join(User, KidProfile.parent_id == User.id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        {
             "policy_id": policy.id,
             "title_id": policy.title_id,
             "title_name": str(title.title) if title and hasattr(title, 'title') else "Unknown",
@@ -389,9 +394,9 @@ def get_all_policies_admin(
             "parent_email": parent.email if parent else None,
             "is_allowed": policy.is_allowed,
             "created_at": policy.created_at
-        })
-    
-    return result
+        }
+        for policy, title, kid, parent in rows
+    ]
 
 @router.post("/{policy_id}/episodes/{episode_id}/toggle")
 def toggle_episode_policy(
