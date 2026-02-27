@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const PLANS = [
   {
@@ -442,9 +443,7 @@ export default function Pricing() {
         </section>
       </main>
 
-      <footer className="text-center py-6 bg-[#688ac6] text-white mt-12">
-        <p>&copy; 2025 Axolotly. Built with love and protection.</p>
-      </footer>
+      <Footer />
     </div>
   );
 }

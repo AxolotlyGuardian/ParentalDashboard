@@ -9,7 +9,7 @@ I want iterative development. Ask before making major changes.
 ## System Architecture
 
 ### UI/UX Decisions
-The application features a parent dashboard and a kid's launcher. The parent dashboard uses a coral-pink (`#F77B8A`) color scheme with rounded corners and card layouts, matching the launcher's aesthetic. Public-facing pages have a unified navigation header and mobile-responsive design, with the "How It Works" page using a light blue (`#688ac6`) accent color for a softer feel.
+The application features a Qustodio-inspired layout with Axolotly's coral-pink (`#F77B8A`) color theme. Public pages use a sticky frosted-glass header with nav links (Home, How It Works, Pricing) and side-by-side "Log In" / "Sign Up Free" buttons. A shared Footer component (`frontend/components/Footer.tsx`) provides Product, Support, and Legal link columns with social media icons. The home page has a hero section, trust bar, features grid, "Why Axolotly" section, step-by-step summary, and a CTA. Sign Up buttons route to `/parent?signup=true` to open the signup form directly. The parent dashboard uses 3D depth effects, frosted glass sidebar/header, and hover animations. The "How It Works" page uses a light blue (`#688ac6`) accent color.
 
 ### Technical Implementations
 -   **Authentication**: JWT-based for parents (email/password) and PIN-based for kids, with bcrypt hashing. Role-based access control is enforced.

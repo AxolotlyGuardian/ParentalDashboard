@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi, catalogApi, policyApi, deviceApi, timeLimitsApi, usageStatsApi } from '@/lib/api';
 import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
 import ContentReportModal from '@/components/ContentReportModal';
@@ -50,8 +50,9 @@ const getProviderBadge = (provider: string) => {
 
 export default function ParentDashboard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isSignup, setIsSignup] = useState(false);
+  const [isSignup, setIsSignup] = useState(searchParams.get('signup') === 'true');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userId, setUserId] = useState<number | null>(null);
