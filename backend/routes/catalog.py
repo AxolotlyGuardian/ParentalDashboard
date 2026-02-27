@@ -212,7 +212,7 @@ async def search_titles(
     async with httpx.AsyncClient() as client:
         response = await client.get(url, params=params)
         if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail="TMDB API error")
+            raise HTTPException(status_code=502, detail="Failed to fetch results from content provider")
         
         data = response.json()
         results = []

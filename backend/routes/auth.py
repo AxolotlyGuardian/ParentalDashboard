@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 import bcrypt
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
@@ -37,6 +37,13 @@ class KidProfileCreateRequest(BaseModel):
     name: str
     age: int
     pin: str
+
+    @field_validator('pin')
+    @classmethod
+    def pin_must_be_valid(cls, v):
+        if len(v) < 4:
+            raise ValueError('PIN must be at least 4 characters')
+        return v
 
 class KidProfileUpdateRequest(BaseModel):
     name: Optional[str] = None
