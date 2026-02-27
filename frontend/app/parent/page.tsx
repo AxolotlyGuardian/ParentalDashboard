@@ -352,13 +352,38 @@ export default function ParentDashboard() {
   };
 
   const launchPolicy = (policy: Policy) => {
-    if (!policy.deep_links || Object.keys(policy.deep_links).length === 0) {
-      alert('No streaming link available for this content');
+    // Try deep links first
+    if (policy.deep_links && Object.keys(policy.deep_links).length > 0) {
+      const firstLink = Object.values(policy.deep_links)[0];
+      window.open(firstLink, '_blank');
       return;
     }
-    
-    const firstLink = Object.values(policy.deep_links)[0];
-    window.open(firstLink, '_blank');
+
+    // Fall back to provider search URL
+    if (policy.providers && policy.providers.length > 0) {
+      const q = encodeURIComponent(policy.title);
+      const searchTemplates: Record<string, string> = {
+        netflix: `https://www.netflix.com/search?q=${q}`,
+        disney_plus: `https://www.disneyplus.com/search?q=${q}`,
+        prime_video: `https://www.amazon.com/s?k=${q}&i=instant-video`,
+        hulu: `https://www.hulu.com/search?q=${q}`,
+        peacock: `https://www.peacocktv.com/search?q=${q}`,
+        youtube: `https://www.youtube.com/results?search_query=${q}`,
+        apple_tv_plus: `https://tv.apple.com/search?term=${q}`,
+        paramount_plus: `https://www.paramountplus.com/search/?q=${q}`,
+        max: `https://www.max.com/search?q=${q}`,
+        tubi: `https://tubitv.com/search/${q}`,
+        crunchyroll: `https://www.crunchyroll.com/search?q=${q}`,
+      };
+      const provider = policy.providers[0];
+      const url = searchTemplates[provider] || `https://www.google.com/search?q=${q}+${provider}`;
+      window.open(url, '_blank');
+      return;
+    }
+
+    // Last resort: Google search
+    const q = encodeURIComponent(policy.title);
+    window.open(`https://www.google.com/search?q=${q}+watch+online`, '_blank');
   };
 
   const handleLaunchContent = (policy: Policy) => {

@@ -939,13 +939,29 @@ async def report_episode_url(
         raise HTTPException(status_code=400, detail="url and provider are required")
     
     # Normalize provider name for internal lookups
+    # Maps Android package names and common aliases to canonical provider keys
     provider_map = {
         "com.disney.disneyplus": "disney_plus",
         "com.netflix.mediaclient": "netflix",
         "com.hulu.plus": "hulu",
         "com.amazon.avod.thirdpartyclient": "prime_video",
         "com.peacocktv.peacockandroid": "peacock",
-        "com.google.android.youtube.tv": "youtube"
+        "com.google.android.youtube.tv": "youtube",
+        "com.apple.atve.sony.appletv": "apple_tv_plus",
+        "com.cbs.ott": "paramount_plus",
+        "com.wbd.stream": "max",
+        "com.tubitv": "tubi",
+        "com.crunchyroll.crunchyroid": "crunchyroll",
+        "org.pbskids.video": "pbs_kids",
+        # Short alias → canonical
+        "disney": "disney_plus",
+        "prime": "prime_video",
+        "apple": "apple_tv_plus",
+        "paramount": "paramount_plus",
+        "pbs": "pbs_kids",
+        "espn": "espn_plus",
+        "curiosity": "curiosity_stream",
+        "kidoodle": "kidoodle_tv",
     }
     normalized_provider = provider_map.get(provider, provider)
     
@@ -1111,6 +1127,78 @@ def get_all_episode_reports(
         })
     
     return result
+
+@router.post("/launcher/admin/process-pending-reports")
+def process_pending_episode_reports(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Retry matching pending DeviceEpisodeReports that couldn't be matched at report time
+    (e.g. Title or Episode didn't exist yet in the database).
+    """
+    pending = db.query(DeviceEpisodeReport).filter(
+        DeviceEpisodeReport.processing_status == "pending"
+    ).all()
+
+    matched = 0
+    still_pending = 0
+
+    for report in pending:
+        if not report.tmdb_title_id or report.season_hint is None or report.episode_hint is None:
+            still_pending += 1
+            continue
+
+        title = db.query(Title).filter(Title.tmdb_id == report.tmdb_title_id).first()
+        if not title:
+            still_pending += 1
+            continue
+
+        episode = db.query(Episode).filter(
+            Episode.title_id == title.id,
+            Episode.season_number == report.season_hint,
+            Episode.episode_number == report.episode_hint
+        ).first()
+
+        if not episode:
+            still_pending += 1
+            continue
+
+        # Check if link already exists
+        existing_link = db.query(EpisodeLink).filter(
+            EpisodeLink.episode_id == episode.id,
+            EpisodeLink.deep_link_url == report.raw_url
+        ).first()
+
+        if existing_link:
+            existing_link.confirmed_count += 1
+            existing_link.last_confirmed_at = datetime.utcnow()
+            report.processing_status = "matched_existing"
+        else:
+            episode_link = EpisodeLink(
+                episode_id=episode.id,
+                raw_provider=report.provider,
+                provider=report.normalized_provider,
+                deep_link_url=report.raw_url,
+                source="device_report",
+                confidence_score=1.0
+            )
+            db.add(episode_link)
+            report.processing_status = "matched_new"
+
+        report.matched_episode_id = episode.id
+        report.confidence_score = 1.0
+        report.processed_at = datetime.utcnow()
+        matched += 1
+
+    db.commit()
+
+    return {
+        "processed": matched,
+        "still_pending": still_pending,
+        "total": len(pending),
+        "message": f"Processed {matched} pending reports, {still_pending} still pending"
+    }
 
 @router.get("/launcher/admin/episode-links")
 def get_all_episode_links(
