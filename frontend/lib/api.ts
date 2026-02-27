@@ -204,6 +204,50 @@ export const servicesApi = {
     api.post('/services', { selected_services: selectedServices }),
 };
 
+// --- Content Packages ---
+
+export const packagesApi = {
+  list: (kidAge?: number) =>
+    api.get('/packages', { params: kidAge != null ? { kid_age: kidAge } : {} }),
+
+  getDetail: (packageId: number, kidProfileId?: number) =>
+    api.get(`/packages/${packageId}`, { params: kidProfileId ? { kid_profile_id: kidProfileId } : {} }),
+
+  apply: (packageId: number, kidProfileId: number, excludedTitleIds: number[] = []) =>
+    api.post(`/packages/${packageId}/apply`, { kid_profile_id: kidProfileId, excluded_title_ids: excludedTitleIds }),
+
+  unapply: (packageId: number, kidProfileId: number) =>
+    api.post(`/packages/${packageId}/unapply`, { kid_profile_id: kidProfileId }),
+
+  getApplied: (kidProfileId: number) =>
+    api.get(`/packages/applied/${kidProfileId}`),
+
+  getPendingUpdates: () =>
+    api.get('/packages/updates/pending'),
+
+  handleUpdate: (updateId: number, action: 'accept' | 'dismiss') =>
+    api.post(`/packages/updates/${updateId}`, { action }),
+
+  // Admin
+  adminGetAll: () =>
+    api.get('/packages/admin/all'),
+
+  adminCreate: (data: { name: string; description?: string; age_min?: number; age_max?: number; category: string; icon?: string }) =>
+    api.post('/packages/admin', data),
+
+  adminUpdate: (packageId: number, data: { name?: string; description?: string; age_min?: number; age_max?: number; category?: string; icon?: string; is_active?: boolean }) =>
+    api.put(`/packages/admin/${packageId}`, data),
+
+  adminDelete: (packageId: number) =>
+    api.delete(`/packages/admin/${packageId}`),
+
+  adminAddItems: (packageId: number, titleIds: number[]) =>
+    api.post(`/packages/admin/${packageId}/items`, { title_ids: titleIds }),
+
+  adminRemoveItem: (packageId: number, titleId: number) =>
+    api.delete(`/packages/admin/${packageId}/items/${titleId}`),
+};
+
 // --- Admin ---
 
 export const adminApi = {

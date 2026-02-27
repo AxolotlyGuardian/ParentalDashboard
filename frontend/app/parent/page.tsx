@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { authApi, catalogApi, policyApi, deviceApi, timeLimitsApi, usageStatsApi } from '@/lib/api';
+import { authApi, catalogApi, policyApi, deviceApi, timeLimitsApi, usageStatsApi, packagesApi } from '@/lib/api';
 import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
 import ContentReportModal from '@/components/ContentReportModal';
 import ContentActionModal from '@/components/ContentActionModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import ServiceSelection from '@/components/ServiceSelection';
+import PackageSelector from '@/components/PackageSelector';
+import PackageUpdatesBanner from '@/components/PackageUpdatesBanner';
 import { PairedDevice, ApiError, TimeLimits, ParentUsageStats } from '@/lib/types';
 import { Policy } from '@/types/policy';
 
@@ -68,7 +70,7 @@ export default function ParentDashboard() {
   const [showAddDeviceForm, setShowAddDeviceForm] = useState(false);
   const [pairingCode, setPairingCode] = useState('');
   const [selectedKidForDevice, setSelectedKidForDevice] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'search' | 'policies' | 'devices' | 'services' | 'timelimits' | 'usage'>('policies');
+  const [activeTab, setActiveTab] = useState<'search' | 'policies' | 'packages' | 'devices' | 'services' | 'timelimits' | 'usage'>('policies');
   const [devices, setDevices] = useState<PairedDevice[]>([]);
   const [editingDeviceId, setEditingDeviceId] = useState<number | null>(null);
   const [editingDeviceName, setEditingDeviceName] = useState('');
@@ -587,6 +589,19 @@ export default function ParentDashboard() {
             </button>
             <button
               onClick={() => {
+                setActiveTab('packages');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all duration-200 ${
+                activeTab === 'packages'
+                  ? 'bg-[#F77B8A] text-white shadow-[0_4px_14px_rgba(247,123,138,0.4)] scale-[1.02]'
+                  : 'text-gray-700 hover:bg-white hover:shadow-md hover:scale-[1.02]'
+              }`}
+            >
+              <span className="font-medium">Content Packages</span>
+            </button>
+            <button
+              onClick={() => {
                 setActiveTab('devices');
                 setIsMobileMenuOpen(false);
               }}
@@ -895,6 +910,8 @@ export default function ParentDashboard() {
           {/* Content Section */}
           {selectedProfile && (
             <div>
+              <PackageUpdatesBanner onUpdatesHandled={() => loadPolicies()} />
+
               {activeTab === 'search' && (
                 <div>
                   <h2 className="text-xl font-bold text-gray-800 mb-4">Search Titles</h2>
@@ -1145,6 +1162,17 @@ export default function ParentDashboard() {
                       </div>
                     );
                   })()}
+                </div>
+              )}
+
+              {activeTab === 'packages' && selectedProfile && (
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800 mb-4">Content Packages</h2>
+                  <PackageSelector
+                    kidProfileId={selectedProfile}
+                    kidAge={kidProfiles.find(p => p.id === selectedProfile)?.age ?? 0}
+                    onPackageApplied={() => loadPolicies()}
+                  />
                 </div>
               )}
 
