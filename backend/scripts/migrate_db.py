@@ -1,8 +1,9 @@
 """
 Create new database tables for Fandom episode mapping
 """
+import os
 import sys
-sys.path.insert(0, '/home/runner/workspace/backend')
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
 from db import engine, Base
 from models import FandomShowConfig, FandomEpisodeLink, EpisodeTag

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi, catalogApi, policyApi, deviceApi, timeLimitsApi, usageStatsApi } from '@/lib/api';
 import { setToken, getUserFromToken, removeToken } from '@/lib/auth';
@@ -97,6 +97,9 @@ export default function ParentDashboard() {
 
   // Usage stats state
   const [usageStats, setUsageStats] = useState<ParentUsageStats | null>(null);
+
+  // Track the latest profile load to prevent stale responses from overwriting
+  const profileLoadRef = useRef(0);
 
   useEffect(() => {
     const user = getUserFromToken();
@@ -352,13 +355,38 @@ export default function ParentDashboard() {
   };
 
   const launchPolicy = (policy: Policy) => {
-    if (!policy.deep_links || Object.keys(policy.deep_links).length === 0) {
-      alert('No streaming link available for this content');
+    // Try deep links first
+    if (policy.deep_links && Object.keys(policy.deep_links).length > 0) {
+      const firstLink = Object.values(policy.deep_links)[0];
+      window.open(firstLink, '_blank');
       return;
     }
-    
-    const firstLink = Object.values(policy.deep_links)[0];
-    window.open(firstLink, '_blank');
+
+    // Fall back to provider search URL
+    if (policy.providers && policy.providers.length > 0) {
+      const q = encodeURIComponent(policy.title);
+      const searchTemplates: Record<string, string> = {
+        netflix: `https://www.netflix.com/search?q=${q}`,
+        disney_plus: `https://www.disneyplus.com/search?q=${q}`,
+        prime_video: `https://www.amazon.com/s?k=${q}&i=instant-video`,
+        hulu: `https://www.hulu.com/search?q=${q}`,
+        peacock: `https://www.peacocktv.com/search?q=${q}`,
+        youtube: `https://www.youtube.com/results?search_query=${q}`,
+        apple_tv_plus: `https://tv.apple.com/search?term=${q}`,
+        paramount_plus: `https://www.paramountplus.com/search/?q=${q}`,
+        max: `https://www.max.com/search?q=${q}`,
+        tubi: `https://tubitv.com/search/${q}`,
+        crunchyroll: `https://www.crunchyroll.com/search?q=${q}`,
+      };
+      const provider = policy.providers[0];
+      const url = searchTemplates[provider] || `https://www.google.com/search?q=${q}+${provider}`;
+      window.open(url, '_blank');
+      return;
+    }
+
+    // Last resort: Google search
+    const q = encodeURIComponent(policy.title);
+    window.open(`https://www.google.com/search?q=${q}+watch+online`, '_blank');
   };
 
   const handleLaunchContent = (policy: Policy) => {
@@ -370,14 +398,14 @@ export default function ParentDashboard() {
     setSelectedContentForAction(null);
   };
 
-  const loadPolicies = async () => {
+  const loadPolicies = async (loadId?: number) => {
     if (!selectedProfile) return;
-    
+
     try {
       const response = await policyApi.getProfilePolicies(selectedProfile);
-      console.log('Policies response:', response.data);
+      // If a newer profile switch happened while we were loading, discard stale results
+      if (loadId !== undefined && loadId !== profileLoadRef.current) return;
       const policiesData = response.data.policies || response.data;
-      console.log('Policies count:', policiesData.length);
       setPolicies(policiesData);
     } catch (error) {
       console.error('Failed to load policies', error);
@@ -386,11 +414,14 @@ export default function ParentDashboard() {
 
   useEffect(() => {
     if (selectedProfile) {
-      loadPolicies();
+      const loadId = ++profileLoadRef.current;
+      setPolicies([]); // Clear stale policies immediately
+      loadPolicies(loadId);
     }
   }, [selectedProfile]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await authApi.logout(); } catch { /* token already expired or network error */ }
     removeToken();
     setIsLoggedIn(false);
     setUserId(null);

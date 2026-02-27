@@ -61,6 +61,7 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
   const [tagEpisodes, setTagEpisodes] = useState<any[]>([]);
   const [showTagConfirmDialog, setShowTagConfirmDialog] = useState(false);
   const [isBlockingEpisodes, setIsBlockingEpisodes] = useState(false);
+  const [togglingEpisodes, setTogglingEpisodes] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (isOpen && titleId) {
@@ -74,6 +75,7 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
       setSelectedTag(null);
       setTagEpisodes([]);
       setShowTagConfirmDialog(false);
+      setTogglingEpisodes(new Set());
       loadTitleData();
     } else {
       setShowingDetail(false);
@@ -86,6 +88,7 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
       setSelectedTag(null);
       setTagEpisodes([]);
       setShowTagConfirmDialog(false);
+      setTogglingEpisodes(new Set());
     }
   }, [isOpen, titleId]);
 
@@ -133,7 +136,8 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
   };
 
   const toggleEpisodeBlock = async (episodeId: number, currentlyBlocked: boolean) => {
-    if (!policy) return;
+    if (!policy || togglingEpisodes.has(episodeId)) return;
+    setTogglingEpisodes(prev => new Set(prev).add(episodeId));
     try {
       await policyApi.toggleEpisodePolicy(policy.policy_id, episodeId, !currentlyBlocked);
       setEpisodes(prev => {
@@ -147,6 +151,12 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
       });
     } catch (error) {
       console.error('Failed to toggle episode', error);
+    } finally {
+      setTogglingEpisodes(prev => {
+        const next = new Set(prev);
+        next.delete(episodeId);
+        return next;
+      });
     }
   };
 
@@ -427,13 +437,14 @@ export default function ContentActionModal({ isOpen, policy, onClose, onPlay }: 
                                     </div>
                                     <button
                                       onClick={() => toggleEpisodeBlock(episode.id, episode.is_blocked)}
-                                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                                      disabled={togglingEpisodes.has(episode.id)}
+                                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                                         episode.is_blocked
                                           ? 'bg-red-100 text-red-700 hover:bg-red-200'
                                           : 'bg-green-100 text-green-700 hover:bg-green-200'
                                       }`}
                                     >
-                                      {episode.is_blocked ? '🚫 Blocked' : '✅ Allowed'}
+                                      {togglingEpisodes.has(episode.id) ? '...' : episode.is_blocked ? '🚫 Blocked' : '✅ Allowed'}
                                     </button>
                                   </div>
                                 </div>
