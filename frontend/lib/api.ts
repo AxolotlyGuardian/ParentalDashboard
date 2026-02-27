@@ -161,22 +161,22 @@ export const launchApi = {
 
 export const contentTagApi = {
   getTags: () =>
-    api.get('/content-tags'),
+    api.get('/tags'),
 
   createTag: (category: string, slug: string, display_name: string, description?: string) =>
-    api.post('/content-tags', { category, slug, display_name, description }),
+    api.post('/tags', { category, slug, display_name, description }),
 
   updateTag: (tagId: number, data: { display_name?: string; description?: string }) =>
-    api.put(`/content-tags/${tagId}`, data),
+    api.put(`/tags/${tagId}`, data),
 
   deleteTag: (tagId: number) =>
-    api.delete(`/content-tags/${tagId}`),
+    api.delete(`/tags/${tagId}`),
 
   getTitleTags: (titleId: number) =>
-    api.get(`/content-tags/title/${titleId}`),
+    api.get(`/titles/${titleId}/tags`),
 
   getContentReports: () =>
-    api.get('/content-tags/reports'),
+    api.get('/content-reports'),
 
   createContentReport: (
     title_id: number,
@@ -185,13 +185,13 @@ export const contentTagApi = {
     season_number?: number,
     episode_number?: number
   ) =>
-    api.post('/content-tags/reports', { title_id, tag_id, notes, season_number, episode_number }),
+    api.post('/content-reports', { title_id, tag_id, notes, season_number, episode_number }),
 
   approveContentReport: (reportId: number) =>
-    api.put(`/content-tags/reports/${reportId}/approve`),
+    api.patch(`/content-reports/${reportId}/approve`),
 
   rejectContentReport: (reportId: number) =>
-    api.put(`/content-tags/reports/${reportId}/reject`),
+    api.patch(`/content-reports/${reportId}/reject`),
 };
 
 // --- Streaming Services ---
