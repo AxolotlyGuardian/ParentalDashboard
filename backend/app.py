@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from db import engine, Base
-from routes import auth, catalog, policy, launch, launcher, content_tags, admin, services, subscriptions, packages
+from routes import auth, catalog, policy, launch, launcher, content_tags, admin, services, subscriptions, packages, ota
 from config import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -116,6 +116,7 @@ app.include_router(admin.router, prefix="/api")
 app.include_router(services.router, prefix="/api")
 app.include_router(subscriptions.router, prefix="/api")
 app.include_router(packages.router, prefix="/api")
+app.include_router(ota.router, prefix="/api")
 
 @app.get("/")
 def root():

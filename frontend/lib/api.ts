@@ -248,6 +248,56 @@ export const packagesApi = {
     api.delete(`/packages/admin/${packageId}/items/${titleId}`),
 };
 
+// --- Subscriptions ---
+
+export const subscriptionsApi = {
+  getPlans: () =>
+    api.get('/subscriptions/plans'),
+
+  getStatus: () =>
+    api.get('/subscriptions/status'),
+
+  changePlan: (newPlan: string) =>
+    api.post('/subscriptions/change-plan', { new_plan: newPlan }),
+
+  cancel: () =>
+    api.post('/subscriptions/cancel'),
+
+  reactivate: () =>
+    api.post('/subscriptions/reactivate'),
+};
+
+// --- OTA ---
+
+export const otaApi = {
+  // Admin
+  listReleases: (channel?: string) =>
+    api.get('/ota/admin/releases', { params: channel ? { channel } : {} }),
+
+  createRelease: (data: {
+    version_name: string;
+    version_code: number;
+    channel: string;
+    apk_url: string;
+    sha256: string;
+    min_version_code?: number;
+    release_notes?: string;
+    rollout_percentage?: number;
+  }) =>
+    api.post('/ota/admin/releases', data),
+
+  updateRelease: (releaseId: number, data: {
+    rollout_percentage?: number;
+    is_active?: boolean;
+    release_notes?: string;
+    min_version_code?: number;
+  }) =>
+    api.put(`/ota/admin/releases/${releaseId}`, data),
+
+  deleteRelease: (releaseId: number) =>
+    api.delete(`/ota/admin/releases/${releaseId}`),
+};
+
 // --- Admin ---
 
 export const adminApi = {

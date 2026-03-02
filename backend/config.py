@@ -26,10 +26,12 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
     STRIPE_PUBLISHABLE_KEY: str = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
     STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-    STRIPE_PRICE_STARTER: str = os.getenv("STRIPE_PRICE_STARTER", "")
-    STRIPE_PRICE_FAMILY: str = os.getenv("STRIPE_PRICE_FAMILY", "")
-    STRIPE_PRICE_EDUCATOR: str = os.getenv("STRIPE_PRICE_EDUCATOR", "")
+    STRIPE_PRICE_MONTHLY: str = os.getenv("STRIPE_PRICE_MONTHLY", "")
+    STRIPE_PRICE_ANNUAL: str = os.getenv("STRIPE_PRICE_ANNUAL", "")
+    STRIPE_PRICE_DEVICE: str = os.getenv("STRIPE_PRICE_DEVICE", "")
     ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "")
+    SENDGRID_API_KEY: str = os.getenv("SENDGRID_API_KEY", "")
+    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "noreply@axolotly.app")
 
     class Config:
         env_file = ".env"

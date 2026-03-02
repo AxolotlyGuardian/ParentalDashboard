@@ -488,16 +488,38 @@ class Subscription(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     stripe_customer_id = Column(String, nullable=True, unique=True, index=True)
     stripe_subscription_id = Column(String, nullable=True, unique=True, index=True)
-    plan = Column(String, nullable=False)  # starter, family, educator
+    plan = Column(String, nullable=False)  # monthly, annual
     status = Column(String, default="pending")  # pending, active, canceled, past_due
     device_limit = Column(Integer, nullable=False, default=1)
     hardware_units = Column(Integer, default=1)
+    dunning_step = Column(Integer, default=0)  # 0=ok, 1=day1, 2=day3, 3=day7
     current_period_start = Column(DateTime, nullable=True)
     current_period_end = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User")
+
+
+# OTA Update System
+
+class OTARelease(Base):
+    __tablename__ = "ota_releases"
+
+    id = Column(Integer, primary_key=True, index=True)
+    version_name = Column(String, nullable=False)        # e.g. "1.2.0"
+    version_code = Column(Integer, nullable=False)        # e.g. 120
+    channel = Column(String, nullable=False, index=True)  # "production" or "beta"
+    apk_url = Column(String, nullable=False)
+    sha256 = Column(String, nullable=False)
+    min_version_code = Column(Integer, default=0)         # minimum version that can upgrade
+    release_notes = Column(Text, nullable=True)
+    rollout_percentage = Column(Integer, default=100)     # 0-100 for staged rollout
+    is_active = Column(Boolean, default=True, index=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    creator = relationship("User")
 
 
 class RevokedToken(Base):

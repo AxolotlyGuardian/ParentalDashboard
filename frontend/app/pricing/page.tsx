@@ -5,71 +5,59 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
+const DEVICE_FEE = 45;
+
 const PLANS = [
   {
-    id: 'starter',
-    name: 'Starter',
-    price: 4.99,
+    id: 'monthly',
+    name: 'Monthly',
+    price: 14.99,
+    interval: 'mo',
     color: '#688ac6',
     colorHover: '#5276b3',
-    deviceLimit: 1,
     features: [
-      '1 Axolotly device',
-      'Real-time analytics',
-      'Content filtering',
-      'Remote parent dashboard',
+      'Full parent dashboard access',
+      'Unlimited kid profiles',
+      'Real-time content filtering',
+      'Device management & pairing',
+      'Screen time controls',
+      'Weekly usage reports',
     ],
   },
   {
-    id: 'family',
-    name: 'Family',
-    price: 9.99,
+    id: 'annual',
+    name: 'Annual',
+    price: 194.90,
+    interval: 'yr',
+    monthlyEquiv: (194.90 / 12).toFixed(2),
+    savings: Math.round(14.99 * 12 - 194.90),
     color: '#FF6B9D',
     colorHover: '#e85a89',
-    gradient: true,
-    deviceLimit: 3,
-    features: [
-      'Up to 3 devices',
-      'Shared family dashboard',
-      'Per-child enforcement tiers',
-      'Weekly alert summaries',
-    ],
     popular: true,
-  },
-  {
-    id: 'educator',
-    name: 'Educator',
-    price: 19.99,
-    color: '#9B8DC6',
-    colorHover: '#8778b3',
-    deviceLimit: 10,
     features: [
-      'Up to 10 devices',
-      'Classroom mode',
-      'Group analytics',
-      'Curriculum content presets',
+      'Everything in Monthly',
+      `Save $${Math.round(14.99 * 12 - 194.90)}/year vs monthly`,
+      'Priority support',
+      'Full parent dashboard access',
+      'Unlimited kid profiles',
+      'Screen time controls',
     ],
   },
 ];
 
-const HARDWARE_PRICE = 39;
-const BUNDLE_PRICING: Record<number, { perUnit: number; savings: string }> = {
-  1: { perUnit: 39, savings: '' },
-  2: { perUnit: 31, savings: 'Save 20%' },
-  3: { perUnit: 27, savings: 'Save 30%' },
-};
-
 export default function Pricing() {
   const router = useRouter();
-  const [selectedPlan, setSelectedPlan] = useState<string>('family');
+  const [selectedPlan, setSelectedPlan] = useState<string>('annual');
   const [hardwareUnits, setHardwareUnits] = useState(1);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [step, setStep] = useState<'plan' | 'configure' | 'checkout'>('plan');
 
   const plan = PLANS.find((p) => p.id === selectedPlan)!;
-  const bundlePrice = BUNDLE_PRICING[Math.min(hardwareUnits, 3)] ?? { perUnit: Math.round(39 * 0.65), savings: 'Save 35%+' };
-  const hardwareCost = bundlePrice.perUnit * hardwareUnits;
-  const monthlyTotal = plan.price;
+  const hardwareCost = DEVICE_FEE * hardwareUnits;
+  const subscriptionDisplay =
+    plan.id === 'monthly'
+      ? `$${plan.price.toFixed(2)}/mo`
+      : `$${plan.price.toFixed(2)}/yr`;
 
   const handleCheckout = async () => {
     setIsCheckingOut(true);
@@ -114,14 +102,17 @@ export default function Pricing() {
     <div className="min-h-screen bg-[#fdfdfc]">
       <Header variant="pink" />
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
+      <main className="max-w-5xl mx-auto px-6 py-12">
         {/* Hero */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-[#566886] mb-4">
-            Protection that grows with your family
+            Simple, transparent pricing
           </h1>
           <p className="text-xl text-gray-600 mb-2">
-            Choose the plan that fits your needs. No contracts, cancel anytime.
+            One device. One subscription. Full protection.
+          </p>
+          <p className="text-gray-500">
+            $45 per Axolotly device (one-time) + your choice of plan
           </p>
 
           {/* Step indicators */}
@@ -158,7 +149,7 @@ export default function Pricing() {
         {step === 'plan' && (
           <>
             <section className="mb-16">
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 {PLANS.map((p) => (
                   <div
                     key={p.id}
@@ -170,22 +161,41 @@ export default function Pricing() {
                     }`}
                     style={{ borderTopColor: p.color }}
                   >
-                    {p.popular && selectedPlan === p.id && (
+                    {p.popular && (
                       <div
                         className="absolute top-0 right-0 text-white px-4 py-1 rounded-bl-lg text-sm font-semibold"
                         style={{ background: `linear-gradient(to right, ${p.color}, ${p.colorHover})` }}
                       >
-                        Most Popular
+                        Best Value
                       </div>
                     )}
                     <h3 className="text-2xl font-bold text-[#566886] mb-2">{p.name}</h3>
                     <div className="mb-6">
-                      <div className="text-sm text-gray-500">$39 per unit +</div>
-                      <span className="text-4xl font-bold" style={{ color: p.color }}>
-                        ${p.price.toFixed(2)}
-                      </span>
-                      <span className="text-gray-600">/month</span>
+                      {p.id === 'monthly' ? (
+                        <>
+                          <span className="text-4xl font-bold" style={{ color: p.color }}>
+                            ${p.price.toFixed(2)}
+                          </span>
+                          <span className="text-gray-600">/month</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-4xl font-bold" style={{ color: p.color }}>
+                            ${p.price.toFixed(2)}
+                          </span>
+                          <span className="text-gray-600">/year</span>
+                          <div className="text-sm text-gray-500 mt-1">
+                            That&apos;s just ${p.monthlyEquiv}/mo
+                          </div>
+                        </>
+                      )}
+                      <div className="text-xs text-gray-400 mt-1">+ $45 per device (one-time)</div>
                     </div>
+                    {p.savings && (
+                      <div className="bg-green-50 text-green-700 text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
+                        Save ${p.savings}/year
+                      </div>
+                    )}
                     <ul className="space-y-3 mb-8">
                       {p.features.map((f) => (
                         <li key={f} className="flex items-start">
@@ -199,9 +209,9 @@ export default function Pricing() {
                         setSelectedPlan(p.id);
                         setStep('configure');
                       }}
-                      className={`w-full text-white font-bold py-3 rounded-lg transition-colors`}
+                      className="w-full text-white font-bold py-3 rounded-lg transition-colors"
                       style={{
-                        background: p.gradient
+                        background: p.popular
                           ? `linear-gradient(to right, ${p.color}, ${p.colorHover})`
                           : p.color,
                       }}
@@ -213,8 +223,8 @@ export default function Pricing() {
               </div>
 
               {/* All Plans Include */}
-              <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-                <h4 className="font-bold text-[#566886] mb-3 text-center">All plans include:</h4>
+              <div className="mt-8 p-6 bg-gray-50 rounded-lg max-w-4xl mx-auto">
+                <h4 className="font-bold text-[#566886] mb-3 text-center">Every plan includes:</h4>
                 <div className="grid md:grid-cols-2 gap-3 text-gray-700">
                   <div className="flex items-center">Intelligent content protection</div>
                   <div className="flex items-center">Full access to parent dashboard</div>
@@ -222,14 +232,6 @@ export default function Pricing() {
                   <div className="flex items-center">Secure cloud syncing</div>
                 </div>
               </div>
-            </section>
-
-            {/* Social proof */}
-            <section className="mb-16 text-center">
-              <h3 className="text-lg font-semibold text-[#566886] mb-2">Trusted by families everywhere</h3>
-              <p className="text-gray-500">
-                Designed by a parent who understands your challenges. Simple, trustworthy, and reliable.
-              </p>
             </section>
           </>
         )}
@@ -239,24 +241,23 @@ export default function Pricing() {
           <section className="max-w-2xl mx-auto mb-16">
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-[#566886] mb-6 text-center">
-                Configure Your {plan.name} Plan
+                Configure Your Order
               </h2>
 
               {/* Selected plan summary */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6 flex justify-between items-center">
                 <div>
                   <span className="font-semibold text-[#566886]">{plan.name} Plan</span>
-                  <span className="text-gray-500 ml-2">Up to {plan.deviceLimit} device{plan.deviceLimit > 1 ? 's' : ''}</span>
                 </div>
                 <span className="text-lg font-bold" style={{ color: plan.color }}>
-                  ${plan.price.toFixed(2)}/mo
+                  {subscriptionDisplay}
                 </span>
               </div>
 
               {/* Hardware units selector */}
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-[#566886] mb-3">
-                  How many Axolotly units?
+                  How many Axolotly devices?
                 </label>
                 <div className="flex gap-3">
                   {[1, 2, 3].map((n) => (
@@ -271,37 +272,34 @@ export default function Pricing() {
                     >
                       <div className="text-2xl font-bold text-[#566886]">{n}</div>
                       <div className="text-sm text-gray-500">
-                        ${BUNDLE_PRICING[n]?.perUnit ?? 25}/unit
+                        ${DEVICE_FEE}/unit
                       </div>
-                      {BUNDLE_PRICING[n]?.savings && (
-                        <div className="text-xs font-semibold text-green-600 mt-1">
-                          {BUNDLE_PRICING[n].savings}
-                        </div>
-                      )}
                     </button>
                   ))}
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
-                  Need 4+ units? Contact us for custom enterprise pricing.
+                  Need 4+ units? Contact us for custom pricing.
                 </p>
               </div>
 
               {/* Order summary */}
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-gray-600">
-                  <span>Hardware ({hardwareUnits} unit{hardwareUnits > 1 ? 's' : ''})</span>
+                  <span>Hardware ({hardwareUnits} device{hardwareUnits > 1 ? 's' : ''} x ${DEVICE_FEE})</span>
                   <span>${hardwareCost.toFixed(2)} one-time</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>{plan.name} subscription</span>
-                  <span>${monthlyTotal.toFixed(2)}/month</span>
+                  <span>{subscriptionDisplay}</span>
                 </div>
                 <div className="border-t pt-2 flex justify-between font-bold text-[#566886]">
                   <span>Due today</span>
-                  <span>${(hardwareCost + monthlyTotal).toFixed(2)}</span>
+                  <span>
+                    ${(hardwareCost + plan.price).toFixed(2)}
+                  </span>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Then ${monthlyTotal.toFixed(2)}/month. Cancel anytime.
+                  Then {subscriptionDisplay}. Cancel anytime.
                 </p>
               </div>
 
@@ -339,21 +337,18 @@ export default function Pricing() {
                   <h3 className="font-semibold text-[#566886] mb-2">Order Summary</h3>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{plan.name} Plan (monthly)</span>
-                      <span>${plan.price.toFixed(2)}/mo</span>
+                      <span className="text-gray-600">{plan.name} Plan</span>
+                      <span>{subscriptionDisplay}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">
                         Axolotly Device x{hardwareUnits}
-                        {bundlePrice.savings && (
-                          <span className="text-green-600 ml-1 text-xs">({bundlePrice.savings})</span>
-                        )}
                       </span>
                       <span>${hardwareCost.toFixed(2)}</span>
                     </div>
                     <div className="border-t pt-1 mt-2 flex justify-between font-bold">
                       <span>Total due today</span>
-                      <span>${(hardwareCost + monthlyTotal).toFixed(2)}</span>
+                      <span>${(hardwareCost + plan.price).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -401,16 +396,16 @@ export default function Pricing() {
           <div className="space-y-4">
             {[
               {
-                q: 'Can I change plans later?',
-                a: 'Yes! You can upgrade or downgrade at any time from your parent dashboard. Changes take effect on your next billing cycle.',
+                q: 'Can I switch between monthly and annual?',
+                a: 'Yes! You can upgrade to annual (and save) or switch back to monthly at any time from your subscription settings. Changes are prorated.',
               },
               {
                 q: 'What if I need more devices?',
-                a: 'You can upgrade to a higher-tier plan or contact us for custom enterprise pricing for 4+ devices.',
+                a: 'You can purchase additional Axolotly devices at any time for $45 each. There\'s no limit on the number of devices per subscription.',
               },
               {
                 q: 'Is there a free trial?',
-                a: 'We offer a 30-day money-back guarantee on hardware and your first month of service.',
+                a: 'We offer a 30-day money-back guarantee on hardware and your first billing period of service.',
               },
               {
                 q: 'How does the device work?',
