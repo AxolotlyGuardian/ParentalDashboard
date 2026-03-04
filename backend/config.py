@@ -60,14 +60,12 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
     STRIPE_PUBLISHABLE_KEY: str = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
     STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-    # Monthly Stripe price IDs
-    STRIPE_PRICE_STARTER: str = os.getenv("STRIPE_PRICE_STARTER", "")
-    STRIPE_PRICE_FAMILY: str = os.getenv("STRIPE_PRICE_FAMILY", "")
-    STRIPE_PRICE_EDUCATOR: str = os.getenv("STRIPE_PRICE_EDUCATOR", "")
-    # Annual Stripe price IDs (create these in Stripe dashboard as annual recurring prices)
-    STRIPE_PRICE_STARTER_ANNUAL: str = os.getenv("STRIPE_PRICE_STARTER_ANNUAL", "")
-    STRIPE_PRICE_FAMILY_ANNUAL: str = os.getenv("STRIPE_PRICE_FAMILY_ANNUAL", "")
-    STRIPE_PRICE_EDUCATOR_ANNUAL: str = os.getenv("STRIPE_PRICE_EDUCATOR_ANNUAL", "")
+    # Stripe price IDs — single Axolotly plan, monthly and annual
+    # Create these in the Stripe dashboard:
+    #   Monthly: $14.99/month recurring
+    #   Annual:  $149.90/year recurring (2 months free)
+    STRIPE_PRICE_AXOLOTLY: str = os.getenv("STRIPE_PRICE_AXOLOTLY", "")
+    STRIPE_PRICE_AXOLOTLY_ANNUAL: str = os.getenv("STRIPE_PRICE_AXOLOTLY_ANNUAL", "")
 
     # CORS
     ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "")

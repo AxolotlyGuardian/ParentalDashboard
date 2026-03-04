@@ -1,75 +1,79 @@
 'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-const PLANS = [
+const MONTHLY_PRICE = 14.99;
+const ANNUAL_PRICE = 149.90;
+const ANNUAL_MONTHLY_EQUIV = 12.49;
+const ANNUAL_SAVINGS = ((MONTHLY_PRICE * 12) - ANNUAL_PRICE).toFixed(2);
+
+const HARDWARE_BASE = 45.00;
+
+function getUnitPrice(units: number): number {
+  if (units >= 4) return Math.round(HARDWARE_BASE * 0.85 * 100) / 100;
+  if (units === 3) return Math.round(HARDWARE_BASE * 0.90 * 100) / 100;
+  if (units === 2) return Math.round(HARDWARE_BASE * 0.95 * 100) / 100;
+  return HARDWARE_BASE;
+}
+
+function getDiscountLabel(units: number): string | null {
+  if (units >= 4) return 'Save 15%';
+  if (units === 3) return 'Save 10%';
+  if (units === 2) return 'Save 5%';
+  return null;
+}
+
+const FEATURES = [
+  'Unlimited child profiles',
+  'Full app blocking & allow-listing',
+  'Screen time limits & bedtime schedule',
+  'Detailed usage reports & trends',
+  'Web content filtering (coming soon)',
+  'Real-time parent dashboard',
+  'Secure cloud syncing',
+  'Priority support',
+];
+
+const FAQS = [
   {
-    id: 'starter',
-    name: 'Starter',
-    price: 4.99,
-    color: '#688ac6',
-    colorHover: '#5276b3',
-    deviceLimit: 1,
-    features: [
-      '1 Axolotly device',
-      'Real-time analytics',
-      'Content filtering',
-      'Remote parent dashboard',
-    ],
+    q: 'Can I add more devices later?',
+    a: 'Yes — you can purchase additional Axolotly devices at any time from your dashboard. Multi-device discounts apply automatically.',
   },
   {
-    id: 'family',
-    name: 'Family',
-    price: 9.99,
-    color: '#FF6B9D',
-    colorHover: '#e85a89',
-    gradient: true,
-    deviceLimit: 3,
-    features: [
-      'Up to 3 devices',
-      'Shared family dashboard',
-      'Per-child enforcement tiers',
-      'Weekly alert summaries',
-    ],
-    popular: true,
+    q: 'What is the annual billing discount?',
+    a: `Annual billing gives you 2 months free — you pay $${ANNUAL_PRICE.toFixed(2)}/year instead of $${(MONTHLY_PRICE * 12).toFixed(2)}, saving you $${ANNUAL_SAVINGS} per year.`,
   },
   {
-    id: 'educator',
-    name: 'Educator',
-    price: 19.99,
-    color: '#9B8DC6',
-    colorHover: '#8778b3',
-    deviceLimit: 10,
-    features: [
-      'Up to 10 devices',
-      'Classroom mode',
-      'Group analytics',
-      'Curriculum content presets',
-    ],
+    q: 'How do multi-device discounts work?',
+    a: '2 devices: 5% off per unit ($42.75 each). 3 devices: 10% off per unit ($40.50 each). 4+ devices: 15% off per unit ($38.25 each). Discounts apply to the one-time hardware cost.',
+  },
+  {
+    q: 'Is there a free trial?',
+    a: 'We offer a 30-day money-back guarantee on hardware and your first month of service — no questions asked.',
+  },
+  {
+    q: 'How does the device work?',
+    a: "Axolotly replaces the standard Android launcher on a TV streaming device. It only shows content you've approved through the parent dashboard.",
+  },
+  {
+    q: 'Can I cancel anytime?',
+    a: 'Yes. Cancel your subscription at any time from your dashboard. Your access continues until the end of the current billing period.',
   },
 ];
 
-const HARDWARE_PRICE = 39;
-const BUNDLE_PRICING: Record<number, { perUnit: number; savings: string }> = {
-  1: { perUnit: 39, savings: '' },
-  2: { perUnit: 31, savings: 'Save 20%' },
-  3: { perUnit: 27, savings: 'Save 30%' },
-};
-
 export default function Pricing() {
   const router = useRouter();
-  const [selectedPlan, setSelectedPlan] = useState<string>('family');
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   const [hardwareUnits, setHardwareUnits] = useState(1);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [step, setStep] = useState<'plan' | 'configure' | 'checkout'>('plan');
 
-  const plan = PLANS.find((p) => p.id === selectedPlan)!;
-  const bundlePrice = BUNDLE_PRICING[Math.min(hardwareUnits, 3)] ?? { perUnit: Math.round(39 * 0.65), savings: 'Save 35%+' };
-  const hardwareCost = bundlePrice.perUnit * hardwareUnits;
-  const monthlyTotal = plan.price;
+  const unitPrice = getUnitPrice(hardwareUnits);
+  const hardwareCost = unitPrice * hardwareUnits;
+  const discountLabel = getDiscountLabel(hardwareUnits);
+  const subscriptionDueToday = billingPeriod === 'annual' ? ANNUAL_PRICE : MONTHLY_PRICE;
 
   const handleCheckout = async () => {
     setIsCheckingOut(true);
@@ -79,7 +83,6 @@ export default function Pricing() {
         router.push('/parent?redirect=pricing');
         return;
       }
-
       const res = await fetch('/api/subscriptions/create-checkout', {
         method: 'POST',
         headers: {
@@ -87,18 +90,17 @@ export default function Pricing() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          plan: selectedPlan,
+          plan: 'axolotly',
+          billing_period: billingPeriod,
           hardware_units: hardwareUnits,
           success_url: window.location.origin + '/pricing/success',
           cancel_url: window.location.origin + '/pricing',
         }),
       });
-
       if (res.status === 401 || res.status === 403) {
         router.push('/parent?redirect=pricing');
         return;
       }
-
       const data = await res.json();
       if (data.checkout_url) {
         window.location.href = data.checkout_url;
@@ -113,18 +115,16 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-[#fdfdfc]">
       <Header variant="pink" />
+      <main className="max-w-5xl mx-auto px-6 py-12">
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
         {/* Hero */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-[#566886] mb-4">
-            Protection that grows with your family
+            Simple, transparent pricing
           </h1>
           <p className="text-xl text-gray-600 mb-2">
-            Choose the plan that fits your needs. No contracts, cancel anytime.
+            One plan. Everything included. No hidden fees.
           </p>
-
-          {/* Step indicators */}
           <div className="flex items-center justify-center gap-2 mt-8">
             {(['plan', 'configure', 'checkout'] as const).map((s, i) => (
               <div key={s} className="flex items-center gap-2">
@@ -143,10 +143,8 @@ export default function Pricing() {
                 >
                   {i + 1}
                 </button>
-                <span
-                  className={`text-sm font-medium ${step === s ? 'text-[#FF6B9D]' : 'text-gray-400'}`}
-                >
-                  {s === 'plan' ? 'Choose Plan' : s === 'configure' ? 'Configure' : 'Checkout'}
+                <span className={`text-sm font-medium ${step === s ? 'text-[#FF6B9D]' : 'text-gray-400'}`}>
+                  {s === 'plan' ? 'Choose Billing' : s === 'configure' ? 'Configure' : 'Checkout'}
                 </span>
                 {i < 2 && <div className="w-12 h-0.5 bg-gray-200 mx-2" />}
               </div>
@@ -154,158 +152,191 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* Step 1: Choose Plan */}
+        {/* Step 1: Plan */}
         {step === 'plan' && (
           <>
-            <section className="mb-16">
-              <div className="grid md:grid-cols-3 gap-8">
-                {PLANS.map((p) => (
-                  <div
-                    key={p.id}
-                    onClick={() => setSelectedPlan(p.id)}
-                    className={`bg-white rounded-lg p-8 border-t-4 cursor-pointer transition-all relative ${
-                      selectedPlan === p.id
-                        ? 'shadow-xl transform md:scale-105'
-                        : 'shadow-lg hover:shadow-xl'
-                    }`}
-                    style={{ borderTopColor: p.color }}
-                  >
-                    {p.popular && selectedPlan === p.id && (
-                      <div
-                        className="absolute top-0 right-0 text-white px-4 py-1 rounded-bl-lg text-sm font-semibold"
-                        style={{ background: `linear-gradient(to right, ${p.color}, ${p.colorHover})` }}
-                      >
-                        Most Popular
-                      </div>
-                    )}
-                    <h3 className="text-2xl font-bold text-[#566886] mb-2">{p.name}</h3>
-                    <div className="mb-6">
-                      <div className="text-sm text-gray-500">$39 per unit +</div>
-                      <span className="text-4xl font-bold" style={{ color: p.color }}>
-                        ${p.price.toFixed(2)}
-                      </span>
-                      <span className="text-gray-600">/month</span>
-                    </div>
-                    <ul className="space-y-3 mb-8">
-                      {p.features.map((f) => (
-                        <li key={f} className="flex items-start">
-                          <span className="text-gray-700">{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedPlan(p.id);
-                        setStep('configure');
-                      }}
-                      className={`w-full text-white font-bold py-3 rounded-lg transition-colors`}
-                      style={{
-                        background: p.gradient
-                          ? `linear-gradient(to right, ${p.color}, ${p.colorHover})`
-                          : p.color,
-                      }}
-                    >
-                      Choose {p.name}
-                    </button>
-                  </div>
-                ))}
+            {/* Billing toggle */}
+            <div className="flex justify-center mb-10">
+              <div className="inline-flex items-center bg-gray-100 rounded-full p-1 gap-1">
+                <button
+                  onClick={() => setBillingPeriod('monthly')}
+                  className={`px-6 py-2 rounded-full text-sm font-semibold transition-all ${
+                    billingPeriod === 'monthly' ? 'bg-white shadow text-[#566886]' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setBillingPeriod('annual')}
+                  className={`px-6 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${
+                    billingPeriod === 'annual' ? 'bg-white shadow text-[#566886]' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Annual
+                  <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                    2 months free
+                  </span>
+                </button>
               </div>
+            </div>
 
-              {/* All Plans Include */}
-              <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-                <h4 className="font-bold text-[#566886] mb-3 text-center">All plans include:</h4>
-                <div className="grid md:grid-cols-2 gap-3 text-gray-700">
-                  <div className="flex items-center">Intelligent content protection</div>
-                  <div className="flex items-center">Full access to parent dashboard</div>
-                  <div className="flex items-center">Community-driven content tagging</div>
-                  <div className="flex items-center">Secure cloud syncing</div>
+            {/* Single plan card */}
+            <section className="mb-12 flex justify-center">
+              <div className="bg-white rounded-2xl shadow-2xl border-t-4 border-[#FF6B9D] p-10 w-full max-w-lg relative">
+                <div
+                  className="absolute -top-4 left-1/2 -translate-x-1/2 text-white px-6 py-1 rounded-full text-sm font-bold shadow"
+                  style={{ background: 'linear-gradient(to right, #FF6B9D, #FF8FB3)' }}
+                >
+                  Everything Included
                 </div>
+
+                <h2 className="text-3xl font-bold text-[#566886] mb-1 text-center mt-2">Axolotly</h2>
+                <p className="text-gray-500 text-center mb-6 text-sm">Full parental control for your family</p>
+
+                <div className="text-center mb-8">
+                  <div className="flex items-end justify-center gap-1">
+                    <span className="text-6xl font-extrabold text-[#FF6B9D]">
+                      ${billingPeriod === 'annual' ? ANNUAL_MONTHLY_EQUIV.toFixed(2) : MONTHLY_PRICE.toFixed(2)}
+                    </span>
+                    <span className="text-gray-500 mb-2 text-lg">/mo</span>
+                  </div>
+                  {billingPeriod === 'annual' ? (
+                    <div className="mt-1 space-y-0.5">
+                      <p className="text-sm text-gray-500">
+                        Billed annually at <span className="font-semibold text-[#566886]">${ANNUAL_PRICE.toFixed(2)}/yr</span>
+                      </p>
+                      <p className="text-sm font-semibold text-green-600">You save ${ANNUAL_SAVINGS}/year vs monthly</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 mt-1">
+                      Switch to annual and save ${ANNUAL_SAVINGS}/year
+                    </p>
+                  )}
+                </div>
+
+                <div className="bg-[#f7f8fc] rounded-lg p-4 mb-6 text-center">
+                  <p className="text-sm text-gray-600">
+                    + <span className="font-semibold text-[#566886]">$45/device</span> one-time hardware fee
+                  </p>
+                  <p className="text-xs text-green-600 mt-1 font-medium">
+                    Multi-device discounts: 5% off 2 · 10% off 3 · 15% off 4+
+                  </p>
+                </div>
+
+                <ul className="space-y-3 mb-8">
+                  {FEATURES.map((f) => (
+                    <li key={f} className="flex items-start gap-3">
+                      <span className="text-[#FF6B9D] font-bold mt-0.5">✓</span>
+                      <span className="text-gray-700 text-sm">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => setStep('configure')}
+                  className="w-full py-4 rounded-xl text-white font-bold text-lg transition-all hover:opacity-90 active:scale-95"
+                  style={{ background: 'linear-gradient(to right, #FF6B9D, #FF8FB3)' }}
+                >
+                  Get Started
+                </button>
+                <p className="text-xs text-gray-400 text-center mt-3">
+                  30-day money-back guarantee · Cancel anytime
+                </p>
               </div>
             </section>
 
-            {/* Social proof */}
-            <section className="mb-16 text-center">
-              <h3 className="text-lg font-semibold text-[#566886] mb-2">Trusted by families everywhere</h3>
-              <p className="text-gray-500">
-                Designed by a parent who understands your challenges. Simple, trustworthy, and reliable.
-              </p>
-            </section>
+            <div className="bg-gray-50 rounded-xl p-6 mb-16 max-w-2xl mx-auto">
+              <h4 className="font-bold text-[#566886] mb-3 text-center">Every plan includes:</h4>
+              <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                <div className="flex items-center gap-2"><span className="text-[#FF6B9D]">✓</span> Intelligent content protection</div>
+                <div className="flex items-center gap-2"><span className="text-[#FF6B9D]">✓</span> Full parent dashboard access</div>
+                <div className="flex items-center gap-2"><span className="text-[#FF6B9D]">✓</span> Community-driven content tagging</div>
+                <div className="flex items-center gap-2"><span className="text-[#FF6B9D]">✓</span> Secure cloud syncing</div>
+              </div>
+            </div>
           </>
         )}
 
-        {/* Step 2: Configure hardware */}
+        {/* Step 2: Configure */}
         {step === 'configure' && (
           <section className="max-w-2xl mx-auto mb-16">
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-[#566886] mb-6 text-center">
-                Configure Your {plan.name} Plan
+                How many Axolotly devices?
               </h2>
 
-              {/* Selected plan summary */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6 flex justify-between items-center">
                 <div>
-                  <span className="font-semibold text-[#566886]">{plan.name} Plan</span>
-                  <span className="text-gray-500 ml-2">Up to {plan.deviceLimit} device{plan.deviceLimit > 1 ? 's' : ''}</span>
+                  <span className="font-semibold text-[#566886]">Axolotly Plan</span>
+                  <span className="text-gray-500 ml-2 text-sm capitalize">({billingPeriod})</span>
                 </div>
-                <span className="text-lg font-bold" style={{ color: plan.color }}>
-                  ${plan.price.toFixed(2)}/mo
+                <span className="text-lg font-bold text-[#FF6B9D]">
+                  {billingPeriod === 'annual' ? `$${ANNUAL_MONTHLY_EQUIV.toFixed(2)}/mo` : `$${MONTHLY_PRICE.toFixed(2)}/mo`}
                 </span>
               </div>
 
-              {/* Hardware units selector */}
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-[#566886] mb-3">
-                  How many Axolotly units?
+                  Select number of devices
                 </label>
-                <div className="flex gap-3">
-                  {[1, 2, 3].map((n) => (
-                    <button
-                      key={n}
-                      onClick={() => setHardwareUnits(n)}
-                      className={`flex-1 py-4 rounded-lg border-2 transition-all text-center ${
-                        hardwareUnits === n
-                          ? 'border-[#FF6B9D] bg-pink-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="text-2xl font-bold text-[#566886]">{n}</div>
-                      <div className="text-sm text-gray-500">
-                        ${BUNDLE_PRICING[n]?.perUnit ?? 25}/unit
-                      </div>
-                      {BUNDLE_PRICING[n]?.savings && (
-                        <div className="text-xs font-semibold text-green-600 mt-1">
-                          {BUNDLE_PRICING[n].savings}
-                        </div>
-                      )}
-                    </button>
-                  ))}
+                <div className="grid grid-cols-4 gap-3">
+                  {[1, 2, 3, 4].map((n) => {
+                    const price = getUnitPrice(n);
+                    const label = getDiscountLabel(n);
+                    return (
+                      <button
+                        key={n}
+                        onClick={() => setHardwareUnits(n)}
+                        className={`py-4 rounded-xl border-2 transition-all text-center ${
+                          hardwareUnits === n
+                            ? 'border-[#FF6B9D] bg-pink-50 shadow-md'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="text-2xl font-bold text-[#566886]">{n}</div>
+                        <div className="text-xs text-gray-500 mt-1">${price.toFixed(2)}/unit</div>
+                        {label && <div className="text-xs font-semibold text-green-600 mt-1">{label}</div>}
+                      </button>
+                    );
+                  })}
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
-                  Need 4+ units? Contact us for custom enterprise pricing.
+                  Need 5+ units?{' '}
+                  <a href="mailto:hello@axolotly.app" className="text-[#FF6B9D] underline">
+                    Contact us
+                  </a>{' '}
+                  for custom pricing.
                 </p>
               </div>
 
-              {/* Order summary */}
-              <div className="border-t pt-4 space-y-2">
-                <div className="flex justify-between text-gray-600">
-                  <span>Hardware ({hardwareUnits} unit{hardwareUnits > 1 ? 's' : ''})</span>
+              <div className="border-t pt-4 space-y-2 mb-6">
+                <div className="flex justify-between text-gray-600 text-sm">
+                  <span>
+                    Axolotly Device × {hardwareUnits}
+                    {discountLabel && (
+                      <span className="ml-2 text-xs font-semibold text-green-600">({discountLabel})</span>
+                    )}
+                  </span>
                   <span>${hardwareCost.toFixed(2)} one-time</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>{plan.name} subscription</span>
-                  <span>${monthlyTotal.toFixed(2)}/month</span>
+                <div className="flex justify-between text-gray-600 text-sm">
+                  <span>Axolotly subscription ({billingPeriod})</span>
+                  <span>
+                    {billingPeriod === 'annual' ? `$${ANNUAL_PRICE.toFixed(2)}/yr` : `$${MONTHLY_PRICE.toFixed(2)}/mo`}
+                  </span>
                 </div>
                 <div className="border-t pt-2 flex justify-between font-bold text-[#566886]">
                   <span>Due today</span>
-                  <span>${(hardwareCost + monthlyTotal).toFixed(2)}</span>
+                  <span>${(hardwareCost + subscriptionDueToday).toFixed(2)}</span>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Then ${monthlyTotal.toFixed(2)}/month. Cancel anytime.
+                  {billingPeriod === 'annual'
+                    ? `Then $${ANNUAL_PRICE.toFixed(2)}/yr. Cancel anytime.`
+                    : `Then $${MONTHLY_PRICE.toFixed(2)}/month. Cancel anytime.`}
                 </p>
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="flex gap-3">
                 <button
                   onClick={() => setStep('plan')}
                   className="flex-1 py-3 rounded-lg border border-gray-300 text-gray-600 font-semibold hover:bg-gray-50 transition-colors"
@@ -314,10 +345,8 @@ export default function Pricing() {
                 </button>
                 <button
                   onClick={() => setStep('checkout')}
-                  className="flex-1 py-3 rounded-lg text-white font-bold transition-all"
-                  style={{
-                    background: `linear-gradient(to right, #FF6B9D, #FF8FB3)`,
-                  }}
+                  className="flex-1 py-3 rounded-lg text-white font-bold transition-all hover:opacity-90"
+                  style={{ background: 'linear-gradient(to right, #FF6B9D, #FF8FB3)' }}
                 >
                   Continue to Checkout
                 </button>
@@ -326,7 +355,7 @@ export default function Pricing() {
           </section>
         )}
 
-        {/* Step 3: Checkout confirmation */}
+        {/* Step 3: Checkout */}
         {step === 'checkout' && (
           <section className="max-w-2xl mx-auto mb-16">
             <div className="bg-white rounded-xl shadow-lg p-8">
@@ -336,40 +365,50 @@ export default function Pricing() {
 
               <div className="space-y-3 mb-6">
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-[#566886] mb-2">Order Summary</h3>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{plan.name} Plan (monthly)</span>
-                      <span>${plan.price.toFixed(2)}/mo</span>
-                    </div>
+                  <h3 className="font-semibold text-[#566886] mb-3">Order Summary</h3>
+                  <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">
-                        Axolotly Device x{hardwareUnits}
-                        {bundlePrice.savings && (
-                          <span className="text-green-600 ml-1 text-xs">({bundlePrice.savings})</span>
+                        Axolotly Plan ({billingPeriod === 'annual' ? 'Annual' : 'Monthly'})
+                      </span>
+                      <span className="font-medium">
+                        {billingPeriod === 'annual' ? `$${ANNUAL_PRICE.toFixed(2)}/yr` : `$${MONTHLY_PRICE.toFixed(2)}/mo`}
+                      </span>
+                    </div>
+                    {billingPeriod === 'annual' && (
+                      <div className="flex justify-between text-green-600 text-xs">
+                        <span>Annual discount (2 months free)</span>
+                        <span>−${ANNUAL_SAVINGS}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        Axolotly Device × {hardwareUnits}
+                        {discountLabel && (
+                          <span className="text-green-600 ml-1 text-xs">({discountLabel})</span>
                         )}
                       </span>
-                      <span>${hardwareCost.toFixed(2)}</span>
+                      <span className="font-medium">${hardwareCost.toFixed(2)}</span>
                     </div>
-                    <div className="border-t pt-1 mt-2 flex justify-between font-bold">
+                    <div className="border-t pt-2 mt-2 flex justify-between font-bold text-[#566886]">
                       <span>Total due today</span>
-                      <span>${(hardwareCost + monthlyTotal).toFixed(2)}</span>
+                      <span>${(hardwareCost + subscriptionDueToday).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-blue-50 rounded-lg p-4 text-sm text-[#566886]">
-                  <p className="font-semibold mb-1">What happens next:</p>
+                  <p className="font-semibold mb-2">What happens next:</p>
                   <ol className="list-decimal list-inside space-y-1 text-gray-600">
                     <li>Complete secure payment via Stripe</li>
-                    <li>Your Axolotly device(s) ship within 3-5 business days</li>
+                    <li>Your Axolotly device(s) ship within 3–5 business days</li>
                     <li>Pair your device and set up your family dashboard</li>
                     <li>Start protecting your family&apos;s screen time</li>
                   </ol>
                 </div>
 
                 <div className="text-xs text-gray-400 text-center">
-                  30-day money-back guarantee on hardware. Cancel subscription anytime.
+                  30-day money-back guarantee on hardware · Cancel subscription anytime
                 </div>
               </div>
 
@@ -383,10 +422,8 @@ export default function Pricing() {
                 <button
                   onClick={handleCheckout}
                   disabled={isCheckingOut}
-                  className="flex-1 py-3 rounded-lg text-white font-bold transition-all disabled:opacity-50"
-                  style={{
-                    background: `linear-gradient(to right, #FF6B9D, #FF8FB3)`,
-                  }}
+                  className="flex-1 py-3 rounded-lg text-white font-bold transition-all disabled:opacity-50 hover:opacity-90"
+                  style={{ background: 'linear-gradient(to right, #FF6B9D, #FF8FB3)' }}
                 >
                   {isCheckingOut ? 'Processing...' : 'Subscribe & Pay'}
                 </button>
@@ -399,24 +436,7 @@ export default function Pricing() {
         <section className="max-w-3xl mx-auto mb-16">
           <h2 className="text-2xl font-bold text-[#566886] mb-6 text-center">Common Questions</h2>
           <div className="space-y-4">
-            {[
-              {
-                q: 'Can I change plans later?',
-                a: 'Yes! You can upgrade or downgrade at any time from your parent dashboard. Changes take effect on your next billing cycle.',
-              },
-              {
-                q: 'What if I need more devices?',
-                a: 'You can upgrade to a higher-tier plan or contact us for custom enterprise pricing for 4+ devices.',
-              },
-              {
-                q: 'Is there a free trial?',
-                a: 'We offer a 30-day money-back guarantee on hardware and your first month of service.',
-              },
-              {
-                q: 'How does the device work?',
-                a: 'Axolotly replaces the standard Android launcher on a TV streaming device. It only shows content you\'ve approved through the parent dashboard.',
-              },
-            ].map(({ q, a }) => (
+            {FAQS.map(({ q, a }) => (
               <div key={q} className="bg-white rounded-lg shadow p-5">
                 <h3 className="font-semibold text-[#566886] mb-1">{q}</h3>
                 <p className="text-gray-600 text-sm">{a}</p>
@@ -442,7 +462,6 @@ export default function Pricing() {
           </button>
         </section>
       </main>
-
       <Footer />
     </div>
   );
