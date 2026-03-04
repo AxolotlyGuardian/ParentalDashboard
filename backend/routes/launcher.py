@@ -12,9 +12,16 @@ from db import get_db
 from models import Device, PairingCode, PendingDevice, App, FamilyApp, TimeLimit, UsageLog, User, KidProfile, Policy, Title, DeviceEpisodeReport, Episode, EpisodeLink
 from auth_utils import require_parent, require_admin
 from services.movie_api import movie_api_client
+from config import settings
+from cryptography.fernet import Fernet
 import json
 
 logger = logging.getLogger(__name__)
+
+
+def _get_fernet() -> Fernet:
+    """Return a Fernet instance using the PAIRING_ENCRYPTION_KEY."""
+    return Fernet(settings.PAIRING_ENCRYPTION_KEY.encode())
 
 
 def hash_api_key(api_key: str) -> str:
@@ -100,8 +107,13 @@ async def check_pairing_status(
         ).first()
 
         api_key_to_deliver = None
-        if pending and hasattr(pending, 'api_key_plaintext') and pending.api_key_plaintext:
-            api_key_to_deliver = pending.api_key_plaintext
+        if pending and pending.api_key_encrypted:
+            try:
+                fernet = _get_fernet()
+                api_key_to_deliver = fernet.decrypt(pending.api_key_encrypted.encode()).decode()
+            except Exception:
+                logger.error("Failed to decrypt pairing API key for device %s", device_id)
+                api_key_to_deliver = None
             db.delete(pending)
             db.commit()
 
@@ -172,8 +184,10 @@ async def confirm_pairing(
         )
         db.add(device)
 
-    # Store the plaintext key temporarily so the device can retrieve it once
-    pending.api_key_plaintext = api_key
+    # Encrypt the API key and store it temporarily so the device can retrieve it once.
+    # The encrypted value is deleted from the database on first successful retrieval.
+    fernet = _get_fernet()
+    pending.api_key_encrypted = fernet.encrypt(api_key.encode()).decode()
     db.commit()
     db.refresh(device)
     
@@ -196,8 +210,8 @@ def get_device_from_headers(
     if not device:
         raise HTTPException(status_code=401, detail="Invalid device credentials")
 
-    # Support both hashed and legacy plaintext keys during migration
-    if not verify_api_key(x_api_key, device.api_key) and device.api_key != x_api_key:
+    # Verify API key against stored hash only (no legacy plaintext fallback)
+    if not verify_api_key(x_api_key, device.api_key):
         raise HTTPException(status_code=401, detail="Invalid device credentials")
 
     db.query(Device).filter(Device.id == device.id).update({"last_active": datetime.utcnow()})

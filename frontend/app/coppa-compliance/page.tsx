@@ -334,6 +334,59 @@ export default function COPPACompliancePage() {
                 </p>
               </div>
 
+              {/* Data Retention Policy */}
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <span className="w-10 h-10 bg-[#F77B8A]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-[#F77B8A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </span>
+                  Data Retention Policy
+                </h2>
+                <p className="text-gray-600 leading-relaxed mb-4">
+                  We retain personal data only for as long as necessary to provide our services. The following retention periods apply:
+                </p>
+                <div className="overflow-x-auto rounded-xl border border-gray-100">
+                  <table className="w-full text-sm text-left">
+                    <thead>
+                      <tr className="bg-pink-50">
+                        <th className="px-4 py-3 font-semibold text-gray-700 border-b border-pink-100">Data Type</th>
+                        <th className="px-4 py-3 font-semibold text-gray-700 border-b border-pink-100">Retention Period</th>
+                        <th className="px-4 py-3 font-semibold text-gray-700 border-b border-pink-100">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="px-4 py-3 border-b border-gray-50 text-gray-600">Screen-time usage logs</td>
+                        <td className="px-4 py-3 border-b border-gray-50 text-gray-600">90 days</td>
+                        <td className="px-4 py-3 border-b border-gray-50 text-gray-600">Automatically purged after 90 days</td>
+                      </tr>
+                      <tr className="bg-gray-50">
+                        <td className="px-4 py-3 border-b border-gray-100 text-gray-600">Device activity reports</td>
+                        <td className="px-4 py-3 border-b border-gray-100 text-gray-600">90 days</td>
+                        <td className="px-4 py-3 border-b border-gray-100 text-gray-600">Automatically purged after 90 days</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3 border-b border-gray-50 text-gray-600">Child profiles (name, age)</td>
+                        <td className="px-4 py-3 border-b border-gray-50 text-gray-600">Until deleted by parent</td>
+                        <td className="px-4 py-3 border-b border-gray-50 text-gray-600">Deleted immediately on request</td>
+                      </tr>
+                      <tr className="bg-gray-50">
+                        <td className="px-4 py-3 text-gray-600">Parent account data</td>
+                        <td className="px-4 py-3 text-gray-600">Until account deletion</td>
+                        <td className="px-4 py-3 text-gray-600">All data deleted immediately on account closure</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="bg-pink-50 border border-pink-100 rounded-xl p-6 mt-6">
+                  <p className="text-gray-700 font-medium">
+                    You can request a full export of your data or permanently delete your account and all associated child data at any time from your account settings. Account deletion is immediate and irreversible.
+                  </p>
+                </div>
+              </div>
+
             </div>
           </div>
         </section>

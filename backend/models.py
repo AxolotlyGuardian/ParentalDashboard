@@ -11,6 +11,13 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
+    # Email verification
+    email_verified = Column(Boolean, default=False, nullable=False)
+    email_verify_token = Column(String, nullable=True, index=True)
+    email_verify_token_expires = Column(DateTime, nullable=True)
+    # Password reset
+    password_reset_token = Column(String, nullable=True, index=True)
+    password_reset_token_expires = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     kid_profiles = relationship("KidProfile", back_populates="parent")
@@ -198,7 +205,9 @@ class PendingDevice(Base):
     id = Column(Integer, primary_key=True, index=True)
     device_id = Column(String, unique=True, nullable=False, index=True)
     pairing_code = Column(String(6), unique=True, nullable=False, index=True)
-    api_key_plaintext = Column(String, nullable=True)
+    # Stores the one-time delivery key encrypted with Fernet (PAIRING_ENCRYPTION_KEY env var).
+    # Deleted from the database on first successful retrieval by the device.
+    api_key_encrypted = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=False)
 
@@ -507,6 +516,20 @@ class RevokedToken(Base):
     jti = Column(String, unique=True, nullable=False, index=True)
     revoked_at = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=False)
+
+
+class RefreshToken(Base):
+    """Long-lived refresh tokens used to obtain new short-lived access tokens."""
+    __tablename__ = "refresh_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    token_hash = Column(String, unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    revoked = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
 
 
 class FandomEpisodeLink(Base):

@@ -11,23 +11,46 @@ from config import settings
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
 PLAN_CONFIG = {
+    # Free tier: lowers acquisition friction, no credit card required.
+    # Limited to 1 device, basic app blocking only, no usage reports.
+    "free": {
+        "name": "Free",
+        "price_monthly": 0,
+        "price_annual": 0,
+        "device_limit": 1,
+        "features": ["1 device", "Basic app blocking", "Bedtime schedule"],
+        "stripe_price_id": None,
+        "stripe_price_id_annual": None,
+    },
+    # Starter: single device, full feature set
     "starter": {
         "name": "Starter",
         "price_monthly": 499,  # cents
+        "price_annual": 4990,  # $49.90/yr = ~$4.16/mo (2 months free)
         "device_limit": 1,
+        "features": ["1 device", "Full app blocking", "Screen time limits", "Usage reports", "Bedtime schedule"],
         "stripe_price_id": settings.STRIPE_PRICE_STARTER,
+        "stripe_price_id_annual": settings.STRIPE_PRICE_STARTER_ANNUAL,
     },
+    # Family: up to 3 devices
     "family": {
         "name": "Family",
         "price_monthly": 999,
+        "price_annual": 9990,  # $99.90/yr = ~$8.33/mo (2 months free)
         "device_limit": 3,
+        "features": ["3 devices", "Full app blocking", "Screen time limits", "Usage reports", "Bedtime schedule", "Multi-child profiles"],
         "stripe_price_id": settings.STRIPE_PRICE_FAMILY,
+        "stripe_price_id_annual": settings.STRIPE_PRICE_FAMILY_ANNUAL,
     },
+    # Educator: up to 10 devices, classroom/school use
     "educator": {
         "name": "Educator",
         "price_monthly": 1999,
+        "price_annual": 19990,  # $199.90/yr = ~$16.66/mo (2 months free)
         "device_limit": 10,
+        "features": ["10 devices", "All Family features", "Classroom management", "Bulk device pairing", "Priority support"],
         "stripe_price_id": settings.STRIPE_PRICE_EDUCATOR,
+        "stripe_price_id_annual": settings.STRIPE_PRICE_EDUCATOR_ANNUAL,
     },
 }
 
@@ -41,6 +64,7 @@ BUNDLE_DISCOUNTS = {
 
 class CreateCheckoutRequest(BaseModel):
     plan: str
+    billing_period: str = "monthly"  # "monthly" or "annual"
     hardware_units: int = 1
     success_url: str
     cancel_url: str
@@ -57,15 +81,24 @@ class SubscriptionStatusResponse(BaseModel):
 
 @router.get("/plans")
 def get_plans():
-    """Return available subscription plans and hardware pricing."""
+    """Return available subscription plans and hardware pricing, including annual billing options."""
     plans = []
     for plan_id, config in PLAN_CONFIG.items():
+        annual_price = config.get("price_annual", 0)
+        monthly_price = config["price_monthly"]
+        annual_savings = (monthly_price * 12) - annual_price if annual_price > 0 else 0
         plans.append({
             "id": plan_id,
             "name": config["name"],
-            "price_monthly_cents": config["price_monthly"],
-            "price_monthly_display": f"${config['price_monthly'] / 100:.2f}",
+            "price_monthly_cents": monthly_price,
+            "price_monthly_display": f"${monthly_price / 100:.2f}" if monthly_price > 0 else "Free",
+            "price_annual_cents": annual_price,
+            "price_annual_display": f"${annual_price / 100:.2f}/yr" if annual_price > 0 else "Free",
+            "price_annual_monthly_equivalent": f"${annual_price / 12 / 100:.2f}/mo" if annual_price > 0 else "Free",
+            "annual_savings_cents": annual_savings,
+            "annual_savings_display": f"Save ${annual_savings / 100:.0f}/yr" if annual_savings > 0 else None,
             "device_limit": config["device_limit"],
+            "features": config.get("features", []),
         })
 
     return {
@@ -75,6 +108,7 @@ def get_plans():
         "bundle_discounts": {
             str(k): f"{int((1 - v) * 100)}% off" for k, v in BUNDLE_DISCOUNTS.items() if v < 1.0
         },
+        "annual_billing_note": "Annual plans include 2 months free compared to monthly billing.",
     }
 
 
@@ -88,10 +122,33 @@ def create_checkout_session(
     if request.plan not in PLAN_CONFIG:
         raise HTTPException(status_code=400, detail="Invalid plan")
 
+    if request.billing_period not in ("monthly", "annual"):
+        raise HTTPException(status_code=400, detail="billing_period must be 'monthly' or 'annual'")
+
     if request.hardware_units < 1 or request.hardware_units > 20:
         raise HTTPException(status_code=400, detail="Hardware units must be between 1 and 20")
 
     plan = PLAN_CONFIG[request.plan]
+
+    # Free tier: activate directly, no Stripe session needed
+    if request.plan == "free":
+        sub = db.query(Subscription).filter(Subscription.user_id == current_user.id).first()
+        if not sub:
+            sub = Subscription(
+                user_id=current_user.id,
+                plan="free",
+                status="active",
+                device_limit=plan["device_limit"],
+                hardware_units=0,
+                current_period_start=datetime.utcnow(),
+            )
+            db.add(sub)
+        else:
+            sub.plan = "free"
+            sub.status = "active"
+            sub.device_limit = plan["device_limit"]
+        db.commit()
+        return {"checkout_url": request.success_url + "?plan=free", "session_id": "free_tier"}
 
     if not settings.STRIPE_SECRET_KEY:
         # Return a mock session for development without Stripe keys
@@ -119,10 +176,16 @@ def create_checkout_session(
             "message": "Stripe not configured - subscription activated in dev mode",
         }
 
-    if not plan["stripe_price_id"]:
+    # Select monthly or annual Stripe price ID
+    if request.billing_period == "annual":
+        stripe_price_id = plan.get("stripe_price_id_annual") or plan["stripe_price_id"]
+    else:
+        stripe_price_id = plan["stripe_price_id"]
+
+    if not stripe_price_id:
         raise HTTPException(
             status_code=503,
-            detail=f"Stripe price ID not configured for plan '{request.plan}'. Set STRIPE_PRICE_* env vars.",
+            detail=f"Stripe price ID not configured for plan '{request.plan}' ({request.billing_period}). Set STRIPE_PRICE_* env vars.",
         )
 
     try:
@@ -135,7 +198,7 @@ def create_checkout_session(
 
         line_items = [
             {
-                "price": plan["stripe_price_id"],
+                "price": stripe_price_id,
                 "quantity": 1,
             },
         ]
@@ -162,6 +225,7 @@ def create_checkout_session(
             metadata={
                 "user_id": str(current_user.id),
                 "plan": request.plan,
+                "billing_period": request.billing_period,
                 "hardware_units": str(request.hardware_units),
             },
         )
