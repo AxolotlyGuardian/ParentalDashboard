@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "")
     SENDGRID_API_KEY: str = os.getenv("SENDGRID_API_KEY", "")
     EMAIL_FROM: str = os.getenv("EMAIL_FROM", "noreply@axolotly.app")
+    FIREBASE_SERVER_KEY: str = os.getenv("FIREBASE_SERVER_KEY", "")
 
     class Config:
         env_file = ".env"

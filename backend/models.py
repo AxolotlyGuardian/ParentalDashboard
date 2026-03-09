@@ -164,16 +164,21 @@ class EpisodePolicy(Base):
 
 class Device(Base):
     __tablename__ = "devices"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     device_id = Column(String, unique=True, nullable=False, index=True)
     api_key = Column(String, nullable=False)
     family_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     kid_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=True, index=True)
     device_name = Column(String, nullable=True)
+    device_model = Column(String, nullable=True)
+    device_manufacturer = Column(String, nullable=True)
+    app_version = Column(String, nullable=True)         # launcher version name
+    app_version_code = Column(Integer, nullable=True)    # launcher version code
+    fcm_token = Column(String, nullable=True)            # Firebase push token
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active = Column(DateTime, default=datetime.utcnow)
-    
+
     family = relationship("User")
     kid_profile = relationship("KidProfile")
     usage_logs = relationship("UsageLog", back_populates="device")
@@ -520,6 +525,40 @@ class OTARelease(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     creator = relationship("User")
+
+
+# NPS Survey System
+
+class NPSSurvey(Base):
+    __tablename__ = "nps_surveys"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    trigger_day = Column(Integer, nullable=False)     # 30 or 90
+    score = Column(Integer, nullable=True)            # 0-10, null if not yet responded
+    comment = Column(Text, nullable=True)
+    status = Column(String, default="pending")        # pending, completed, dismissed
+    shown_at = Column(DateTime, nullable=True)
+    responded_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+
+
+# Weekly Report Tracking
+
+class WeeklyReport(Base):
+    __tablename__ = "weekly_reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    week_start = Column(DateTime, nullable=False)
+    week_end = Column(DateTime, nullable=False)
+    report_data = Column(JSON, nullable=False)       # daily breakdowns, totals, etc.
+    email_sent = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
 
 
 class RevokedToken(Base):

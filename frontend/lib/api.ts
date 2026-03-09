@@ -298,6 +298,43 @@ export const otaApi = {
     api.delete(`/ota/admin/releases/${releaseId}`),
 };
 
+// --- Device Status ---
+
+export const deviceStatusApi = {
+  getStatus: () =>
+    api.get('/parent/device-status'),
+};
+
+// --- Weekly Reports ---
+
+export const reportsApi = {
+  getWeekly: (weekOffset: number = 0) =>
+    api.get('/reports/weekly', { params: { week_offset: weekOffset } }),
+};
+
+// --- NPS ---
+
+export const npsApi = {
+  check: () =>
+    api.get('/nps/check'),
+
+  submit: (surveyId: number, score: number, comment?: string) =>
+    api.post(`/nps/${surveyId}/submit`, { score, comment }),
+
+  dismiss: (surveyId: number) =>
+    api.post(`/nps/${surveyId}/dismiss`),
+
+  getResults: () =>
+    api.get('/nps/admin/results'),
+};
+
+// --- Push Notifications ---
+
+export const notificationsApi = {
+  send: (title: string, body: string, deviceId?: number) =>
+    api.post('/notifications/send', { title, body, device_id: deviceId }),
+};
+
 // --- Admin ---
 
 export const adminApi = {
