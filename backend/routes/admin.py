@@ -672,6 +672,110 @@ def get_episode_tags_with_provenance(
     
     return result
 
+# ---------------------------------------------------------------------------
+# TMDB-Based Tagging Endpoints (replaces Fandom scraping for new content)
+# ---------------------------------------------------------------------------
+
+class TMDBTagRequest(BaseModel):
+    title_ids: Optional[List[int]] = None
+
+class TMDBTagTitleResponse(BaseModel):
+    success: bool
+    title_id: Optional[int] = None
+    title_name: Optional[str] = None
+    tmdb_keywords_found: int = 0
+    certification: Optional[str] = None
+    keyword_tags: int = 0
+    cert_tags: int = 0
+    genre_tags: int = 0
+    tags_added: int = 0
+    tags_skipped_existing: int = 0
+    episode_tagging: Optional[dict] = None
+    error: Optional[str] = None
+
+class TMDBBatchTagResponse(BaseModel):
+    success: bool
+    titles_processed: int = 0
+    total_tags_added: int = 0
+    results: List[dict] = []
+
+
+@router.post("/tmdb/tag-title/{title_id}", response_model=TMDBTagTitleResponse)
+async def tmdb_tag_title(
+    title_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Tag a single title using TMDB keywords + certifications.
+    Also tags episodes via overview text analysis for TV shows.
+    """
+    from services.tmdb_tagger import TMDBTagger
+
+    tagger = TMDBTagger(db)
+    result = await tagger.tag_title(title_id)
+
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Tagging failed"))
+
+    # Tag episodes if TV show
+    title = db.query(Title).filter(Title.id == title_id).first()
+    if title and title.media_type == "tv":
+        ep_result = tagger.tag_episodes_for_title(title_id)
+        result["episode_tagging"] = ep_result
+
+    return TMDBTagTitleResponse(**result)
+
+
+async def run_tmdb_batch_tag(title_ids: Optional[List[int]]):
+    from db import SessionLocal
+    from services.tmdb_tagger import TMDBTagger
+
+    db = SessionLocal()
+    try:
+        tagger = TMDBTagger(db)
+        await tagger.tag_all_titles(title_ids)
+    finally:
+        db.close()
+
+
+@router.post("/tmdb/tag-batch", response_model=TMDBBatchTagResponse)
+async def tmdb_tag_batch(
+    request: TMDBTagRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Batch-tag titles using TMDB keywords, certifications, and episode overviews.
+    Runs in the background for large batches.
+    If title_ids is empty/null, tags ALL titles.
+    """
+    from services.tmdb_tagger import TMDBTagger
+
+    # For small batches (<=5), run inline
+    if request.title_ids and len(request.title_ids) <= 5:
+        tagger = TMDBTagger(db)
+        result = await tagger.tag_all_titles(request.title_ids)
+        return TMDBBatchTagResponse(**result)
+
+    # For large batches, run in background
+    background_tasks.add_task(run_tmdb_batch_tag, request.title_ids)
+
+    # Count how many titles will be processed
+    query = db.query(Title).filter(Title.tmdb_id.isnot(None))
+    if request.title_ids:
+        query = query.filter(Title.id.in_(request.title_ids))
+    count = query.count()
+
+    return TMDBBatchTagResponse(
+        success=True,
+        titles_processed=count,
+        total_tags_added=0,
+        results=[{"message": f"Background tagging started for {count} titles"}],
+    )
+
+
 class ScrapeStatsResponse(BaseModel):
     title_name: str
     total_episodes: int

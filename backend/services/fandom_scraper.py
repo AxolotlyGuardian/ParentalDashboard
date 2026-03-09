@@ -239,61 +239,51 @@ class FandomScraper:
 
 def trigger_show_scrape(title_id: int, title_name: str):
     """
-    Automatic background task to scrape episode-level content tags
+    Automatic background task to tag episode-level content
     when a parent adds a new TV show to their dashboard.
-    Uses the enhanced Fandom scraper for comprehensive multi-strategy scraping.
+
+    Uses TMDB keywords, certifications, and episode-overview text analysis
+    instead of Fandom wiki scraping (clean data provenance).
     """
+    import asyncio
     from db import SessionLocal
     from models import Title
-    from datetime import datetime
-    from services.enhanced_fandom_scraper import EnhancedFandomScraper
-    
+    from services.tmdb_tagger import TMDBTagger
+
     db = SessionLocal()
     try:
         title = db.query(Title).filter(Title.id == title_id).first()
         if not title or title.media_type != 'tv':
-            print(f"Skipping scrape for {title_name}: not a TV show or not found")
+            print(f"Skipping TMDB tagging for {title_name}: not a TV show or not found")
             return
-        
-        print(f"Starting enhanced Fandom scrape for: {title_name}")
-        
-        # Use enhanced scraper with all tags (no filter = searches all 72+ tags)
-        scraper = EnhancedFandomScraper(db, rate_limit_delay=1.0)
-        result = scraper.scrape_show_episodes(
-            title_id=title_id,
-            tag_filter=None  # Search for all content tags
-        )
-        
-        if result.get('success'):
-            episodes_found = result.get('episodes_found', 0)
-            episodes_matched = result.get('episodes_matched', 0)
-            episodes_tagged = result.get('episodes_tagged', 0)
-            tags_added = result.get('tags_added', 0)
-            
-            print(f"✅ Enhanced scrape complete for {title_name}:")
-            print(f"   - Episodes found: {episodes_found}")
-            print(f"   - Episodes matched: {episodes_matched}")
-            print(f"   - Episodes tagged: {episodes_tagged}")
-            print(f"   - Unique tags added: {tags_added}")
-            
-            # Mark as scraped
-            try:
-                title.fandom_scraped = True
-                title.fandom_scrape_date = datetime.utcnow()
-                if result.get('wiki_slug'):
-                    title.wiki_slug = result['wiki_slug']
-                db.commit()
-                print(f"   - Marked {title_name} as scraped")
-            except Exception as commit_error:
-                db.rollback()
-                print(f"   - Failed to mark {title_name} as scraped: {str(commit_error)}")
-        else:
-            error_msg = result.get('error', 'Unknown error')
-            print(f"❌ Enhanced scrape failed for {title_name}: {error_msg}")
-            print(f"   Will retry on next policy creation or manual scrape")
-            
+
+        print(f"Starting TMDB-based tagging for: {title_name}")
+
+        tagger = TMDBTagger(db)
+
+        # Run the async title tagging (keywords + certifications)
+        loop = asyncio.new_event_loop()
+        try:
+            title_result = loop.run_until_complete(tagger.tag_title(title_id))
+        finally:
+            loop.close()
+
+        # Run synchronous episode overview tagging
+        ep_result = tagger.tag_episodes_for_title(title_id)
+
+        title_tags = title_result.get('tags_added', 0)
+        ep_tags = ep_result.get('tags_added', 0)
+        ep_tagged = ep_result.get('episodes_tagged', 0)
+
+        print(f"TMDB tagging complete for {title_name}:")
+        print(f"   - Title-level tags added: {title_tags}")
+        print(f"   - TMDB keywords found: {title_result.get('tmdb_keywords_found', 0)}")
+        print(f"   - Certification: {title_result.get('certification', 'N/A')}")
+        print(f"   - Episodes tagged: {ep_tagged}")
+        print(f"   - Episode tags added: {ep_tags}")
+
     except Exception as e:
-        print(f"❌ Critical error in automatic scrape for {title_name}: {str(e)}")
+        print(f"Error in TMDB tagging for {title_name}: {str(e)}")
         import traceback
         traceback.print_exc()
     finally:
