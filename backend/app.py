@@ -6,8 +6,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from db import engine, Base
-from routes import auth, catalog, policy, launch, launcher, content_tags, admin, services, subscriptions, packages, ota, device_status, reports, nps, notifications, chinampas
-from routes import auth, catalog, policy, launch, launcher, content_tags, admin, services, subscriptions, packages, compliance, reporting, web_filter
+from routes import auth, catalog, policy, launch, launcher, content_tags, admin, services, subscriptions, packages, ota, device_status, reports, nps, notifications, chinampas, compliance, reporting, web_filter
 from config import settings
 
 logging.basicConfig(level=logging.INFO)

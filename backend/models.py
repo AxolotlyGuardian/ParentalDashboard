@@ -605,7 +605,8 @@ class Chinampa(Base):
 
     creator = relationship("User")
     titles = relationship("ChinampaTitle", back_populates="chinampa", cascade="all, delete-orphan")
-    adoptions = relationship("ChinampaAdoption", back_populates="chinampa")
+    adoptions = relationship("ChinampaAdoption", back_populates="chinampa", cascade="all, delete-orphan")
+    reports = relationship("ChinampaReport", back_populates="chinampa", cascade="all, delete-orphan")
 
 
 class ChinampaTitle(Base):
@@ -631,7 +632,7 @@ class ChinampaAdoption(Base):
     )
 
     id = Column(Integer, primary_key=True, index=True)
-    chinampa_id = Column(Integer, ForeignKey("chinampas.id"), nullable=False, index=True)
+    chinampa_id = Column(Integer, ForeignKey("chinampas.id", ondelete="CASCADE"), nullable=False, index=True)
     adopter_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     child_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=False, index=True)
     titles_adopted = Column(Integer, default=0)
@@ -646,13 +647,13 @@ class ChinampaReport(Base):
     __tablename__ = "chinampa_reports"
 
     id = Column(Integer, primary_key=True, index=True)
-    chinampa_id = Column(Integer, ForeignKey("chinampas.id"), nullable=False, index=True)
+    chinampa_id = Column(Integer, ForeignKey("chinampas.id", ondelete="CASCADE"), nullable=False, index=True)
     reporter_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     reason = Column(Text, nullable=False)
     status = Column(String(20), default="pending", index=True)  # pending, reviewed, dismissed
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    chinampa = relationship("Chinampa")
+    chinampa = relationship("Chinampa", back_populates="reports")
     reporter = relationship("User")
 class RefreshToken(Base):
     """Long-lived refresh tokens used to obtain new short-lived access tokens."""
