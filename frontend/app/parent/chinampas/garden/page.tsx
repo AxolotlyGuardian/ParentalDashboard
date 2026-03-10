@@ -56,7 +56,9 @@ export default function MyGarden() {
       ]);
       setPlanted(plantedRes.data.chinampas || []);
       setAdopted(adoptedRes.data.adoptions || []);
-    } catch {} finally { setLoading(false); }
+    } catch (err) {
+      console.error('Failed to load garden data:', err);
+    } finally { setLoading(false); }
   };
 
   if (loading) {

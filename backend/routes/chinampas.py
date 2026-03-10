@@ -300,6 +300,7 @@ def admin_approve_chinampa(
     chinampa.status = "published"
     chinampa.published_at = datetime.utcnow()
     chinampa.rejection_reason = None
+    chinampa.report_count = 0
 
     # Dismiss any pending reports
     db.query(ChinampaReport).filter(
@@ -386,7 +387,9 @@ def browse_chinampas(
     else:
         query = query.order_by(Chinampa.adoption_count.desc(), Chinampa.published_at.desc())
 
-    total = query.count()
+    # Count without joinedload to avoid row multiplication
+    from sqlalchemy.orm import lazyload
+    total = query.options(lazyload('*')).count()
     chinampas = query.offset(skip).limit(limit).all()
 
     return {
@@ -518,6 +521,24 @@ def update_chinampa(
         if len(request.title_ids) > TITLES_MAX:
             raise HTTPException(status_code=400, detail=f"A chinampa can have at most {TITLES_MAX} titles")
 
+        # Verify titles are approved in at least one child profile
+        approved_title_ids = set()
+        kid_profiles = db.query(KidProfile).filter(KidProfile.parent_id == current_user.id).all()
+        for profile in kid_profiles:
+            policies = db.query(Policy).filter(
+                Policy.kid_profile_id == profile.id,
+                Policy.is_allowed == True,
+            ).all()
+            for p in policies:
+                approved_title_ids.add(p.title_id)
+
+        invalid_titles = set(request.title_ids) - approved_title_ids
+        if invalid_titles:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Titles must be approved in at least one of your child's profiles. Invalid: {list(invalid_titles)[:5]}",
+            )
+
         # Delete existing and re-add
         db.query(ChinampaTitle).filter(ChinampaTitle.chinampa_id == chinampa_id).delete()
         for title_id in request.title_ids:
@@ -615,17 +636,20 @@ def adopt_chinampa(
         existing_adoption.titles_adopted += titles_adopted
         existing_adoption.adopted_at = datetime.utcnow()
     else:
+        # Check for previous adoptions by this user (different child profiles) BEFORE adding
+        has_previous = db.query(ChinampaAdoption).filter(
+            ChinampaAdoption.chinampa_id == chinampa_id,
+            ChinampaAdoption.adopter_id == current_user.id,
+        ).first()
+
         db.add(ChinampaAdoption(
             chinampa_id=chinampa_id,
             adopter_id=current_user.id,
             child_profile_id=request.child_profile_id,
             titles_adopted=titles_adopted,
         ))
-        # Increment adoption_count only for unique users
-        has_previous = db.query(ChinampaAdoption).filter(
-            ChinampaAdoption.chinampa_id == chinampa_id,
-            ChinampaAdoption.adopter_id == current_user.id,
-        ).first()
+
+        # Increment adoption_count only for first adoption by this user
         if not has_previous:
             chinampa.adoption_count += 1
 

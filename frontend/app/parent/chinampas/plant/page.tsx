@@ -34,8 +34,9 @@ export default function PlantChinampa() {
     try {
       const res = await chinampasApi.getApprovedTitles();
       setApprovedTitles(res.data.titles || []);
-    } catch {}
-    finally { setLoading(false); }
+    } catch (err) {
+      console.error('Failed to load approved titles:', err);
+    } finally { setLoading(false); }
   };
 
   const toggleTitle = (id: number) => {

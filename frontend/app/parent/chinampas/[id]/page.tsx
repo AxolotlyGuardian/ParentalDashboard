@@ -70,7 +70,9 @@ export default function ChinampaDetailPage() {
     try {
       const res = await authApi.getAllKidProfiles();
       setKidProfiles(res.data.profiles || res.data || []);
-    } catch {}
+    } catch (err) {
+      console.error('Failed to load kid profiles:', err);
+    }
   };
 
   const toggleTitle = (titleId: number) => {
@@ -115,12 +117,14 @@ export default function ChinampaDetailPage() {
   };
 
   const startAdopt = () => {
+    if (kidProfiles.length === 0) {
+      alert('Please create a child profile first before adopting a chinampa.');
+      return;
+    }
     if (kidProfiles.length === 1) {
       setSelectedProfile(kidProfiles[0].id);
-      setShowProfilePicker(true);
-    } else if (kidProfiles.length > 1) {
-      setShowProfilePicker(true);
     }
+    setShowProfilePicker(true);
   };
 
   if (loading) {
@@ -230,7 +234,7 @@ export default function ChinampaDetailPage() {
                 <p className="text-white text-xs font-medium line-clamp-1">{t.title}</p>
                 <div className="flex items-center justify-between mt-1">
                   <span className="text-[#5a5a6a] text-[10px]">
-                    {t.release_date?.slice(0, 4)} {t.rating && `&#183; ${t.rating}`}
+                    {t.release_date?.slice(0, 4)} {t.rating && `\u00B7 ${t.rating}`}
                   </span>
                   <span className={`text-[10px] font-medium ${excluded ? 'text-[#5a5a6a]' : 'text-[#F77B8A]'}`}>
                     {excluded ? 'Removed' : 'Included'}
