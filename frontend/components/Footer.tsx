@@ -45,6 +45,7 @@ export default function Footer() {
               <li><button onClick={() => router.push('/pricing')} className="text-gray-400 hover:text-white transition-colors text-sm">Pricing</button></li>
               <li><button onClick={() => router.push('/parent')} className="text-gray-400 hover:text-white transition-colors text-sm">Parent Dashboard</button></li>
               <li><button onClick={() => router.push('/kids')} className="text-gray-400 hover:text-white transition-colors text-sm">Kids Launcher</button></li>
+              <li><button onClick={() => router.push('/about')} className="text-gray-400 hover:text-white transition-colors text-sm">About</button></li>
             </ul>
           </div>
 

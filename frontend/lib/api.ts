@@ -377,3 +377,50 @@ export const adminApi = {
   enhancedScrape: (data: { title_id: number; tag_ids: number[]; force_rescrape?: boolean }) =>
     api.post('/admin/enhanced-scrape', data),
 };
+
+// --- Chinampas ---
+
+export const chinampasApi = {
+  browse: (params: Record<string, string> = {}) =>
+    api.get('/chinampas', { params }),
+
+  getDetail: (id: number) =>
+    api.get(`/chinampas/${id}`),
+
+  create: (data: { name: string; description: string; age_range: string; title_ids: number[]; publish: boolean }) =>
+    api.post('/chinampas', data),
+
+  update: (id: number, data: { name?: string; description?: string; age_range?: string; title_ids?: number[] }) =>
+    api.put(`/chinampas/${id}`, data),
+
+  delete: (id: number) =>
+    api.delete(`/chinampas/${id}`),
+
+  adopt: (id: number, data: { child_profile_id: number; excluded_title_ids: number[] }) =>
+    api.post(`/chinampas/${id}/adopt`, data),
+
+  getPlanted: () =>
+    api.get('/chinampas/mine/planted'),
+
+  getAdopted: () =>
+    api.get('/chinampas/mine/adopted'),
+
+  getApprovedTitles: () =>
+    api.get('/chinampas/mine/approved-titles'),
+
+  report: (id: number, data: { reason: string }) =>
+    api.post(`/chinampas/${id}/report`, data),
+
+  // Admin
+  getReviewQueue: () =>
+    api.get('/chinampas/admin/review-queue'),
+
+  approve: (id: number) =>
+    api.post(`/chinampas/admin/${id}/approve`),
+
+  reject: (id: number, reason?: string) =>
+    api.post(`/chinampas/admin/${id}/reject`, { reason }),
+
+  toggleStaffPick: (id: number) =>
+    api.post(`/chinampas/admin/${id}/staff-pick`),
+};

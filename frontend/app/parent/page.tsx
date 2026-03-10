@@ -602,6 +602,15 @@ export default function ParentDashboard() {
             </button>
             <button
               onClick={() => {
+                router.push('/parent/chinampas');
+              }}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-full mb-2 transition-all duration-200 text-gray-700 hover:bg-white hover:shadow-md hover:scale-[1.02] border border-[#2dd4bf]/30 bg-[#2dd4bf]/5"
+            >
+              <span className="font-medium text-[#2dd4bf]">Chinampas</span>
+              <span className="text-xs text-[#2dd4bf]">Community</span>
+            </button>
+            <button
+              onClick={() => {
                 setActiveTab('devices');
                 setIsMobileMenuOpen(false);
               }}

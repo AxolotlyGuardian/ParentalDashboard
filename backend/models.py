@@ -570,6 +570,78 @@ class RevokedToken(Base):
     expires_at = Column(DateTime, nullable=False)
 
 
+# Chinampas Community Feature
+
+class Chinampa(Base):
+    __tablename__ = "chinampas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    creator_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    name = Column(String(60), nullable=False)
+    description = Column(String(500), nullable=False)
+    age_range = Column(String(10), nullable=False)  # "1-3", "2-4", "3-8", "5-12", "6-10", "8-14"
+    status = Column(String(20), default="draft", index=True)  # draft, in_review, published, rejected
+    is_staff_pick = Column(Boolean, default=False, index=True)
+    adoption_count = Column(Integer, default=0)
+    rejection_reason = Column(Text, nullable=True)
+    report_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    published_at = Column(DateTime, nullable=True)
+
+    creator = relationship("User")
+    titles = relationship("ChinampaTitle", back_populates="chinampa", cascade="all, delete-orphan")
+    adoptions = relationship("ChinampaAdoption", back_populates="chinampa")
+
+
+class ChinampaTitle(Base):
+    __tablename__ = "chinampa_titles"
+    __table_args__ = (
+        UniqueConstraint('chinampa_id', 'title_id', name='_chinampa_title_uc'),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    chinampa_id = Column(Integer, ForeignKey("chinampas.id", ondelete="CASCADE"), nullable=False, index=True)
+    title_id = Column(Integer, ForeignKey("titles.id"), nullable=False, index=True)
+    note = Column(String(200), nullable=True)
+    added_at = Column(DateTime, default=datetime.utcnow)
+
+    chinampa = relationship("Chinampa", back_populates="titles")
+    title = relationship("Title")
+
+
+class ChinampaAdoption(Base):
+    __tablename__ = "chinampa_adoptions"
+    __table_args__ = (
+        UniqueConstraint('chinampa_id', 'adopter_id', 'child_profile_id', name='_chinampa_adoption_uc'),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    chinampa_id = Column(Integer, ForeignKey("chinampas.id"), nullable=False, index=True)
+    adopter_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    child_profile_id = Column(Integer, ForeignKey("kid_profiles.id"), nullable=False, index=True)
+    titles_adopted = Column(Integer, default=0)
+    adopted_at = Column(DateTime, default=datetime.utcnow)
+
+    chinampa = relationship("Chinampa", back_populates="adoptions")
+    adopter = relationship("User")
+    child_profile = relationship("KidProfile")
+
+
+class ChinampaReport(Base):
+    __tablename__ = "chinampa_reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chinampa_id = Column(Integer, ForeignKey("chinampas.id"), nullable=False, index=True)
+    reporter_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    reason = Column(Text, nullable=False)
+    status = Column(String(20), default="pending", index=True)  # pending, reviewed, dismissed
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    chinampa = relationship("Chinampa")
+    reporter = relationship("User")
+
+
 class FandomEpisodeLink(Base):
     __tablename__ = "fandom_episode_links"
     __table_args__ = (
