@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from db import engine, Base
+from routes import auth, catalog, policy, launch, launcher, content_tags, admin, services, subscriptions, packages, ota, device_status, reports, nps, notifications, chinampas
 from routes import auth, catalog, policy, launch, launcher, content_tags, admin, services, subscriptions, packages, compliance, reporting, web_filter
 from config import settings
 
@@ -116,6 +117,12 @@ app.include_router(admin.router, prefix="/api")
 app.include_router(services.router, prefix="/api")
 app.include_router(subscriptions.router, prefix="/api")
 app.include_router(packages.router, prefix="/api")
+app.include_router(ota.router, prefix="/api")
+app.include_router(device_status.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
+app.include_router(nps.router, prefix="/api")
+app.include_router(notifications.router, prefix="/api")
+app.include_router(chinampas.router, prefix="/api")
 app.include_router(compliance.router, prefix="/api")
 app.include_router(reporting.router, prefix="/api")
 app.include_router(web_filter.router, prefix="/api")

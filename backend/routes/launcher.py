@@ -107,6 +107,8 @@ async def check_pairing_status(
         ).first()
 
         api_key_to_deliver = None
+        if pending and hasattr(pending, 'api_key_plaintext') and pending.api_key_plaintext:
+            api_key_to_deliver = pending.api_key_plaintext
         if pending and pending.api_key_encrypted:
             try:
                 fernet = _get_fernet()
@@ -184,6 +186,8 @@ async def confirm_pairing(
         )
         db.add(device)
 
+    # Store the plaintext key temporarily so the device can retrieve it once
+    pending.api_key_plaintext = api_key
     # Encrypt the API key and store it temporarily so the device can retrieve it once.
     # The encrypted value is deleted from the database on first successful retrieval.
     fernet = _get_fernet()
@@ -210,6 +214,8 @@ def get_device_from_headers(
     if not device:
         raise HTTPException(status_code=401, detail="Invalid device credentials")
 
+    # Support both hashed and legacy plaintext keys during migration
+    if not verify_api_key(x_api_key, device.api_key) and device.api_key != x_api_key:
     # Verify API key against stored hash only (no legacy plaintext fallback)
     if not verify_api_key(x_api_key, device.api_key):
         raise HTTPException(status_code=401, detail="Invalid device credentials")
@@ -501,6 +507,87 @@ async def get_time_limits(
         }
 
     return {
+        "dailyLimitMinutes": time_limit.daily_limit_minutes,
+        "bedtimeStart": time_limit.bedtime_start,
+        "bedtimeEnd": time_limit.bedtime_end,
+        "scheduleEnabled": time_limit.schedule_enabled
+    }
+
+# --- Parent-facing Time Limits CRUD ---
+
+@router.get("/parent/time-limits")
+async def get_parent_time_limits(
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Get time limits for the current parent's family (JWT auth)"""
+    time_limit = db.query(TimeLimit).filter(
+        TimeLimit.family_id == current_user.id
+    ).first()
+
+    if not time_limit:
+        return {
+            "id": None,
+            "dailyLimitMinutes": None,
+            "bedtimeStart": None,
+            "bedtimeEnd": None,
+            "scheduleEnabled": False
+        }
+
+    return {
+        "id": time_limit.id,
+        "dailyLimitMinutes": time_limit.daily_limit_minutes,
+        "bedtimeStart": time_limit.bedtime_start,
+        "bedtimeEnd": time_limit.bedtime_end,
+        "scheduleEnabled": time_limit.schedule_enabled
+    }
+
+@router.put("/parent/time-limits")
+async def upsert_parent_time_limits(
+    request: dict,
+    current_user: User = Depends(require_parent),
+    db: Session = Depends(get_db)
+):
+    """Create or update time limits for the current parent's family"""
+    import re
+    time_format = re.compile(r'^\d{2}:\d{2}$')
+
+    daily_limit = request.get("dailyLimitMinutes")
+    bedtime_start = request.get("bedtimeStart")
+    bedtime_end = request.get("bedtimeEnd")
+    schedule_enabled = request.get("scheduleEnabled", False)
+
+    if daily_limit is not None and (not isinstance(daily_limit, int) or daily_limit < 0):
+        raise HTTPException(status_code=400, detail="dailyLimitMinutes must be a non-negative integer")
+    if bedtime_start and not time_format.match(bedtime_start):
+        raise HTTPException(status_code=400, detail="bedtimeStart must be in HH:MM format")
+    if bedtime_end and not time_format.match(bedtime_end):
+        raise HTTPException(status_code=400, detail="bedtimeEnd must be in HH:MM format")
+
+    time_limit = db.query(TimeLimit).filter(
+        TimeLimit.family_id == current_user.id
+    ).first()
+
+    if time_limit:
+        time_limit.daily_limit_minutes = daily_limit
+        time_limit.bedtime_start = bedtime_start
+        time_limit.bedtime_end = bedtime_end
+        time_limit.schedule_enabled = schedule_enabled
+    else:
+        time_limit = TimeLimit(
+            family_id=current_user.id,
+            daily_limit_minutes=daily_limit,
+            bedtime_start=bedtime_start,
+            bedtime_end=bedtime_end,
+            schedule_enabled=schedule_enabled
+        )
+        db.add(time_limit)
+
+    db.commit()
+    db.refresh(time_limit)
+
+    return {
+        "id": time_limit.id,
         "dailyLimitMinutes": time_limit.daily_limit_minutes,
         "bedtimeStart": time_limit.bedtime_start,
         "bedtimeEnd": time_limit.bedtime_end,

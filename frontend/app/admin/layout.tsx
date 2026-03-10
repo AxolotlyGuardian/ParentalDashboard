@@ -53,6 +53,7 @@ export default function AdminLayout({
     system: [
       { href: '/admin/policies', label: 'Policies' },
       { href: '/admin/stats', label: 'Usage Stats' },
+      { href: '/admin/ota', label: 'OTA Updates' },
       { href: '/admin/settings', label: 'Settings' },
     ]
   };

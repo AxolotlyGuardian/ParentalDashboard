@@ -13,6 +13,8 @@ def _get_jwt_secret() -> str:
     return secret
 
 
+class Settings(BaseSettings):
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
 def _get_pairing_encryption_key() -> str:
     """Fernet key used to encrypt the one-time API key during device pairing.
     Must be a 32-byte URL-safe base64-encoded value (Fernet.generate_key()).
@@ -43,6 +45,18 @@ class Settings(BaseSettings):
     TMDB_API_KEY: str = os.getenv("TMDB_API_KEY", "")
     TMDB_API_BASE_URL: str = "https://api.themoviedb.org/3"
     MOVIE_OF_THE_NIGHT_API_KEY: str = os.getenv("MOVIE_OF_THE_NIGHT_API_KEY", "")
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
+    STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
+    STRIPE_PUBLISHABLE_KEY: str = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
+    STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+    STRIPE_PRICE_MONTHLY: str = os.getenv("STRIPE_PRICE_MONTHLY", "")
+    STRIPE_PRICE_ANNUAL: str = os.getenv("STRIPE_PRICE_ANNUAL", "")
+    STRIPE_PRICE_DEVICE: str = os.getenv("STRIPE_PRICE_DEVICE", "")
+    ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "")
+    SENDGRID_API_KEY: str = os.getenv("SENDGRID_API_KEY", "")
+    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "noreply@axolotly.app")
+    FIREBASE_SERVER_KEY: str = os.getenv("FIREBASE_SERVER_KEY", "")
 
     # Email (for verification and password reset)
     SMTP_HOST: str = os.getenv("SMTP_HOST", "")

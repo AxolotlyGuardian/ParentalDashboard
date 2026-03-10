@@ -161,6 +161,22 @@ export const launchApi = {
 
 export const contentTagApi = {
   getTags: () =>
+    api.get('/content-tags'),
+
+  createTag: (category: string, slug: string, display_name: string, description?: string) =>
+    api.post('/content-tags', { category, slug, display_name, description }),
+
+  updateTag: (tagId: number, data: { display_name?: string; description?: string }) =>
+    api.put(`/content-tags/${tagId}`, data),
+
+  deleteTag: (tagId: number) =>
+    api.delete(`/content-tags/${tagId}`),
+
+  getTitleTags: (titleId: number) =>
+    api.get(`/content-tags/title/${titleId}`),
+
+  getContentReports: () =>
+    api.get('/content-tags/reports'),
     api.get('/tags'),
 
   createTag: (category: string, slug: string, display_name: string, description?: string) =>
@@ -185,6 +201,13 @@ export const contentTagApi = {
     season_number?: number,
     episode_number?: number
   ) =>
+    api.post('/content-tags/reports', { title_id, tag_id, notes, season_number, episode_number }),
+
+  approveContentReport: (reportId: number) =>
+    api.put(`/content-tags/reports/${reportId}/approve`),
+
+  rejectContentReport: (reportId: number) =>
+    api.put(`/content-tags/reports/${reportId}/reject`),
     api.post('/content-reports', { title_id, tag_id, notes, season_number, episode_number }),
 
   approveContentReport: (reportId: number) =>
@@ -248,6 +271,93 @@ export const packagesApi = {
     api.delete(`/packages/admin/${packageId}/items/${titleId}`),
 };
 
+// --- Subscriptions ---
+
+export const subscriptionsApi = {
+  getPlans: () =>
+    api.get('/subscriptions/plans'),
+
+  getStatus: () =>
+    api.get('/subscriptions/status'),
+
+  changePlan: (newPlan: string) =>
+    api.post('/subscriptions/change-plan', { new_plan: newPlan }),
+
+  cancel: () =>
+    api.post('/subscriptions/cancel'),
+
+  reactivate: () =>
+    api.post('/subscriptions/reactivate'),
+};
+
+// --- OTA ---
+
+export const otaApi = {
+  // Admin
+  listReleases: (channel?: string) =>
+    api.get('/ota/admin/releases', { params: channel ? { channel } : {} }),
+
+  createRelease: (data: {
+    version_name: string;
+    version_code: number;
+    channel: string;
+    apk_url: string;
+    sha256: string;
+    min_version_code?: number;
+    release_notes?: string;
+    rollout_percentage?: number;
+  }) =>
+    api.post('/ota/admin/releases', data),
+
+  updateRelease: (releaseId: number, data: {
+    rollout_percentage?: number;
+    is_active?: boolean;
+    release_notes?: string;
+    min_version_code?: number;
+  }) =>
+    api.put(`/ota/admin/releases/${releaseId}`, data),
+
+  deleteRelease: (releaseId: number) =>
+    api.delete(`/ota/admin/releases/${releaseId}`),
+};
+
+// --- Device Status ---
+
+export const deviceStatusApi = {
+  getStatus: () =>
+    api.get('/parent/device-status'),
+};
+
+// --- Weekly Reports ---
+
+export const reportsApi = {
+  getWeekly: (weekOffset: number = 0) =>
+    api.get('/reports/weekly', { params: { week_offset: weekOffset } }),
+};
+
+// --- NPS ---
+
+export const npsApi = {
+  check: () =>
+    api.get('/nps/check'),
+
+  submit: (surveyId: number, score: number, comment?: string) =>
+    api.post(`/nps/${surveyId}/submit`, { score, comment }),
+
+  dismiss: (surveyId: number) =>
+    api.post(`/nps/${surveyId}/dismiss`),
+
+  getResults: () =>
+    api.get('/nps/admin/results'),
+};
+
+// --- Push Notifications ---
+
+export const notificationsApi = {
+  send: (title: string, body: string, deviceId?: number) =>
+    api.post('/notifications/send', { title, body, device_id: deviceId }),
+};
+
 // --- Admin ---
 
 export const adminApi = {
@@ -289,4 +399,51 @@ export const adminApi = {
 
   enhancedScrape: (data: { title_id: number; tag_ids: number[]; force_rescrape?: boolean }) =>
     api.post('/admin/enhanced-scrape', data),
+};
+
+// --- Chinampas ---
+
+export const chinampasApi = {
+  browse: (params: Record<string, string> = {}) =>
+    api.get('/chinampas', { params }),
+
+  getDetail: (id: number) =>
+    api.get(`/chinampas/${id}`),
+
+  create: (data: { name: string; description: string; age_range: string; title_ids: number[]; publish: boolean }) =>
+    api.post('/chinampas', data),
+
+  update: (id: number, data: { name?: string; description?: string; age_range?: string; title_ids?: number[] }) =>
+    api.put(`/chinampas/${id}`, data),
+
+  delete: (id: number) =>
+    api.delete(`/chinampas/${id}`),
+
+  adopt: (id: number, data: { child_profile_id: number; excluded_title_ids: number[] }) =>
+    api.post(`/chinampas/${id}/adopt`, data),
+
+  getPlanted: () =>
+    api.get('/chinampas/mine/planted'),
+
+  getAdopted: () =>
+    api.get('/chinampas/mine/adopted'),
+
+  getApprovedTitles: () =>
+    api.get('/chinampas/mine/approved-titles'),
+
+  report: (id: number, data: { reason: string }) =>
+    api.post(`/chinampas/${id}/report`, data),
+
+  // Admin
+  getReviewQueue: () =>
+    api.get('/chinampas/admin/review-queue'),
+
+  approve: (id: number) =>
+    api.post(`/chinampas/admin/${id}/approve`),
+
+  reject: (id: number, reason?: string) =>
+    api.post(`/chinampas/admin/${id}/reject`, { reason }),
+
+  toggleStaffPick: (id: number) =>
+    api.post(`/chinampas/admin/${id}/staff-pick`),
 };

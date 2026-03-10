@@ -4,6 +4,43 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
+const DEVICE_FEE = 45;
+
+const PLANS = [
+  {
+    id: 'monthly',
+    name: 'Monthly',
+    price: 14.99,
+    interval: 'mo',
+    color: '#688ac6',
+    colorHover: '#5276b3',
+    features: [
+      'Full parent dashboard access',
+      'Unlimited kid profiles',
+      'Real-time content filtering',
+      'Device management & pairing',
+      'Screen time controls',
+      'Weekly usage reports',
+    ],
+  },
+  {
+    id: 'annual',
+    name: 'Annual',
+    price: 194.90,
+    interval: 'yr',
+    monthlyEquiv: (194.90 / 12).toFixed(2),
+    savings: Math.round(14.99 * 12 - 194.90),
+    color: '#FF6B9D',
+    colorHover: '#e85a89',
+    popular: true,
+    features: [
+      'Everything in Monthly',
+      `Save $${Math.round(14.99 * 12 - 194.90)}/year vs monthly`,
+      'Priority support',
+      'Full parent dashboard access',
+      'Unlimited kid profiles',
+      'Screen time controls',
+    ],
 const MONTHLY_PRICE = 14.99;
 const ANNUAL_PRICE = 149.90;
 const ANNUAL_MONTHLY_EQUIV = 12.49;
@@ -65,11 +102,18 @@ const FAQS = [
 
 export default function Pricing() {
   const router = useRouter();
+  const [selectedPlan, setSelectedPlan] = useState<string>('annual');
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   const [hardwareUnits, setHardwareUnits] = useState(1);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [step, setStep] = useState<'plan' | 'configure' | 'checkout'>('plan');
 
+  const plan = PLANS.find((p) => p.id === selectedPlan)!;
+  const hardwareCost = DEVICE_FEE * hardwareUnits;
+  const subscriptionDisplay =
+    plan.id === 'monthly'
+      ? `$${plan.price.toFixed(2)}/mo`
+      : `$${plan.price.toFixed(2)}/yr`;
   const unitPrice = getUnitPrice(hardwareUnits);
   const hardwareCost = unitPrice * hardwareUnits;
   const discountLabel = getDiscountLabel(hardwareUnits);
@@ -83,6 +127,7 @@ export default function Pricing() {
         router.push('/parent?redirect=pricing');
         return;
       }
+
       const res = await fetch('/api/subscriptions/create-checkout', {
         method: 'POST',
         headers: {
@@ -90,6 +135,7 @@ export default function Pricing() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          plan: selectedPlan,
           plan: 'axolotly',
           billing_period: billingPeriod,
           hardware_units: hardwareUnits,
@@ -97,10 +143,12 @@ export default function Pricing() {
           cancel_url: window.location.origin + '/pricing',
         }),
       });
+
       if (res.status === 401 || res.status === 403) {
         router.push('/parent?redirect=pricing');
         return;
       }
+
       const data = await res.json();
       if (data.checkout_url) {
         window.location.href = data.checkout_url;
@@ -117,12 +165,20 @@ export default function Pricing() {
       <Header variant="pink" />
       <main className="max-w-5xl mx-auto px-6 py-12">
 
+      <main className="max-w-5xl mx-auto px-6 py-12">
         {/* Hero */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-[#566886] mb-4">
             Simple, transparent pricing
           </h1>
           <p className="text-xl text-gray-600 mb-2">
+            One device. One subscription. Full protection.
+          </p>
+          <p className="text-gray-500">
+            $45 per Axolotly device (one-time) + your choice of plan
+          </p>
+
+          {/* Step indicators */}
             One plan. Everything included. No hidden fees.
           </p>
           <div className="flex items-center justify-center gap-2 mt-8">
@@ -143,6 +199,10 @@ export default function Pricing() {
                 >
                   {i + 1}
                 </button>
+                <span
+                  className={`text-sm font-medium ${step === s ? 'text-[#FF6B9D]' : 'text-gray-400'}`}
+                >
+                  {s === 'plan' ? 'Choose Plan' : s === 'configure' ? 'Configure' : 'Checkout'}
                 <span className={`text-sm font-medium ${step === s ? 'text-[#FF6B9D]' : 'text-gray-400'}`}>
                   {s === 'plan' ? 'Choose Billing' : s === 'configure' ? 'Configure' : 'Checkout'}
                 </span>
@@ -152,6 +212,98 @@ export default function Pricing() {
           </div>
         </div>
 
+        {/* Step 1: Choose Plan */}
+        {step === 'plan' && (
+          <>
+            <section className="mb-16">
+              <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                {PLANS.map((p) => (
+                  <div
+                    key={p.id}
+                    onClick={() => setSelectedPlan(p.id)}
+                    className={`bg-white rounded-lg p-8 border-t-4 cursor-pointer transition-all relative ${
+                      selectedPlan === p.id
+                        ? 'shadow-xl transform md:scale-105'
+                        : 'shadow-lg hover:shadow-xl'
+                    }`}
+                    style={{ borderTopColor: p.color }}
+                  >
+                    {p.popular && (
+                      <div
+                        className="absolute top-0 right-0 text-white px-4 py-1 rounded-bl-lg text-sm font-semibold"
+                        style={{ background: `linear-gradient(to right, ${p.color}, ${p.colorHover})` }}
+                      >
+                        Best Value
+                      </div>
+                    )}
+                    <h3 className="text-2xl font-bold text-[#566886] mb-2">{p.name}</h3>
+                    <div className="mb-6">
+                      {p.id === 'monthly' ? (
+                        <>
+                          <span className="text-4xl font-bold" style={{ color: p.color }}>
+                            ${p.price.toFixed(2)}
+                          </span>
+                          <span className="text-gray-600">/month</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-4xl font-bold" style={{ color: p.color }}>
+                            ${p.price.toFixed(2)}
+                          </span>
+                          <span className="text-gray-600">/year</span>
+                          <div className="text-sm text-gray-500 mt-1">
+                            That&apos;s just ${p.monthlyEquiv}/mo
+                          </div>
+                        </>
+                      )}
+                      <div className="text-xs text-gray-400 mt-1">+ $45 per device (one-time)</div>
+                    </div>
+                    {p.savings && (
+                      <div className="bg-green-50 text-green-700 text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
+                        Save ${p.savings}/year
+                      </div>
+                    )}
+                    <ul className="space-y-3 mb-8">
+                      {p.features.map((f) => (
+                        <li key={f} className="flex items-start">
+                          <span className="text-gray-700">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPlan(p.id);
+                        setStep('configure');
+                      }}
+                      className="w-full text-white font-bold py-3 rounded-lg transition-colors"
+                      style={{
+                        background: p.popular
+                          ? `linear-gradient(to right, ${p.color}, ${p.colorHover})`
+                          : p.color,
+                      }}
+                    >
+                      Choose {p.name}
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* All Plans Include */}
+              <div className="mt-8 p-6 bg-gray-50 rounded-lg max-w-4xl mx-auto">
+                <h4 className="font-bold text-[#566886] mb-3 text-center">Every plan includes:</h4>
+                <div className="grid md:grid-cols-2 gap-3 text-gray-700">
+                  <div className="flex items-center">Intelligent content protection</div>
+                  <div className="flex items-center">Full access to parent dashboard</div>
+                  <div className="flex items-center">Community-driven content tagging</div>
+                  <div className="flex items-center">Secure cloud syncing</div>
+                </div>
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* Step 2: Configure hardware */}
         {/* Step 1: Plan */}
         {step === 'plan' && (
           <>
@@ -262,6 +414,69 @@ export default function Pricing() {
           <section className="max-w-2xl mx-auto mb-16">
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-[#566886] mb-6 text-center">
+                Configure Your Order
+              </h2>
+
+              {/* Selected plan summary */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-6 flex justify-between items-center">
+                <div>
+                  <span className="font-semibold text-[#566886]">{plan.name} Plan</span>
+                </div>
+                <span className="text-lg font-bold" style={{ color: plan.color }}>
+                  {subscriptionDisplay}
+                </span>
+              </div>
+
+              {/* Hardware units selector */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-[#566886] mb-3">
+                  How many Axolotly devices?
+                </label>
+                <div className="flex gap-3">
+                  {[1, 2, 3].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => setHardwareUnits(n)}
+                      className={`flex-1 py-4 rounded-lg border-2 transition-all text-center ${
+                        hardwareUnits === n
+                          ? 'border-[#FF6B9D] bg-pink-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="text-2xl font-bold text-[#566886]">{n}</div>
+                      <div className="text-sm text-gray-500">
+                        ${DEVICE_FEE}/unit
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  Need 4+ units? Contact us for custom pricing.
+                </p>
+              </div>
+
+              {/* Order summary */}
+              <div className="border-t pt-4 space-y-2">
+                <div className="flex justify-between text-gray-600">
+                  <span>Hardware ({hardwareUnits} device{hardwareUnits > 1 ? 's' : ''} x ${DEVICE_FEE})</span>
+                  <span>${hardwareCost.toFixed(2)} one-time</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>{plan.name} subscription</span>
+                  <span>{subscriptionDisplay}</span>
+                </div>
+                <div className="border-t pt-2 flex justify-between font-bold text-[#566886]">
+                  <span>Due today</span>
+                  <span>
+                    ${(hardwareCost + plan.price).toFixed(2)}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400">
+                  Then {subscriptionDisplay}. Cancel anytime.
+                </p>
+              </div>
+
+              <div className="flex gap-3 mt-6">
                 How many Axolotly devices?
               </h2>
 
@@ -345,6 +560,10 @@ export default function Pricing() {
                 </button>
                 <button
                   onClick={() => setStep('checkout')}
+                  className="flex-1 py-3 rounded-lg text-white font-bold transition-all"
+                  style={{
+                    background: `linear-gradient(to right, #FF6B9D, #FF8FB3)`,
+                  }}
                   className="flex-1 py-3 rounded-lg text-white font-bold transition-all hover:opacity-90"
                   style={{ background: 'linear-gradient(to right, #FF6B9D, #FF8FB3)' }}
                 >
@@ -355,6 +574,7 @@ export default function Pricing() {
           </section>
         )}
 
+        {/* Step 3: Checkout confirmation */}
         {/* Step 3: Checkout */}
         {step === 'checkout' && (
           <section className="max-w-2xl mx-auto mb-16">
@@ -365,6 +585,21 @@ export default function Pricing() {
 
               <div className="space-y-3 mb-6">
                 <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-[#566886] mb-2">Order Summary</h3>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{plan.name} Plan</span>
+                      <span>{subscriptionDisplay}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        Axolotly Device x{hardwareUnits}
+                      </span>
+                      <span>${hardwareCost.toFixed(2)}</span>
+                    </div>
+                    <div className="border-t pt-1 mt-2 flex justify-between font-bold">
+                      <span>Total due today</span>
+                      <span>${(hardwareCost + plan.price).toFixed(2)}</span>
                   <h3 className="font-semibold text-[#566886] mb-3">Order Summary</h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
@@ -398,6 +633,10 @@ export default function Pricing() {
                 </div>
 
                 <div className="bg-blue-50 rounded-lg p-4 text-sm text-[#566886]">
+                  <p className="font-semibold mb-1">What happens next:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-gray-600">
+                    <li>Complete secure payment via Stripe</li>
+                    <li>Your Axolotly device(s) ship within 3-5 business days</li>
                   <p className="font-semibold mb-2">What happens next:</p>
                   <ol className="list-decimal list-inside space-y-1 text-gray-600">
                     <li>Complete secure payment via Stripe</li>
@@ -408,6 +647,7 @@ export default function Pricing() {
                 </div>
 
                 <div className="text-xs text-gray-400 text-center">
+                  30-day money-back guarantee on hardware. Cancel subscription anytime.
                   30-day money-back guarantee on hardware · Cancel subscription anytime
                 </div>
               </div>
@@ -422,6 +662,10 @@ export default function Pricing() {
                 <button
                   onClick={handleCheckout}
                   disabled={isCheckingOut}
+                  className="flex-1 py-3 rounded-lg text-white font-bold transition-all disabled:opacity-50"
+                  style={{
+                    background: `linear-gradient(to right, #FF6B9D, #FF8FB3)`,
+                  }}
                   className="flex-1 py-3 rounded-lg text-white font-bold transition-all disabled:opacity-50 hover:opacity-90"
                   style={{ background: 'linear-gradient(to right, #FF6B9D, #FF8FB3)' }}
                 >
@@ -436,6 +680,24 @@ export default function Pricing() {
         <section className="max-w-3xl mx-auto mb-16">
           <h2 className="text-2xl font-bold text-[#566886] mb-6 text-center">Common Questions</h2>
           <div className="space-y-4">
+            {[
+              {
+                q: 'Can I switch between monthly and annual?',
+                a: 'Yes! You can upgrade to annual (and save) or switch back to monthly at any time from your subscription settings. Changes are prorated.',
+              },
+              {
+                q: 'What if I need more devices?',
+                a: 'You can purchase additional Axolotly devices at any time for $45 each. There\'s no limit on the number of devices per subscription.',
+              },
+              {
+                q: 'Is there a free trial?',
+                a: 'We offer a 30-day money-back guarantee on hardware and your first billing period of service.',
+              },
+              {
+                q: 'How does the device work?',
+                a: 'Axolotly replaces the standard Android launcher on a TV streaming device. It only shows content you\'ve approved through the parent dashboard.',
+              },
+            ].map(({ q, a }) => (
             {FAQS.map(({ q, a }) => (
               <div key={q} className="bg-white rounded-lg shadow p-5">
                 <h3 className="font-semibold text-[#566886] mb-1">{q}</h3>
@@ -462,6 +724,7 @@ export default function Pricing() {
           </button>
         </section>
       </main>
+
       <Footer />
     </div>
   );

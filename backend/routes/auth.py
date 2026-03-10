@@ -7,6 +7,11 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional
 from db import get_db
+from models import User, KidProfile, PairingCode, Device, Policy, RevokedToken
+import secrets
+import uuid
+from config import settings
+from auth_utils import get_current_user, require_parent, require_admin
 from models import User, KidProfile, Device, Policy, RevokedToken, RefreshToken
 import secrets
 import hashlib
@@ -128,6 +133,12 @@ class KidProfileUpdateRequest(BaseModel):
     age: Optional[int] = None
     pin: Optional[str] = None
 
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire, "jti": str(uuid.uuid4())})
+    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+    return encoded_jwt
 
 # ---------------------------------------------------------------------------
 # Auth endpoints
@@ -142,6 +153,7 @@ def parent_signup(
     existing_user = db.query(User).filter(User.email == request.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
+
     if len(request.password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 
@@ -295,10 +307,15 @@ def kid_login(request: KidLoginRequest, db: Session = Depends(get_db)):
     profile = db.query(KidProfile).filter(KidProfile.id == request.profile_id).first()
     if not profile:
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
     try:
         pin_valid = bcrypt.checkpw(request.pin.encode('utf-8'), profile.pin.encode('utf-8'))
     except (ValueError, TypeError):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not pin_valid:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
     if not pin_valid:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     _clear_brute_force(f"kid_login:{request.profile_id}")
@@ -316,6 +333,7 @@ def logout(
     auth_data: tuple = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Revoke the current access token so it cannot be reused."""
     user, profile, role, payload = auth_data
     jti = payload.get("jti")
     if jti:
@@ -422,6 +440,14 @@ def delete_kid_profile(
     return {"success": True, "message": f"Profile '{profile.name}' deleted"}
 
 
+@router.get("/kid/profiles")
+def get_all_kid_profiles(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Admin-only endpoint to view all kid profiles"""
+    profiles = db.query(KidProfile).all()
+    return [{"id": p.id, "name": p.name, "age": p.age} for p in profiles]
 # ---------------------------------------------------------------------------
 # Admin endpoints
 # ---------------------------------------------------------------------------
@@ -431,6 +457,8 @@ def get_all_parents(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
+    """Admin endpoint to view all parent accounts"""
+    # Get all parents with kid profile counts and device counts in one query
     kid_count_sub = (
         db.query(KidProfile.parent_id, func.count(KidProfile.id).label("kid_count"))
         .group_by(KidProfile.parent_id)
@@ -448,6 +476,14 @@ def get_all_parents(
         .outerjoin(device_count_sub, User.id == device_count_sub.c.parent_id)
         .all()
     )
+
+    # Batch-load kid profiles for all parents
+    parent_ids = [row[0].id for row in rows]
+    all_kids = db.query(KidProfile).filter(KidProfile.parent_id.in_(parent_ids)).all() if parent_ids else []
+    kids_by_parent = {}
+    for k in all_kids:
+        kids_by_parent.setdefault(k.parent_id, []).append(k)
+
     parent_ids = [row[0].id for row in rows]
     all_kids = db.query(KidProfile).filter(KidProfile.parent_id.in_(parent_ids)).all() if parent_ids else []
     kids_by_parent: dict = {}
@@ -463,6 +499,69 @@ def get_all_parents(
             "created_at": parent.created_at,
             "kid_profiles_count": kid_count or 0,
             "devices_count": device_count or 0,
+            "kid_profiles": [{"id": k.id, "name": k.name, "age": k.age} for k in kids]
+        })
+
+    return result
+
+@router.put("/kid/profile/{profile_id}")
+def update_kid_profile(
+    profile_id: int,
+    request: KidProfileUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
+    """Update a kid profile's name, age, or PIN"""
+    profile = db.query(KidProfile).filter(
+        KidProfile.id == profile_id,
+        KidProfile.parent_id == current_user.id
+    ).first()
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="Kid profile not found")
+
+    if request.name is not None:
+        profile.name = request.name
+    if request.age is not None:
+        if request.age < 1 or request.age > 17:
+            raise HTTPException(status_code=400, detail="Age must be between 1 and 17")
+        profile.age = request.age
+    if request.pin is not None:
+        if len(request.pin) < 4:
+            raise HTTPException(status_code=400, detail="PIN must be at least 4 characters")
+        profile.pin = bcrypt.hashpw(request.pin.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    db.commit()
+    db.refresh(profile)
+    return {"id": profile.id, "name": profile.name, "age": profile.age}
+
+@router.delete("/kid/profile/{profile_id}")
+def delete_kid_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_parent)
+):
+    """Delete a kid profile and its associated policies and device links"""
+    profile = db.query(KidProfile).filter(
+        KidProfile.id == profile_id,
+        KidProfile.parent_id == current_user.id
+    ).first()
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="Kid profile not found")
+
+    # Unlink devices from this profile (don't delete devices, just unassign)
+    db.query(Device).filter(Device.kid_profile_id == profile_id).update(
+        {"kid_profile_id": None}
+    )
+
+    # Delete associated policies
+    db.query(Policy).filter(Policy.kid_profile_id == profile_id).delete()
+
+    db.delete(profile)
+    db.commit()
+
+    return {"success": True, "message": f"Profile '{profile.name}' deleted"}
             "kid_profiles": [{"id": k.id, "name": k.name, "age": k.age} for k in kids],
         })
     return result
@@ -473,6 +572,7 @@ def get_all_kid_profiles_admin(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
+    """Admin endpoint to view all kid profiles with parent info"""
     policy_count_sub = (
         db.query(Policy.kid_profile_id, func.count(Policy.id).label("policy_count"))
         .group_by(Policy.kid_profile_id)
@@ -483,6 +583,7 @@ def get_all_kid_profiles_admin(
         .group_by(Device.kid_profile_id)
         .subquery()
     )
+
     rows = (
         db.query(KidProfile, User.email, policy_count_sub.c.policy_count, device_count_sub.c.device_count)
         .join(User, KidProfile.parent_id == User.id)
@@ -490,6 +591,7 @@ def get_all_kid_profiles_admin(
         .outerjoin(device_count_sub, KidProfile.id == device_count_sub.c.kid_profile_id)
         .all()
     )
+
     return [
         {
             "id": profile.id,
@@ -499,6 +601,7 @@ def get_all_kid_profiles_admin(
             "parent_id": profile.parent_id,
             "policies_count": policy_count or 0,
             "devices_count": device_count or 0,
+            "created_at": profile.created_at
             "created_at": profile.created_at,
         }
         for profile, parent_email, policy_count, device_count in rows
