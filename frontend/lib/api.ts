@@ -177,6 +177,22 @@ export const contentTagApi = {
 
   getContentReports: () =>
     api.get('/content-tags/reports'),
+    api.get('/tags'),
+
+  createTag: (category: string, slug: string, display_name: string, description?: string) =>
+    api.post('/tags', { category, slug, display_name, description }),
+
+  updateTag: (tagId: number, data: { display_name?: string; description?: string }) =>
+    api.put(`/tags/${tagId}`, data),
+
+  deleteTag: (tagId: number) =>
+    api.delete(`/tags/${tagId}`),
+
+  getTitleTags: (titleId: number) =>
+    api.get(`/titles/${titleId}/tags`),
+
+  getContentReports: () =>
+    api.get('/content-reports'),
 
   createContentReport: (
     title_id: number,
@@ -192,6 +208,13 @@ export const contentTagApi = {
 
   rejectContentReport: (reportId: number) =>
     api.put(`/content-tags/reports/${reportId}/reject`),
+    api.post('/content-reports', { title_id, tag_id, notes, season_number, episode_number }),
+
+  approveContentReport: (reportId: number) =>
+    api.patch(`/content-reports/${reportId}/approve`),
+
+  rejectContentReport: (reportId: number) =>
+    api.patch(`/content-reports/${reportId}/reject`),
 };
 
 // --- Streaming Services ---

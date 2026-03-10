@@ -49,6 +49,11 @@ build/
 *.sqlite
 *.sqlite3
 
+# SQL dumps and backups — NEVER commit sensitive data
+*.sql
+*_backup.sql
+dev_data_backup.sql
+
 # IDE
 .vscode/
 .idea/

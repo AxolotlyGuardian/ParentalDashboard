@@ -1411,6 +1411,123 @@ export default function ParentDashboard() {
             </div>
           )}
 
+            </div>
+          )}
+
+          {/* Family-wide tabs (no profile selection needed) */}
+          {activeTab === 'timelimits' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800">Screen Time Limits</h2>
+                {!editingTimeLimits && (
+                  <button
+                    onClick={() => {
+                      setTlDailyMinutes(timeLimits.dailyLimitMinutes !== null ? String(timeLimits.dailyLimitMinutes) : '');
+                      setTlBedtimeStart(timeLimits.bedtimeStart || '');
+                      setTlBedtimeEnd(timeLimits.bedtimeEnd || '');
+                      setTlScheduleEnabled(timeLimits.scheduleEnabled);
+                      setEditingTimeLimits(true);
+                    }}
+                    className="px-5 py-2.5 bg-[#F77B8A] text-white rounded-full text-sm font-medium hover:shadow-[0_6px_20px_rgba(247,123,138,0.4)] hover:scale-105 transition-all duration-200"
+                  >
+                    Edit Limits
+                  </button>
+                )}
+              </div>
+
+              {editingTimeLimits ? (
+                <div className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)] space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Daily Screen Time (minutes)</label>
+                    <input
+                      type="number"
+                      value={tlDailyMinutes}
+                      onChange={(e) => setTlDailyMinutes(e.target.value)}
+                      placeholder="e.g. 120"
+                      min={0}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-gray-800 focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Leave empty for unlimited</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Bedtime Start</label>
+                      <input
+                        type="time"
+                        value={tlBedtimeStart}
+                        onChange={(e) => setTlBedtimeStart(e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-gray-800 focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Bedtime End</label>
+                      <input
+                        type="time"
+                        value={tlBedtimeEnd}
+                        onChange={(e) => setTlBedtimeEnd(e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-gray-800 focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setTlScheduleEnabled(!tlScheduleEnabled)}
+                      className={`relative w-12 h-6 rounded-full transition-all duration-200 ${tlScheduleEnabled ? 'bg-[#F77B8A]' : 'bg-gray-300'}`}
+                    >
+                      <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${tlScheduleEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                    </button>
+                    <span className="text-sm text-gray-700 font-medium">Enforce schedule on devices</span>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={handleSaveTimeLimits}
+                      className="px-6 py-2.5 bg-[#F77B8A] text-white rounded-xl text-sm font-medium hover:shadow-[0_4px_14px_rgba(247,123,138,0.4)] hover:scale-105 transition-all duration-200"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setEditingTimeLimits(false)}
+                      className="px-4 py-2.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                    <div className="text-sm text-gray-500 mb-1">Daily Limit</div>
+                    <div className="text-2xl font-bold text-gray-800">
+                      {timeLimits.dailyLimitMinutes !== null ? `${timeLimits.dailyLimitMinutes} min` : 'Unlimited'}
+                    </div>
+                    {timeLimits.dailyLimitMinutes !== null && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {Math.floor(timeLimits.dailyLimitMinutes / 60)}h {timeLimits.dailyLimitMinutes % 60}m per day
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                    <div className="text-sm text-gray-500 mb-1">Bedtime</div>
+                    <div className="text-2xl font-bold text-gray-800">
+                      {timeLimits.bedtimeStart && timeLimits.bedtimeEnd
+                        ? `${timeLimits.bedtimeStart} - ${timeLimits.bedtimeEnd}`
+                        : 'Not set'}
+                    </div>
+                  </div>
+                  <div className="p-6 bg-white rounded-2xl border border-gray-200/50 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+                    <div className="text-sm text-gray-500 mb-1">Schedule</div>
+                    <div className={`text-2xl font-bold ${timeLimits.scheduleEnabled ? 'text-green-600' : 'text-gray-400'}`}>
+                      {timeLimits.scheduleEnabled ? 'Active' : 'Off'}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {timeLimits.scheduleEnabled ? 'Enforced on all devices' : 'Devices unrestricted'}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'usage' && (
             <div>
               <div className="flex items-center justify-between mb-6">

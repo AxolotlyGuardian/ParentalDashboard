@@ -11,6 +11,13 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
+    # Email verification
+    email_verified = Column(Boolean, default=False, nullable=False)
+    email_verify_token = Column(String, nullable=True, index=True)
+    email_verify_token_expires = Column(DateTime, nullable=True)
+    # Password reset
+    password_reset_token = Column(String, nullable=True, index=True)
+    password_reset_token_expires = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     kid_profiles = relationship("KidProfile", back_populates="parent")
@@ -204,6 +211,9 @@ class PendingDevice(Base):
     device_id = Column(String, unique=True, nullable=False, index=True)
     pairing_code = Column(String(6), unique=True, nullable=False, index=True)
     api_key_plaintext = Column(String, nullable=True)
+    # Stores the one-time delivery key encrypted with Fernet (PAIRING_ENCRYPTION_KEY env var).
+    # Deleted from the database on first successful retrieval by the device.
+    api_key_encrypted = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=False)
 
@@ -498,6 +508,10 @@ class Subscription(Base):
     device_limit = Column(Integer, nullable=False, default=1)
     hardware_units = Column(Integer, default=1)
     dunning_step = Column(Integer, default=0)  # 0=ok, 1=day1, 2=day3, 3=day7
+    plan = Column(String, nullable=False)  # starter, family, educator
+    status = Column(String, default="pending")  # pending, active, canceled, past_due
+    device_limit = Column(Integer, nullable=False, default=1)
+    hardware_units = Column(Integer, default=1)
     current_period_start = Column(DateTime, nullable=True)
     current_period_end = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -640,6 +654,18 @@ class ChinampaReport(Base):
 
     chinampa = relationship("Chinampa")
     reporter = relationship("User")
+class RefreshToken(Base):
+    """Long-lived refresh tokens used to obtain new short-lived access tokens."""
+    __tablename__ = "refresh_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    token_hash = Column(String, unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    revoked = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
 
 
 class FandomEpisodeLink(Base):
