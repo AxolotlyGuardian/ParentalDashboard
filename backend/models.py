@@ -503,15 +503,11 @@ class Subscription(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     stripe_customer_id = Column(String, nullable=True, unique=True, index=True)
     stripe_subscription_id = Column(String, nullable=True, unique=True, index=True)
-    plan = Column(String, nullable=False)  # monthly, annual
-    status = Column(String, default="pending")  # pending, active, canceled, past_due
-    device_limit = Column(Integer, nullable=False, default=1)
-    hardware_units = Column(Integer, default=1)
-    dunning_step = Column(Integer, default=0)  # 0=ok, 1=day1, 2=day3, 3=day7
     plan = Column(String, nullable=False)  # starter, family, educator
     status = Column(String, default="pending")  # pending, active, canceled, past_due
     device_limit = Column(Integer, nullable=False, default=1)
     hardware_units = Column(Integer, default=1)
+    dunning_step = Column(Integer, default=0)  # 0=ok, 1=day1, 2=day3, 3=day7
     current_period_start = Column(DateTime, nullable=True)
     current_period_end = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
